@@ -33,14 +33,24 @@
     .sub{ color:#64748b; margin-top:4px; }
 
     .btn-sair{
-      background:#ef4444;
-      color:white;
-      border:none;
-      border-radius:12px;
-      padding:12px 16px;
-      font-weight:bold;
-      cursor:pointer;
-    }
+  background:#ef4444;
+  color:white;
+  border:none;
+  border-radius:12px;
+  padding:12px 16px;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.btn-relatorio{
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:12px;
+  padding:12px 16px;
+  font-weight:bold;
+  cursor:pointer;
+}
 
     .card{
       background:white;
@@ -190,80 +200,95 @@
 <body>
 
 <div class="container">
+<div class="topo">
 
-  <div class="topo">
+  <div>
+    <h1 id="empresaNome">PontoFácil</h1>
+    <div class="sub">Painel da gestão da empresa</div>
+  </div>
+
+  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+    <button
+      class="btn-relatorio"
+      onclick="window.location.href='./relatorio.html'"
+    >
+      Relatório mensal
+    </button>
+
+    <button
+      class="btn-sair"
+      onclick="sair()"
+    >
+      Sair
+    </button>
+
+  </div>
+
+</div>
+
+<div class="card">
+  <h2>Cadastrar funcionário</h2>
+
+  <div class="grid">
+
     <div>
-      <h1 id="empresaNome">PontoFácil</h1>
-      <div class="sub">Painel da gestão da empresa</div>
+      <label>Foto do funcionário</label>
+      <input id="foto" type="file" accept="image/*">
     </div>
 
-    <button class="btn-sair" onclick="sair()">Sair</button>
+    <div>
+      <label>Nome completo</label>
+      <input id="nome" placeholder="Ex: João da Silva">
+    </div>
+
+    <div>
+      <label>CPF</label>
+      <input id="cpf" placeholder="000.000.000-00">
+    </div>
+
+    <div>
+      <label>Função</label>
+      <input id="funcao" placeholder="Ex: Recepcionista">
+    </div>
+
+    <div>
+      <label>Data de nascimento</label>
+      <input id="data_nascimento" type="date">
+    </div>
+
+    <div>
+      <label>Horário de entrada</label>
+      <input id="horario_entrada" type="time">
+    </div>
+
+    <div>
+      <label>Saída para intervalo</label>
+      <input id="horario_intervalo" type="time">
+    </div>
+
+    <div>
+      <label>Retorno do intervalo</label>
+      <input id="horario_retorno" type="time">
+    </div>
+
+    <div>
+      <label>Horário de saída</label>
+      <input id="horario_saida" type="time">
+    </div>
+
   </div>
 
-  <div class="card">
-    <h2>Cadastrar funcionário</h2>
-
-    <div class="grid">
-
-  <div>
-    <label>Foto do funcionário</label>
-    <input id="foto" type="file" accept="image/*">
-  </div>
-
-  <div>
-    <label>Nome completo</label>
-    <input id="nome" placeholder="Ex: João da Silva">
-  </div>
-
-  <div>
-    <label>CPF</label>
-    <input id="cpf" placeholder="000.000.000-00">
-  </div>
-
-  <div>
-    <label>Função</label>
-    <input id="funcao" placeholder="Ex: Recepcionista">
-  </div>
-
-  <div>
-    <label>Data de nascimento</label>
-    <input id="data_nascimento" type="date">
-  </div>
-
-  <div>
-    <label>Horário de entrada</label>
-    <input id="horario_entrada" type="time">
-  </div>
-
-  <div>
-    <label>Saída para intervalo</label>
-    <input id="horario_intervalo" type="time">
-  </div>
-
-  <div>
-    <label>Retorno do intervalo</label>
-    <input id="horario_retorno" type="time">
-  </div>
-
-  <div>
-    <label>Horário de saída</label>
-    <input id="horario_saida" type="time">
-  </div>
-
+  <button class="btn" onclick="salvarFuncionario()">
+    Salvar funcionário
+  </button>
 </div>
 
-    <button class="btn" onclick="salvarFuncionario()">
-      Salvar funcionário
-    </button>
-  </div>
-
-  <div class="card">
-    <h2>Funcionários cadastrados</h2>
-    <div id="listaFuncionarios"></div>
-  </div>
-
+<div class="card">
+  <h2>Funcionários cadastrados</h2>
+  <div id="listaFuncionarios"></div>
 </div>
-
+</div>
 <script>
   const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
 
