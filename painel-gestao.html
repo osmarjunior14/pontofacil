@@ -6,6 +6,7 @@
   <title>PontoFácil - Gestão</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
   <style>
     *{ box-sizing:border-box; margin:0; padding:0; }
@@ -29,28 +30,33 @@
     }
 
     h1{ color:#2563eb; font-size:34px; }
-
     .sub{ color:#64748b; margin-top:4px; }
 
-    .btn-sair{
-  background:#ef4444;
-  color:white;
-  border:none;
-  border-radius:12px;
-  padding:12px 16px;
-  font-weight:bold;
-  cursor:pointer;
-}
+    .botoes-topo{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
-.btn-relatorio{
-  background:#2563eb;
-  color:white;
-  border:none;
-  border-radius:12px;
-  padding:12px 16px;
-  font-weight:bold;
-  cursor:pointer;
-}
+    .btn-topo{
+      background:#2563eb;
+      color:white;
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .btn-sair{
+      background:#ef4444;
+      color:white;
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      font-weight:bold;
+      cursor:pointer;
+    }
 
     .card{
       background:white;
@@ -66,6 +72,14 @@
       display:grid;
       grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
       gap:14px;
+    }
+
+    label{
+      display:block;
+      margin-bottom:6px;
+      color:#334155;
+      font-size:14px;
+      font-weight:700;
     }
 
     input{
@@ -187,124 +201,94 @@
       .acoes button{
         flex:1;
       }
-      label{
-  display:block;
-  margin-bottom:6px;
-  color:#334155;
-  font-size:14px;
-  font-weight:700;
-}
     }
   </style>
 </head>
+
 <body>
 
 <div class="container">
-<div class="topo">
 
-  <div>
-    <h1 id="empresaNome">PontoFácil</h1>
-    <div class="sub">Painel da gestão da empresa</div>
+  <div class="topo">
+    <div>
+      <h1 id="empresaNome">PontoFácil</h1>
+      <div class="sub">Painel da gestão da empresa</div>
+    </div>
+
+    <div class="botoes-topo">
+      <button class="btn-topo" onclick="gerarQRCode()">QR Code</button>
+      <button class="btn-topo" onclick="window.location.href='./dashboard.html'">Dashboard</button>
+      <button class="btn-topo" onclick="window.location.href='./relatorio.html'">Relatório mensal</button>
+      <button class="btn-sair" onclick="sair()">Sair</button>
+    </div>
   </div>
 
-  <div style="display:flex; gap:10px; flex-wrap:wrap;">
+  <div class="card">
+    <h2>Cadastrar funcionário</h2>
 
-  <button
-    class="btn-relatorio"
-    onclick="window.location.href='./dashboard.html'"
-  >
-    Dashboard
-  </button>
+    <div class="grid">
+      <div>
+        <label>Foto do funcionário</label>
+        <input id="foto" type="file" accept="image/*">
+      </div>
 
-  <button
-    class="btn-relatorio"
-    onclick="window.location.href='./relatorio.html'"
-  >
-    Relatório mensal
-  </button>
+      <div>
+        <label>Nome completo</label>
+        <input id="nome" placeholder="Ex: João da Silva">
+      </div>
 
-  <button
-    class="btn-sair"
-    onclick="sair()"
-  >
-    Sair
-  </button>
+      <div>
+        <label>CPF</label>
+        <input id="cpf" placeholder="000.000.000-00">
+      </div>
 
-</div>
+      <div>
+        <label>Função</label>
+        <input id="funcao" placeholder="Ex: Recepcionista">
+      </div>
 
-</div>
+      <div>
+        <label>Data de nascimento</label>
+        <input id="data_nascimento" type="date">
+      </div>
 
-<div class="card">
-  <h2>Cadastrar funcionário</h2>
+      <div>
+        <label>Horário de entrada</label>
+        <input id="horario_entrada" type="time">
+      </div>
 
-  <div class="grid">
+      <div>
+        <label>Saída para intervalo</label>
+        <input id="horario_intervalo" type="time">
+      </div>
 
-    <div>
-      <label>Foto do funcionário</label>
-      <input id="foto" type="file" accept="image/*">
+      <div>
+        <label>Retorno do intervalo</label>
+        <input id="horario_retorno" type="time">
+      </div>
+
+      <div>
+        <label>Horário de saída</label>
+        <input id="horario_saida" type="time">
+      </div>
     </div>
 
-    <div>
-      <label>Nome completo</label>
-      <input id="nome" placeholder="Ex: João da Silva">
-    </div>
-
-    <div>
-      <label>CPF</label>
-      <input id="cpf" placeholder="000.000.000-00">
-    </div>
-
-    <div>
-      <label>Função</label>
-      <input id="funcao" placeholder="Ex: Recepcionista">
-    </div>
-
-    <div>
-      <label>Data de nascimento</label>
-      <input id="data_nascimento" type="date">
-    </div>
-
-    <div>
-      <label>Horário de entrada</label>
-      <input id="horario_entrada" type="time">
-    </div>
-
-    <div>
-      <label>Saída para intervalo</label>
-      <input id="horario_intervalo" type="time">
-    </div>
-
-    <div>
-      <label>Retorno do intervalo</label>
-      <input id="horario_retorno" type="time">
-    </div>
-
-    <div>
-      <label>Horário de saída</label>
-      <input id="horario_saida" type="time">
-    </div>
-
+    <button class="btn" onclick="salvarFuncionario()">Salvar funcionário</button>
   </div>
 
-  <button class="btn" onclick="salvarFuncionario()">
-    Salvar funcionário
-  </button>
+  <div class="card">
+    <h2>Funcionários cadastrados</h2>
+    <div id="listaFuncionarios"></div>
+  </div>
+
 </div>
 
-<div class="card">
-  <h2>Funcionários cadastrados</h2>
-  <div id="listaFuncionarios"></div>
-</div>
-</div>
 <script>
   const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
 
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
 
-  const supabaseClient = window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   const empresaId = localStorage.getItem("pontofacil_empresa_id");
   const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
@@ -313,7 +297,7 @@
     window.location.href = "./gestao.html";
   }
 
-  document.getElementById("empresaNome").innerText = empresaNome;
+  document.getElementById("empresaNome").innerText = empresaNome || "PontoFácil";
 
   function sair(){
     localStorage.removeItem("pontofacil_empresa_logada");
@@ -457,10 +441,8 @@
 
           <div>
             <strong>${funcionario.nome_completo}</strong>
-
             <small><b>CPF:</b> ${funcionario.cpf || "-"}</small>
             <small><b>Função:</b> ${funcionario.funcao || "-"}</small>
-
             <small>
               <b>Horários:</b>
               ${funcionario.horario_entrada || "--:--"} /
@@ -557,6 +539,70 @@
     }
 
     carregarFuncionarios();
+  }
+
+  async function gerarQRCode(){
+    const link = `https://osmarjunior14.github.io/pontofacil/ponto.html?empresa=${empresaId}`;
+
+    const canvas = document.createElement("canvas");
+
+    await QRCode.toCanvas(canvas, link, {
+      width: 320
+    });
+
+    const janela = window.open("");
+
+    janela.document.write(`
+      <html>
+        <head>
+          <title>QR Code do Ponto</title>
+          <style>
+            body{
+              font-family:Arial;
+              display:flex;
+              flex-direction:column;
+              justify-content:center;
+              align-items:center;
+              padding:30px;
+              text-align:center;
+            }
+
+            h1{
+              color:#2563eb;
+              margin-bottom:20px;
+            }
+
+            p{
+              margin-top:16px;
+              color:#475569;
+              max-width:400px;
+            }
+
+            button{
+              margin-top:20px;
+              border:none;
+              background:#2563eb;
+              color:white;
+              padding:12px 18px;
+              border-radius:12px;
+              font-weight:bold;
+              cursor:pointer;
+            }
+          </style>
+        </head>
+
+        <body>
+          <h1>${empresaNome || "PontoFácil"}</h1>
+        </body>
+      </html>
+    `);
+
+    janela.document.body.appendChild(canvas);
+
+    janela.document.body.innerHTML += `
+      <p>Escaneie este QR Code para registrar o ponto.</p>
+      <button onclick="window.print()">Imprimir QR Code</button>
+    `;
   }
 
   carregarFuncionarios();
