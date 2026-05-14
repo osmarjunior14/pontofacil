@@ -356,11 +356,20 @@
       </div>
 
       <div>
-        <label>Funcionário</label>
-        <select id="filtroFuncionario">
-          <option value="todos">Todos os funcionários</option>
-        </select>
-      </div>
+  <label>Status</label>
+  <select id="filtroStatus" onchange="atualizarListaFuncionarios()">
+    <option value="ativos">Somente ativos</option>
+    <option value="todos">Ativos e inativos</option>
+    <option value="inativos">Somente inativos</option>
+  </select>
+</div>
+
+<div>
+  <label>Funcionário</label>
+  <select id="filtroFuncionario">
+    <option value="todos">Todos os funcionários</option>
+  </select>
+</div>
 
       <div>
         <button class="btn-filtrar" onclick="carregarRelatorio()">
@@ -547,28 +556,44 @@
   }
 
   async function carregarFuncionarios(){
-    const { data, error } = await supabaseClient
-      .from("funcionarios")
-      .select("*")
-      .eq("empresa_id", empresaId)
-      .order("nome_completo");
+  const { data, error } = await supabaseClient
+    .from("funcionarios")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .order("nome_completo");
 
-    if(error){
-      console.log("Erro ao carregar funcionários:", error);
-      return;
-    }
-
-    funcionarios = data || [];
-
-    const select = document.getElementById("filtroFuncionario");
-
-    select.innerHTML = `
-      <option value="todos">Todos os funcionários</option>
-      ${funcionarios.map(f => `
-        <option value="${f.id}">${f.nome_completo}</option>
-      `).join("")}
-    `;
+  if(error){
+    console.log("Erro ao carregar funcionários:", error);
+    return;
   }
+
+  funcionarios = data || [];
+  atualizarListaFuncionarios();
+}
+
+function atualizarListaFuncionarios(){
+  const status = document.getElementById("filtroStatus").value;
+  const select = document.getElementById("filtroFuncionario");
+
+  let lista = funcionarios;
+
+  if(status === "ativos"){
+    lista = funcionarios.filter(f => f.ativo === true);
+  }
+
+  if(status === "inativos"){
+    lista = funcionarios.filter(f => f.ativo === false);
+  }
+
+  select.innerHTML = `
+    <option value="todos">Todos os funcionários</option>
+    ${lista.map(f => `
+      <option value="${f.id}">
+        ${f.nome_completo}${f.ativo ? "" : " — INATIVO"}
+      </option>
+    `).join("")}
+  `;
+}
 
   function organizarRegistros(registros){
     const mapa = {};
