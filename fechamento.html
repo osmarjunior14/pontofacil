@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Fechamento Mensal</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      font-family:Arial,sans-serif;
+      background:#f4f7fb;
+      color:#0f172a;
+      padding:24px;
+    }
+
+    .container{max-width:1300px;margin:auto}
+
+    .topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:24px;
+    }
+
+    h1{color:#2563eb;font-size:34px}
+    .sub{color:#64748b;margin-top:4px}
+
+    .botoes-topo{display:flex;gap:10px;flex-wrap:wrap}
+
+    button{
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      font-weight:bold;
+      cursor:pointer;
+      color:white;
+    }
+
+    .btn-voltar{background:#64748b}
+    .btn-pdf{background:#2563eb}
+    .btn-filtrar{background:#2563eb;width:100%;padding:15px}
+
+    .card{
+      background:white;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:0 12px 35px rgba(15,23,42,.08);
+      margin-bottom:22px;
+    }
+
+    .cabecalho{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:18px;
+      align-items:center;
+      border-bottom:1px solid #e2e8f0;
+      padding-bottom:18px;
+      margin-bottom:18px;
+    }
+
+    .logo-box{
+      width:110px;
+      height:110px;
+      border:1px solid #dbe4f0;
+      border-radius:18px;
+      background:#f8fafc;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      padding:8px;
+    }
+
+    .logo-box img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+    }
+
+    .logo-placeholder{
+      color:#94a3b8;
+      font-size:12px;
+      text-align:center;
+    }
+
+    .dados h2{
+      font-size:26px;
+      margin-bottom:8px;
+    }
+
+    .dados p{
+      color:#475569;
+      line-height:1.6;
+      font-size:14px;
+    }
+
+    .filtros{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+      align-items:end;
+    }
+
+    label{
+      display:block;
+      font-weight:bold;
+      font-size:14px;
+      color:#334155;
+      margin-bottom:6px;
+    }
+
+    input,select{
+      width:100%;
+      padding:14px;
+      border:1px solid #dbe4f0;
+      border-radius:12px;
+      font-size:15px;
+      background:white;
+    }
+
+    .resumo{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:14px;
+    }
+
+    .resumo-card{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .resumo-card strong{
+      display:block;
+      font-size:28px;
+      margin-top:6px;
+      color:#2563eb;
+    }
+
+    .positivo{color:#166534!important}
+    .negativo{color:#dc2626!important}
+    .neutro{color:#2563eb!important}
+
+    .tabela-wrap{overflow:auto}
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1100px;
+    }
+
+    th,td{
+      padding:10px;
+      border-bottom:1px solid #e2e8f0;
+      text-align:left;
+      font-size:13px;
+      vertical-align:top;
+    }
+
+    th{
+      background:#f8fafc;
+      color:#334155;
+      font-size:12px;
+      text-transform:uppercase;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:bold;
+    }
+
+    .ok-badge{background:#dcfce7;color:#166534}
+    .erro-badge{background:#fee2e2;color:#991b1b}
+    .neutro-badge{background:#dbeafe;color:#1d4ed8}
+
+    .assinaturas{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:40px;
+      margin-top:42px;
+      padding-top:26px;
+    }
+
+    .assinatura{
+      text-align:center;
+      color:#334155;
+      font-size:14px;
+    }
+
+    .linha-assinatura{
+      border-top:1px solid #334155;
+      margin-bottom:8px;
+      height:1px;
+    }
+
+    .vazio{
+      color:#64748b;
+      font-style:italic;
+      padding:12px 0;
+    }
+
+    @media(max-width:700px){
+      body{padding:16px}
+      h1{font-size:28px}
+      .cabecalho{grid-template-columns:1fr}
+      .assinaturas{grid-template-columns:1fr}
+    }
+
+    @media print{
+      body{background:white;padding:0}
+      .container{max-width:100%}
+      .card{box-shadow:none;border-radius:0;margin-bottom:0}
+      .botoes-topo,.filtros-card{display:none}
+      th,td{font-size:10px;padding:6px}
+      h1{font-size:26px}
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="topo">
+    <div>
+      <h1>Fechamento Mensal</h1>
+      <div class="sub" id="empresaNomeTopo">PontoFácil</div>
+    </div>
+
+    <div class="botoes-topo">
+      <button class="btn-voltar" onclick="window.location.href='./painel-gestao.html'">
+        Voltar
+      </button>
+
+      <button class="btn-pdf" onclick="window.print()">
+        Gerar PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cabecalho">
+      <div class="logo-box" id="logoBox">
+        <div class="logo-placeholder">Logo da empresa</div>
+      </div>
+
+      <div class="dados">
+        <h2 id="empresaNomeRelatorio">Empresa</h2>
+        <p><strong>Documento:</strong> Fechamento mensal de ponto</p>
+        <p><strong>Mês de referência:</strong> <span id="mesReferenciaTexto">-</span></p>
+        <p><strong>Funcionário:</strong> <span id="funcionarioTexto">-</span></p>
+        <p><strong>Data de emissão:</strong> <span id="dataEmissao">-</span></p>
+      </div>
+    </div>
+
+    <div class="resumo">
+      <div class="resumo-card">
+        Dias com registro
+        <strong id="totalDias">0</strong>
+      </div>
+
+      <div class="resumo-card">
+        Horas previstas
+        <strong id="horasPrevistas">0h00</strong>
+      </div>
+
+      <div class="resumo-card">
+        Horas trabalhadas
+        <strong id="horasTrabalhadas">0h00</strong>
+      </div>
+
+      <div class="resumo-card">
+        Saldo final
+        <strong id="saldoFinal" class="neutro">0h00</strong>
+      </div>
+
+      <div class="resumo-card">
+        Atrasos
+        <strong id="totalAtrasos" class="negativo">0</strong>
+      </div>
+
+      <div class="resumo-card">
+        Dias incompletos
+        <strong id="diasIncompletos" class="negativo">0</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="card filtros-card">
+    <div class="filtros">
+      <div>
+        <label>Mês</label>
+        <input id="mes" type="month">
+      </div>
+
+      <div>
+        <label>Funcionário</label>
+        <select id="filtroFuncionario">
+          <option value="">Selecione um funcionário</option>
+        </select>
+      </div>
+
+      <div>
+        <button class="btn-filtrar" onclick="carregarFechamento()">
+          Gerar fechamento
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:16px;">Espelho mensal de ponto</h2>
+    <div id="resultado"></div>
+
+    <div class="assinaturas">
+      <div class="assinatura">
+        <div class="linha-assinatura"></div>
+        Assinatura da empresa
+      </div>
+
+      <div class="assinatura">
+        <div class="linha-assinatura"></div>
+        Assinatura do funcionário
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  const empresaId = localStorage.getItem("pontofacil_empresa_id");
+  const empresaNomeLocal = localStorage.getItem("pontofacil_empresa_nome");
+
+  let funcionarios = [];
+  let empresaDados = null;
+
+  if(!empresaId){
+    window.location.href = "./gestao.html";
+  }
+
+  function definirMesAtual(){
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    document.getElementById("mes").value = `${ano}-${mes}`;
+  }
+
+  function atualizarDataEmissao(){
+    document.getElementById("dataEmissao").textContent =
+      new Date().toLocaleDateString("pt-BR", {
+        day:"2-digit",
+        month:"2-digit",
+        year:"numeric"
+      });
+  }
+
+  function atualizarMesReferencia(){
+    const mesValor = document.getElementById("mes").value;
+
+    if(!mesValor){
+      document.getElementById("mesReferenciaTexto").textContent = "-";
+      return;
+    }
+
+    const [ano, mes] = mesValor.split("-");
+    const data = new Date(Number(ano), Number(mes) - 1, 1);
+
+    document.getElementById("mesReferenciaTexto").textContent =
+      data.toLocaleDateString("pt-BR", {
+        month:"long",
+        year:"numeric"
+      });
+  }
+
+  function horaParaMinutos(hora){
+    if(!hora) return null;
+
+    const partes = hora.split(":");
+
+    if(partes.length < 2) return null;
+
+    return Number(partes[0]) * 60 + Number(partes[1]);
+  }
+
+  function minutosParaTexto(minutos){
+    const sinal = minutos < 0 ? "-" : "";
+    const abs = Math.abs(minutos);
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+
+    return `${sinal}${h}h${String(m).padStart(2,"0")}`;
+  }
+
+  function formatarData(dataIso){
+    return new Date(dataIso).toLocaleDateString("pt-BR", {
+      timeZone:"America/Sao_Paulo"
+    });
+  }
+
+  function formatarHora(dataIso){
+    return new Date(dataIso).toLocaleTimeString("pt-BR", {
+      timeZone:"America/Sao_Paulo",
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }
+
+  function minutosEntre(inicio, fim){
+    const minInicio = horaParaMinutos(inicio);
+    const minFim = horaParaMinutos(fim);
+
+    if(minInicio === null || minFim === null) return 0;
+
+    return Math.max(0, minFim - minInicio);
+  }
+
+  function calcularPrevistoFuncionario(funcionario){
+    if(!funcionario) return 0;
+
+    const entrada = funcionario.horario_entrada;
+    const intervalo = funcionario.horario_intervalo;
+    const retorno = funcionario.horario_retorno;
+    const saida = funcionario.horario_saida;
+
+    let total = 0;
+
+    if(entrada && intervalo){
+      total += minutosEntre(entrada, intervalo);
+    }
+
+    if(retorno && saida){
+      total += minutosEntre(retorno, saida);
+    }
+
+    if(!intervalo && !retorno && entrada && saida){
+      total += minutosEntre(entrada, saida);
+    }
+
+    return total;
+  }
+
+  function calcularTrabalhadoDia(linha){
+    let total = 0;
+
+    if(linha.entrada && linha.saida_intervalo){
+      total += minutosEntre(
+        formatarHora(linha.entrada.data_hora),
+        formatarHora(linha.saida_intervalo.data_hora)
+      );
+    }
+
+    if(linha.retorno_intervalo && linha.saida){
+      total += minutosEntre(
+        formatarHora(linha.retorno_intervalo.data_hora),
+        formatarHora(linha.saida.data_hora)
+      );
+    }
+
+    if(!linha.saida_intervalo && !linha.retorno_intervalo && linha.entrada && linha.saida){
+      total += minutosEntre(
+        formatarHora(linha.entrada.data_hora),
+        formatarHora(linha.saida.data_hora)
+      );
+    }
+
+    return total;
+  }
+
+  function registrosCompletos(linha){
+    return linha.entrada && linha.saida_intervalo && linha.retorno_intervalo && linha.saida;
+  }
+
+  function compararAtraso(registro, horarioPrevisto){
+    if(!registro || !horarioPrevisto) return false;
+
+    const hora = formatarHora(registro.data_hora);
+    const minRegistro = horaParaMinutos(hora);
+    const minPrevisto = horaParaMinutos(horarioPrevisto);
+
+    if(minRegistro === null || minPrevisto === null) return false;
+
+    return minRegistro > minPrevisto;
+  }
+
+  function statusBadge(texto, tipo){
+    const classe =
+      tipo === "ok" ? "ok-badge" :
+      tipo === "erro" ? "erro-badge" :
+      "neutro-badge";
+
+    return `<span class="badge ${classe}">${texto}</span>`;
+  }
+
+  async function carregarEmpresa(){
+    const { data, error } = await supabaseClient
+      .from("empresas")
+      .select("*")
+      .eq("id", empresaId)
+      .single();
+
+    if(error){
+      console.log("Erro ao carregar empresa:", error);
+      document.getElementById("empresaNomeTopo").textContent = empresaNomeLocal || "PontoFácil";
+      document.getElementById("empresaNomeRelatorio").textContent = empresaNomeLocal || "Empresa";
+      return;
+    }
+
+    empresaDados = data;
+
+    document.getElementById("empresaNomeTopo").textContent = data.nome || "PontoFácil";
+    document.getElementById("empresaNomeRelatorio").textContent = data.nome || "Empresa";
+
+    if(data.logo_url){
+      document.getElementById("logoBox").innerHTML = `
+        <img src="${data.logo_url}" alt="Logomarca da empresa">
+      `;
+    }
+  }
+
+  async function carregarFuncionarios(){
+    const { data, error } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .order("nome_completo");
+
+    if(error){
+      console.log("Erro ao carregar funcionários:", error);
+      return;
+    }
+
+    funcionarios = data || [];
+
+    const select = document.getElementById("filtroFuncionario");
+
+    select.innerHTML = `
+      <option value="">Selecione um funcionário</option>
+      ${funcionarios.map(f => `
+        <option value="${f.id}">${f.nome_completo}</option>
+      `).join("")}
+    `;
+  }
+
+  function organizarRegistros(registros){
+    const mapa = {};
+
+    registros.forEach(registro => {
+      const data = formatarData(registro.data_hora);
+      const chave = data;
+
+      if(!mapa[chave]){
+        mapa[chave] = {
+          data,
+          entrada:null,
+          saida_intervalo:null,
+          retorno_intervalo:null,
+          saida:null
+        };
+      }
+
+      mapa[chave][registro.tipo] = registro;
+    });
+
+    return Object.values(mapa).sort((a,b) =>
+      a.data.localeCompare(b.data, "pt-BR")
+    );
+  }
+
+  async function carregarFechamento(){
+    atualizarMesReferencia();
+
+    const mes = document.getElementById("mes").value;
+    const funcionarioId = document.getElementById("filtroFuncionario").value;
+    const resultado = document.getElementById("resultado");
+
+    if(!mes){
+      alert("Selecione o mês.");
+      return;
+    }
+
+    if(!funcionarioId){
+      alert("Selecione um funcionário.");
+      return;
+    }
+
+    const funcionario = funcionarios.find(f => String(f.id) === String(funcionarioId));
+
+    document.getElementById("funcionarioTexto").textContent =
+      funcionario?.nome_completo || "-";
+
+    const inicio = `${mes}-01T00:00:00-03:00`;
+
+    const [ano, mesNumero] = mes.split("-").map(Number);
+    const proximoMes = new Date(ano, mesNumero, 1);
+    const fimAno = proximoMes.getFullYear();
+    const fimMes = String(proximoMes.getMonth() + 1).padStart(2, "0");
+    const fim = `${fimAno}-${fimMes}-01T00:00:00-03:00`;
+
+    const { data, error } = await supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .eq("funcionario_id", funcionarioId)
+      .gte("data_hora", inicio)
+      .lt("data_hora", fim)
+      .order("data_hora", { ascending:true });
+
+    if(error){
+      console.log("Erro ao carregar fechamento:", error);
+      resultado.innerHTML = `<div class="vazio">Erro ao carregar fechamento.</div>`;
+      return;
+    }
+
+    const registros = data || [];
+
+    if(registros.length === 0){
+      resultado.innerHTML = `<div class="vazio">Nenhum registro encontrado para este funcionário neste mês.</div>`;
+      zerarResumo();
+      return;
+    }
+
+    const linhas = organizarRegistros(registros);
+
+    let totalPrevisto = 0;
+    let totalTrabalhado = 0;
+    let totalAtrasos = 0;
+    let totalIncompletos = 0;
+
+    const previstoDia = calcularPrevistoFuncionario(funcionario);
+
+    const linhasHtml = linhas.map(linha => {
+      const trabalhado = calcularTrabalhadoDia(linha);
+      const saldo = trabalhado - previstoDia;
+
+      totalPrevisto += previstoDia;
+      totalTrabalhado += trabalhado;
+
+      let atrasosDia = 0;
+
+      if(compararAtraso(linha.entrada, funcionario?.horario_entrada)) atrasosDia++;
+      if(compararAtraso(linha.saida_intervalo, funcionario?.horario_intervalo)) atrasosDia++;
+      if(compararAtraso(linha.retorno_intervalo, funcionario?.horario_retorno)) atrasosDia++;
+      if(compararAtraso(linha.saida, funcionario?.horario_saida)) atrasosDia++;
+
+      totalAtrasos += atrasosDia;
+
+      const completo = registrosCompletos(linha);
+
+      if(!completo) totalIncompletos++;
+
+      const status = !completo
+        ? statusBadge("Incompleto", "erro")
+        : saldo === 0
+          ? statusBadge("Regular", "ok")
+          : saldo > 0
+            ? statusBadge("Hora extra", "ok")
+            : statusBadge("Saldo negativo", "erro");
+
+      return `
+        <tr>
+          <td>${linha.data}</td>
+
+          <td>${linha.entrada ? formatarHora(linha.entrada.data_hora) : "-"}</td>
+
+          <td>${linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-"}</td>
+
+          <td>${linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-"}</td>
+
+          <td>${linha.saida ? formatarHora(linha.saida.data_hora) : "-"}</td>
+
+          <td>${minutosParaTexto(previstoDia)}</td>
+
+          <td>${minutosParaTexto(trabalhado)}</td>
+
+          <td class="${saldo > 0 ? "positivo" : saldo < 0 ? "negativo" : "neutro"}">
+            ${minutosParaTexto(saldo)}
+          </td>
+
+          <td>${atrasosDia}</td>
+
+          <td>${status}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const saldoFinal = totalTrabalhado - totalPrevisto;
+
+    document.getElementById("totalDias").textContent = linhas.length;
+    document.getElementById("horasPrevistas").textContent = minutosParaTexto(totalPrevisto);
+    document.getElementById("horasTrabalhadas").textContent = minutosParaTexto(totalTrabalhado);
+    document.getElementById("saldoFinal").textContent = minutosParaTexto(saldoFinal);
+    document.getElementById("saldoFinal").className =
+      saldoFinal > 0 ? "positivo" : saldoFinal < 0 ? "negativo" : "neutro";
+    document.getElementById("totalAtrasos").textContent = totalAtrasos;
+    document.getElementById("diasIncompletos").textContent = totalIncompletos;
+
+    resultado.innerHTML = `
+      <div class="tabela-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Entrada</th>
+              <th>Saída intervalo</th>
+              <th>Retorno intervalo</th>
+              <th>Saída</th>
+              <th>Previsto</th>
+              <th>Trabalhado</th>
+              <th>Saldo</th>
+              <th>Atrasos</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${linhasHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  function zerarResumo(){
+    document.getElementById("totalDias").textContent = 0;
+    document.getElementById("horasPrevistas").textContent = "0h00";
+    document.getElementById("horasTrabalhadas").textContent = "0h00";
+    document.getElementById("saldoFinal").textContent = "0h00";
+    document.getElementById("saldoFinal").className = "neutro";
+    document.getElementById("totalAtrasos").textContent = 0;
+    document.getElementById("diasIncompletos").textContent = 0;
+  }
+
+  async function iniciar(){
+    definirMesAtual();
+    atualizarDataEmissao();
+    atualizarMesReferencia();
+    await carregarEmpresa();
+    await carregarFuncionarios();
+    zerarResumo();
+  }
+
+  iniciar();
+</script>
+
+</body>
+</html>
