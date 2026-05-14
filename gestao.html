@@ -1,1 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Gestão</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      font-family:Arial, sans-serif;
+      background:#f4f7fb;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      color:#0f172a;
+    }
+
+    .login-box{
+      width:100%;
+      max-width:430px;
+      background:#ffffff;
+      border-radius:24px;
+      padding:34px;
+      box-shadow:0 18px 45px rgba(15,23,42,.08);
+    }
+
+    .logo{
+      text-align:center;
+      margin-bottom:26px;
+    }
+
+    .logo h1{
+      color:#2563eb;
+      font-size:38px;
+      margin-bottom:8px;
+    }
+
+    .logo p{
+      color:#64748b;
+      font-size:15px;
+    }
+
+    input{
+      width:100%;
+      padding:15px;
+      border:1px solid #dbe4f0;
+      border-radius:14px;
+      margin-bottom:14px;
+      font-size:15px;
+      background:#ffffff;
+    }
+
+    input:focus{
+      outline:none;
+      border-color:#2563eb;
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    button{
+      width:100%;
+      padding:15px;
+      border:none;
+      border-radius:14px;
+      background:#2563eb;
+      color:white;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    button:hover{
+      background:#1d4ed8;
+    }
+
+    .erro{
+      display:none;
+      margin-top:14px;
+      color:#dc2626;
+      text-align:center;
+      font-size:14px;
+      font-weight:bold;
+    }
+
+    .voltar{
+      margin-top:18px;
+      text-align:center;
+      font-size:14px;
+    }
+
+    .voltar a{
+      color:#2563eb;
+      text-decoration:none;
+      font-weight:bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+
+  <div class="logo">
+    <h1>PontoFácil</h1>
+    <p>Acesso da gestão da empresa</p>
+  </div>
+
+  <input
+    type="email"
+    id="email"
+    placeholder="E-mail da gestão"
+  >
+
+  <input
+    type="password"
+    id="senha"
+    placeholder="Senha"
+  >
+
+  <button onclick="loginGestao()">
+    Entrar
+  </button>
+
+  <div id="erro" class="erro">
+    E-mail ou senha inválidos.
+  </div>
+
+  <div class="voltar">
+    <a href="./index.html">Acesso do administrador</a>
+  </div>
+
+</div>
+
+<script>
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+  async function loginGestao(){
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+    const erro = document.getElementById("erro");
+
+    erro.style.display = "none";
+
+    if(!email || !senha){
+      erro.innerText = "Preencha todos os campos.";
+      erro.style.display = "block";
+      return;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("empresas")
+      .select("*")
+      .eq("email_gestao", email)
+      .eq("senha_gestao", senha)
+      .eq("ativa", true);
+
+    if(error){
+      console.log("Erro no login da gestão:", error);
+      erro.innerText = error.message;
+      erro.style.display = "block";
+      return;
+    }
+
+    if(!data || data.length === 0){
+      erro.innerText = "E-mail ou senha inválidos, ou empresa inativa.";
+      erro.style.display = "block";
+      return;
+    }
+
+    const empresa = data[0];
+
+    localStorage.setItem("pontofacil_empresa_logada", "sim");
+    localStorage.setItem("pontofacil_empresa_id", empresa.id);
+    localStorage.setItem("pontofacil_empresa_nome", empresa.nome);
+    localStorage.setItem("pontofacil_empresa_email", empresa.email_gestao);
+
+    window.location.href = "./painel-gestao.html";
+  }
+</script>
+
+</body>
+</html>
