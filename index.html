@@ -1,27 +1,172 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-  <meta http-equiv="Content-Style-Type" content="text/css">
-  <title></title>
-  <meta name="Generator" content="Cocoa HTML Writer">
-  <meta name="CocoaVersion" content="2685.4">
-  <style type="text/css">
-    p.p1 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica}
-    p.p2 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Helvetica; min-height: 14.0px}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      font-family:Arial, sans-serif;
+      background:#f4f7fb;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .login-box{
+      width:100%;
+      max-width:420px;
+      background:white;
+      border-radius:22px;
+      padding:34px;
+      box-shadow:0 15px 45px rgba(0,0,0,.08);
+    }
+
+    .logo{
+      text-align:center;
+      margin-bottom:24px;
+    }
+
+    .logo h1{
+      font-size:38px;
+      color:#2563eb;
+      margin-bottom:6px;
+    }
+
+    .logo p{
+      color:#64748b;
+      font-size:15px;
+    }
+
+    input{
+      width:100%;
+      padding:15px;
+      border-radius:12px;
+      border:1px solid #dbe4f0;
+      margin-bottom:14px;
+      font-size:15px;
+    }
+
+    input:focus{
+      outline:none;
+      border-color:#2563eb;
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    button{
+      width:100%;
+      padding:15px;
+      border:none;
+      border-radius:12px;
+      background:#2563eb;
+      color:white;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    button:hover{
+      background:#1d4ed8;
+    }
+
+    .erro{
+      margin-top:14px;
+      color:#dc2626;
+      text-align:center;
+      font-size:14px;
+      display:none;
+    }
+
   </style>
 </head>
 <body>
-<p class="p1">&lt;!DOCTYPE html&gt;</p>
-<p class="p1">&lt;html lang="pt-BR"&gt;</p>
-<p class="p1">&lt;head&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta charset="UTF-8"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</p>
-<p class="p1"><span class="Apple-converted-space">  </span>&lt;title&gt;PontoFácil&lt;/title&gt;</p>
-<p class="p1">&lt;/head&gt;</p>
-<p class="p1">&lt;body&gt;</p>
-<p class="p2"><br></p>
-<p class="p1">&lt;/body&gt;</p>
-<p class="p1">&lt;/html&gt;</p>
+
+<div class="login-box">
+
+  <div class="logo">
+    <h1>PontoFácil</h1>
+    <p>Sistema inteligente de registro de ponto</p>
+  </div>
+
+  <input
+    type="email"
+    id="email"
+    placeholder="E-mail"
+  >
+
+  <input
+    type="password"
+    id="senha"
+    placeholder="Senha"
+  >
+
+  <button onclick="login()">
+    Entrar
+  </button>
+
+  <div id="erro" class="erro">
+    E-mail ou senha inválidos.
+  </div>
+
+</div>
+
+<script>
+
+  const supabaseUrl = "https://ixeeperktitbzmmvcaqz.supabase.co";
+
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+  async function login(){
+
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value.trim();
+
+    const erro = document.getElementById("erro");
+
+    erro.style.display = "none";
+
+    if(!email || !senha){
+      erro.innerText = "Preencha todos os campos.";
+      erro.style.display = "block";
+      return;
+    }
+
+    const { data, error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password: senha
+    });
+
+    if(error){
+      erro.innerText = "E-mail ou senha inválidos.";
+      erro.style.display = "block";
+      return;
+    }
+
+    localStorage.setItem("pontofacil_logado", "sim");
+
+    alert("Login realizado com sucesso.");
+
+  }
+
+</script>
+
 </body>
 </html>
