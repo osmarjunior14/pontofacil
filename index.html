@@ -125,16 +125,18 @@
 
 <script>
 
-  const supabaseUrl = "https://ixeeperktitbzmmvcaqz.supabase.co";
+const supabaseUrl = "https://ixeeperktitbzmmvcaqz.supabase.co";
 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-  
-  const supabaseClient = window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
 
-  async function login(){
+const supabaseClient = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+async function login(){
+
+  try{
 
     const email = document.getElementById("email").value.trim();
     const senha = document.getElementById("senha").value.trim();
@@ -149,28 +151,43 @@
       return;
     }
 
-    const { data, error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password: senha
-    });
+    const resposta = await supabaseClient
+      .from("administradores")
+      .select("*")
+      .eq("email", email)
+      .eq("senha", senha)
+      .eq("ativo", true);
 
-   if(error || !data){
-  console.log("ERRO LOGIN:", error);
-  console.log("DATA LOGIN:", data);
+    console.log("RESPOSTA:", resposta);
 
-  erro.innerText = error
-    ? error.message
-    : "Nenhum administrador encontrado.";
+    if(resposta.error){
+      erro.innerText = resposta.error.message;
+      erro.style.display = "block";
+      return;
+    }
 
-  erro.style.display = "block";
-  return;
-}
+    if(!resposta.data || resposta.data.length === 0){
+      erro.innerText = "Usuário não encontrado.";
+      erro.style.display = "block";
+      return;
+    }
 
     localStorage.setItem("pontofacil_logado", "sim");
 
-    alert("Login realizado com sucesso.");
+    window.location.href = "./painel.html";
+
+  }catch(e){
+
+    console.log("ERRO GERAL:", e);
+
+    const erro = document.getElementById("erro");
+
+    erro.innerText = "Erro geral: " + e.message;
+    erro.style.display = "block";
 
   }
+
+}
 
 </script>
 
