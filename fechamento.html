@@ -44,6 +44,7 @@
 
     .btn-voltar{background:#64748b}
     .btn-pdf{background:#2563eb}
+    .btn-fechar{background:#16a34a}
     .btn-filtrar{background:#2563eb;width:100%;padding:15px}
 
     .card{
@@ -242,6 +243,10 @@
         Voltar
       </button>
 
+      <button class="btn-fechar" onclick="fecharMes()">
+        Fechar mês
+      </button>
+
       <button class="btn-pdf" onclick="window.print()">
         Gerar PDF
       </button>
@@ -349,6 +354,7 @@
 
   let funcionarios = [];
   let empresaDados = null;
+  let fechamentoAtual = null;
 
   if(!empresaId){
     window.location.href = "./gestao.html";
@@ -390,11 +396,8 @@
 
   function horaParaMinutos(hora){
     if(!hora) return null;
-
     const partes = hora.split(":");
-
     if(partes.length < 2) return null;
-
     return Number(partes[0]) * 60 + Number(partes[1]);
   }
 
@@ -403,7 +406,6 @@
     const abs = Math.abs(minutos);
     const h = Math.floor(abs / 60);
     const m = abs % 60;
-
     return `${sinal}${h}h${String(m).padStart(2,"0")}`;
   }
 
@@ -424,9 +426,7 @@
   function minutosEntre(inicio, fim){
     const minInicio = horaParaMinutos(inicio);
     const minFim = horaParaMinutos(fim);
-
     if(minInicio === null || minFim === null) return 0;
-
     return Math.max(0, minFim - minInicio);
   }
 
@@ -632,6 +632,7 @@
     if(registros.length === 0){
       resultado.innerHTML = `<div class="vazio">Nenhum registro encontrado para este funcionário neste mês.</div>`;
       zerarResumo();
+      fechamentoAtual = null;
       return;
     }
 
@@ -675,31 +676,35 @@
       return `
         <tr>
           <td>${linha.data}</td>
-
           <td>${linha.entrada ? formatarHora(linha.entrada.data_hora) : "-"}</td>
-
           <td>${linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-"}</td>
-
           <td>${linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-"}</td>
-
           <td>${linha.saida ? formatarHora(linha.saida.data_hora) : "-"}</td>
-
           <td>${minutosParaTexto(previstoDia)}</td>
-
           <td>${minutosParaTexto(trabalhado)}</td>
-
           <td class="${saldo > 0 ? "positivo" : saldo < 0 ? "negativo" : "neutro"}">
             ${minutosParaTexto(saldo)}
           </td>
-
           <td>${atrasosDia}</td>
-
           <td>${status}</td>
         </tr>
       `;
     }).join("");
 
     const saldoFinal = totalTrabalhado - totalPrevisto;
+
+    fechamentoAtual = {
+      empresa_id: empresaId,
+      funcionario_id: funcionarioId,
+      mes: Number(mes.split("-")[1]),
+      ano: Number(mes.split("-")[0]),
+      horas_previstas: minutosParaTexto(totalPrevisto),
+      horas_trabalhadas: minutosParaTexto(totalTrabalhado),
+      saldo_final: minutosParaTexto(saldoFinal),
+      atrasos: totalAtrasos,
+      dias_incompletos: totalIncompletos,
+      pdf_url: ""
+    };
 
     document.getElementById("totalDias").textContent = linhas.length;
     document.getElementById("horasPrevistas").textContent = minutosParaTexto(totalPrevisto);
@@ -727,7 +732,6 @@
               <th>Status</th>
             </tr>
           </thead>
-
           <tbody>
             ${linhasHtml}
           </tbody>
@@ -744,6 +748,50 @@
     document.getElementById("saldoFinal").className = "neutro";
     document.getElementById("totalAtrasos").textContent = 0;
     document.getElementById("diasIncompletos").textContent = 0;
+  }
+
+  async function fecharMes(){
+    if(!fechamentoAtual){
+      alert("Gere o fechamento antes de fechar o mês.");
+      return;
+    }
+
+    const confirmar = confirm(
+      "Deseja fechar este mês? Essa ação salvará um histórico permanente deste fechamento."
+    );
+
+    if(!confirmar) return;
+
+    const { data: existente, error: erroBusca } = await supabaseClient
+      .from("fechamentos_mensais")
+      .select("*")
+      .eq("empresa_id", fechamentoAtual.empresa_id)
+      .eq("funcionario_id", fechamentoAtual.funcionario_id)
+      .eq("mes", fechamentoAtual.mes)
+      .eq("ano", fechamentoAtual.ano);
+
+    if(erroBusca){
+      console.log("Erro ao verificar fechamento:", erroBusca);
+      alert("Erro ao verificar fechamento existente.");
+      return;
+    }
+
+    if(existente && existente.length > 0){
+      alert("Este funcionário já possui fechamento salvo para este mês.");
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("fechamentos_mensais")
+      .insert([fechamentoAtual]);
+
+    if(error){
+      console.log("Erro ao salvar fechamento:", error);
+      alert("Erro ao salvar fechamento mensal.");
+      return;
+    }
+
+    alert("Fechamento mensal salvo com sucesso.");
   }
 
   async function iniciar(){
