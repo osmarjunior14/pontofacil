@@ -3,18 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>PontoFácil - Gestão</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
+    *{ box-sizing:border-box; margin:0; padding:0; }
 
     body{
       font-family:Arial, sans-serif;
@@ -23,10 +17,7 @@
       padding:24px;
     }
 
-    .container{
-      max-width:1300px;
-      margin:auto;
-    }
+    .container{ max-width:1300px; margin:auto; }
 
     .topo{
       display:flex;
@@ -37,15 +28,9 @@
       flex-wrap:wrap;
     }
 
-    h1{
-      color:#2563eb;
-      font-size:34px;
-    }
+    h1{ color:#2563eb; font-size:34px; }
 
-    .sub{
-      color:#64748b;
-      margin-top:4px;
-    }
+    .sub{ color:#64748b; margin-top:4px; }
 
     .btn-sair{
       background:#ef4444;
@@ -65,10 +50,7 @@
       margin-bottom:24px;
     }
 
-    h2{
-      margin-bottom:18px;
-      font-size:24px;
-    }
+    h2{ margin-bottom:18px; font-size:24px; }
 
     .grid{
       display:grid;
@@ -82,6 +64,7 @@
       border-radius:12px;
       border:1px solid #dbe4f0;
       font-size:15px;
+      background:white;
     }
 
     input:focus{
@@ -115,6 +98,24 @@
       align-items:center;
     }
 
+    .dados-funcionario{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex:1;
+      min-width:260px;
+    }
+
+    .foto-funcionario{
+      width:74px;
+      height:74px;
+      border-radius:14px;
+      object-fit:cover;
+      background:#e2e8f0;
+      border:1px solid #dbe4f0;
+      flex-shrink:0;
+    }
+
     .funcionario strong{
       display:block;
       font-size:18px;
@@ -136,15 +137,8 @@
       font-weight:bold;
     }
 
-    .ativo{
-      background:#dcfce7;
-      color:#166534;
-    }
-
-    .inativo{
-      background:#fee2e2;
-      color:#991b1b;
-    }
+    .ativo{ background:#dcfce7; color:#166534; }
+    .inativo{ background:#fee2e2; color:#991b1b; }
 
     .acoes{
       display:flex;
@@ -161,13 +155,8 @@
       cursor:pointer;
     }
 
-    .editar{
-      background:#f59e0b;
-    }
-
-    .inativar{
-      background:#64748b;
-    }
+    .editar{ background:#f59e0b; }
+    .inativar{ background:#64748b; }
 
     .vazio{
       color:#64748b;
@@ -175,10 +164,7 @@
     }
 
     @media(max-width:700px){
-
-      body{
-        padding:16px;
-      }
+      body{ padding:16px; }
 
       .funcionario{
         align-items:flex-start;
@@ -191,9 +177,7 @@
       .acoes button{
         flex:1;
       }
-
     }
-
   </style>
 </head>
 <body>
@@ -201,287 +185,305 @@
 <div class="container">
 
   <div class="topo">
-
     <div>
       <h1 id="empresaNome">PontoFácil</h1>
       <div class="sub">Painel da gestão da empresa</div>
     </div>
 
-    <button class="btn-sair" onclick="sair()">
-      Sair
-    </button>
-
+    <button class="btn-sair" onclick="sair()">Sair</button>
   </div>
 
   <div class="card">
-
     <h2>Cadastrar funcionário</h2>
 
     <div class="grid">
-
+      <input id="foto" type="file" accept="image/*">
       <input id="nome" placeholder="Nome completo">
-
       <input id="cpf" placeholder="CPF">
-
       <input id="funcao" placeholder="Função">
-
       <input id="data_nascimento" type="date">
-
       <input id="horario_entrada" type="time">
-
       <input id="horario_intervalo" type="time">
-
       <input id="horario_retorno" type="time">
-
       <input id="horario_saida" type="time">
-
     </div>
 
     <button class="btn" onclick="salvarFuncionario()">
       Salvar funcionário
     </button>
-
   </div>
 
   <div class="card">
-
     <h2>Funcionários cadastrados</h2>
-
     <div id="listaFuncionarios"></div>
-
   </div>
 
 </div>
 
 <script>
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
 
-const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
 
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-
-const supabaseClient = window.supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
-
-const empresaId = localStorage.getItem("pontofacil_empresa_id");
-const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
-
-if(!empresaId){
-  window.location.href = "./gestao.html";
-}
-
-document.getElementById("empresaNome").innerText = empresaNome;
-
-function sair(){
-
-  localStorage.removeItem("pontofacil_empresa_logada");
-  localStorage.removeItem("pontofacil_empresa_id");
-  localStorage.removeItem("pontofacil_empresa_nome");
-  localStorage.removeItem("pontofacil_empresa_email");
-
-  window.location.href = "./gestao.html";
-
-}
-
-async function salvarFuncionario(){
-
-  const nome = document.getElementById("nome").value.trim();
-  const cpf = document.getElementById("cpf").value.trim();
-  const funcao = document.getElementById("funcao").value.trim();
-  const data_nascimento = document.getElementById("data_nascimento").value;
-  const horario_entrada = document.getElementById("horario_entrada").value;
-  const horario_intervalo = document.getElementById("horario_intervalo").value;
-  const horario_retorno = document.getElementById("horario_retorno").value;
-  const horario_saida = document.getElementById("horario_saida").value;
-
-  if(!nome){
-    alert("Informe o nome do funcionário.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("funcionarios")
-    .insert([
-      {
-        empresa_id:empresaId,
-        nome_completo:nome,
-        cpf,
-        funcao,
-        data_nascimento,
-        horario_entrada,
-        horario_intervalo,
-        horario_retorno,
-        horario_saida,
-        ativo:true
-      }
-    ]);
-
-  if(error){
-    console.log(error);
-    alert("Erro ao salvar funcionário.");
-    return;
-  }
-
-  alert("Funcionário cadastrado.");
-
-  document.getElementById("nome").value = "";
-  document.getElementById("cpf").value = "";
-  document.getElementById("funcao").value = "";
-  document.getElementById("data_nascimento").value = "";
-  document.getElementById("horario_entrada").value = "";
-  document.getElementById("horario_intervalo").value = "";
-  document.getElementById("horario_retorno").value = "";
-  document.getElementById("horario_saida").value = "";
-
-  carregarFuncionarios();
-
-}
-
-async function carregarFuncionarios(){
-
-  const { data, error } = await supabaseClient
-    .from("funcionarios")
-    .select("*")
-    .eq("empresa_id", empresaId)
-    .order("nome_completo");
-
-  const lista = document.getElementById("listaFuncionarios");
-
-  if(error){
-    console.log(error);
-    lista.innerHTML = `<div class="vazio">Erro ao carregar funcionários.</div>`;
-    return;
-  }
-
-  if(!data || data.length === 0){
-    lista.innerHTML = `<div class="vazio">Nenhum funcionário cadastrado.</div>`;
-    return;
-  }
-
-  lista.innerHTML = data.map(funcionario => `
-
-    <div class="funcionario">
-
-      <div>
-
-        <strong>${funcionario.nome_completo}</strong>
-
-        <small><b>CPF:</b> ${funcionario.cpf || "-"}</small>
-
-        <small><b>Função:</b> ${funcionario.funcao || "-"}</small>
-
-        <small>
-          <b>Horários:</b>
-          ${funcionario.horario_entrada || "--:--"} /
-          ${funcionario.horario_intervalo || "--:--"} /
-          ${funcionario.horario_retorno || "--:--"} /
-          ${funcionario.horario_saida || "--:--"}
-        </small>
-
-        <span class="status ${funcionario.ativo ? "ativo" : "inativo"}">
-          ${funcionario.ativo ? "ATIVO" : "INATIVO"}
-        </span>
-
-      </div>
-
-      <div class="acoes">
-
-        <button
-          class="editar"
-          onclick="editarFuncionario(
-            '${funcionario.id}',
-            '${escapeTexto(funcionario.nome_completo)}',
-            '${escapeTexto(funcionario.cpf)}',
-            '${escapeTexto(funcionario.funcao)}'
-          )"
-        >
-          Editar
-        </button>
-
-        <button
-          class="inativar"
-          onclick="alterarStatusFuncionario('${funcionario.id}', ${funcionario.ativo})"
-        >
-          ${funcionario.ativo ? "Inativar" : "Ativar"}
-        </button>
-
-      </div>
-
-    </div>
-
-  `).join("");
-
-}
-
-function escapeTexto(texto){
-
-  return String(texto || "")
-    .replace(/\\/g, "\\\\")
-    .replace(/'/g, "\\'")
-    .replace(/"/g, "&quot;");
-
-}
-
-async function editarFuncionario(id, nomeAtual, cpfAtual, funcaoAtual){
-
-  const novoNome = prompt("Nome:", nomeAtual);
-  if(novoNome === null) return;
-
-  const novoCpf = prompt("CPF:", cpfAtual);
-  if(novoCpf === null) return;
-
-  const novaFuncao = prompt("Função:", funcaoAtual);
-  if(novaFuncao === null) return;
-
-  const { error } = await supabaseClient
-    .from("funcionarios")
-    .update({
-      nome_completo:novoNome,
-      cpf:novoCpf,
-      funcao:novaFuncao
-    })
-    .eq("id", id);
-
-  if(error){
-    console.log(error);
-    alert("Erro ao editar funcionário.");
-    return;
-  }
-
-  carregarFuncionarios();
-
-}
-
-async function alterarStatusFuncionario(id, statusAtual){
-
-  const confirmar = confirm(
-    statusAtual
-      ? "Deseja inativar este funcionário?"
-      : "Deseja ativar este funcionário?"
+  const supabaseClient = window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
   );
 
-  if(!confirmar) return;
+  const empresaId = localStorage.getItem("pontofacil_empresa_id");
+  const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
 
-  const { error } = await supabaseClient
-    .from("funcionarios")
-    .update({
-      ativo:!statusAtual
-    })
-    .eq("id", id);
+  if(!empresaId){
+    window.location.href = "./gestao.html";
+  }
 
-  if(error){
-    console.log(error);
-    alert("Erro ao alterar status.");
-    return;
+  document.getElementById("empresaNome").innerText = empresaNome;
+
+  function sair(){
+    localStorage.removeItem("pontofacil_empresa_logada");
+    localStorage.removeItem("pontofacil_empresa_id");
+    localStorage.removeItem("pontofacil_empresa_nome");
+    localStorage.removeItem("pontofacil_empresa_email");
+
+    window.location.href = "./gestao.html";
+  }
+
+  function normalizarNomeArquivo(texto){
+    return String(texto || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  async function enviarFotoFuncionario(nomeFuncionario){
+    const inputFoto = document.getElementById("foto");
+
+    if(!inputFoto.files || inputFoto.files.length === 0){
+      return "";
+    }
+
+    const arquivo = inputFoto.files[0];
+    const extensao = arquivo.name.split(".").pop().toLowerCase();
+    const nomeArquivo = `${empresaId}/${normalizarNomeArquivo(nomeFuncionario)}-${Date.now()}.${extensao}`;
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("funcionarios")
+      .upload(nomeArquivo, arquivo, {
+        cacheControl: "3600",
+        upsert: false
+      });
+
+    if(uploadError){
+      console.log("Erro ao enviar foto:", uploadError);
+      alert("Erro ao enviar foto do funcionário.");
+      return null;
+    }
+
+    const { data: urlData } = supabaseClient
+      .storage
+      .from("funcionarios")
+      .getPublicUrl(nomeArquivo);
+
+    return urlData.publicUrl;
+  }
+
+  async function salvarFuncionario(){
+    const nome = document.getElementById("nome").value.trim();
+    const cpf = document.getElementById("cpf").value.trim();
+    const funcao = document.getElementById("funcao").value.trim();
+    const data_nascimento = document.getElementById("data_nascimento").value;
+    const horario_entrada = document.getElementById("horario_entrada").value;
+    const horario_intervalo = document.getElementById("horario_intervalo").value;
+    const horario_retorno = document.getElementById("horario_retorno").value;
+    const horario_saida = document.getElementById("horario_saida").value;
+
+    if(!nome){
+      alert("Informe o nome do funcionário.");
+      return;
+    }
+
+    const fotoUrl = await enviarFotoFuncionario(nome);
+
+    if(fotoUrl === null){
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .insert([
+        {
+          empresa_id: empresaId,
+          nome_completo: nome,
+          cpf,
+          funcao,
+          data_nascimento: data_nascimento || null,
+          foto_url: fotoUrl || "",
+          horario_entrada: horario_entrada || null,
+          horario_intervalo: horario_intervalo || null,
+          horario_retorno: horario_retorno || null,
+          horario_saida: horario_saida || null,
+          ativo: true
+        }
+      ]);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao salvar funcionário.");
+      return;
+    }
+
+    alert("Funcionário cadastrado.");
+
+    document.getElementById("foto").value = "";
+    document.getElementById("nome").value = "";
+    document.getElementById("cpf").value = "";
+    document.getElementById("funcao").value = "";
+    document.getElementById("data_nascimento").value = "";
+    document.getElementById("horario_entrada").value = "";
+    document.getElementById("horario_intervalo").value = "";
+    document.getElementById("horario_retorno").value = "";
+    document.getElementById("horario_saida").value = "";
+
+    carregarFuncionarios();
+  }
+
+  async function carregarFuncionarios(){
+    const { data, error } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .order("nome_completo");
+
+    const lista = document.getElementById("listaFuncionarios");
+
+    if(error){
+      console.log(error);
+      lista.innerHTML = `<div class="vazio">Erro ao carregar funcionários.</div>`;
+      return;
+    }
+
+    if(!data || data.length === 0){
+      lista.innerHTML = `<div class="vazio">Nenhum funcionário cadastrado.</div>`;
+      return;
+    }
+
+    lista.innerHTML = data.map(funcionario => `
+      <div class="funcionario">
+        <div class="dados-funcionario">
+          <img
+            class="foto-funcionario"
+            src="${funcionario.foto_url || ""}"
+            onerror="this.style.display='none'"
+          >
+
+          <div>
+            <strong>${funcionario.nome_completo}</strong>
+
+            <small><b>CPF:</b> ${funcionario.cpf || "-"}</small>
+            <small><b>Função:</b> ${funcionario.funcao || "-"}</small>
+
+            <small>
+              <b>Horários:</b>
+              ${funcionario.horario_entrada || "--:--"} /
+              ${funcionario.horario_intervalo || "--:--"} /
+              ${funcionario.horario_retorno || "--:--"} /
+              ${funcionario.horario_saida || "--:--"}
+            </small>
+
+            <span class="status ${funcionario.ativo ? "ativo" : "inativo"}">
+              ${funcionario.ativo ? "ATIVO" : "INATIVO"}
+            </span>
+          </div>
+        </div>
+
+        <div class="acoes">
+          <button
+            class="editar"
+            onclick="editarFuncionario(
+              '${funcionario.id}',
+              '${escapeTexto(funcionario.nome_completo)}',
+              '${escapeTexto(funcionario.cpf)}',
+              '${escapeTexto(funcionario.funcao)}'
+            )"
+          >
+            Editar
+          </button>
+
+          <button
+            class="inativar"
+            onclick="alterarStatusFuncionario('${funcionario.id}', ${funcionario.ativo})"
+          >
+            ${funcionario.ativo ? "Inativar" : "Ativar"}
+          </button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function escapeTexto(texto){
+    return String(texto || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, "&quot;");
+  }
+
+  async function editarFuncionario(id, nomeAtual, cpfAtual, funcaoAtual){
+    const novoNome = prompt("Nome:", nomeAtual);
+    if(novoNome === null) return;
+
+    const novoCpf = prompt("CPF:", cpfAtual);
+    if(novoCpf === null) return;
+
+    const novaFuncao = prompt("Função:", funcaoAtual);
+    if(novaFuncao === null) return;
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .update({
+        nome_completo: novoNome.trim(),
+        cpf: novoCpf.trim(),
+        funcao: novaFuncao.trim()
+      })
+      .eq("id", id);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao editar funcionário.");
+      return;
+    }
+
+    carregarFuncionarios();
+  }
+
+  async function alterarStatusFuncionario(id, statusAtual){
+    const confirmar = confirm(
+      statusAtual
+        ? "Deseja inativar este funcionário?"
+        : "Deseja ativar este funcionário?"
+    );
+
+    if(!confirmar) return;
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .update({
+        ativo: !statusAtual
+      })
+      .eq("id", id);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao alterar status.");
+      return;
+    }
+
+    carregarFuncionarios();
   }
 
   carregarFuncionarios();
-
-}
-
-carregarFuncionarios();
-
 </script>
 
 </body>
