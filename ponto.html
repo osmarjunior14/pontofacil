@@ -1,23 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PontoFácil - Registrar ponto</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
+    *{margin:0;padding:0;box-sizing:border-box}
 
     body{
-      font-family:Arial, sans-serif;
+      font-family:Arial,sans-serif;
       background:#f4f7fb;
       min-height:100vh;
       display:flex;
@@ -46,8 +40,7 @@
     .sub{
       text-align:center;
       color:#64748b;
-      margin-bottom:28px;
-      line-height:1.5;
+      margin-bottom:24px;
     }
 
     .relogio{
@@ -85,17 +78,19 @@
 
     select,
     textarea,
+    input,
     button{
       width:100%;
       border-radius:14px;
       border:1px solid #dbe4f0;
       padding:16px;
       font-size:16px;
-      font-family:Arial, sans-serif;
+      font-family:Arial,sans-serif;
     }
 
     select:focus,
-    textarea:focus{
+    textarea:focus,
+    input:focus{
       outline:none;
       border-color:#2563eb;
       box-shadow:0 0 0 4px rgba(37,99,235,.12);
@@ -114,11 +109,39 @@
       font-weight:bold;
       cursor:pointer;
       font-size:17px;
-      transition:.2s;
     }
 
-    button:hover{
-      transform:translateY(-1px);
+    button:disabled{
+      opacity:.7;
+      cursor:not-allowed;
+    }
+
+    .preview{
+      display:none;
+      align-items:center;
+      gap:12px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:12px;
+      margin-bottom:16px;
+    }
+
+    .preview img{
+      width:64px;
+      height:64px;
+      object-fit:cover;
+      border-radius:14px;
+      background:#e2e8f0;
+    }
+
+    .preview strong{
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .preview small{
+      color:#64748b;
     }
 
     .sucesso{
@@ -140,7 +163,6 @@
       text-align:center;
       font-weight:bold;
     }
-
   </style>
 </head>
 <body>
@@ -148,67 +170,50 @@
 <div class="card">
 
   <h1>PontoFácil</h1>
-
-  <div class="sub">
-    Registro eletrônico de ponto
-  </div>
+  <div class="sub">Registro eletrônico de ponto</div>
 
   <div class="relogio">
-
-    <div class="hora" id="horaAtual">
-      --:--
-    </div>
-
-    <div class="data" id="dataAtual">
-      --
-    </div>
-
+    <div class="hora" id="horaAtual">--:--</div>
+    <div class="data" id="dataAtual">--</div>
   </div>
 
   <div class="campo">
     <label>Funcionário</label>
-
-    <select id="funcionario">
+    <select id="funcionario" onchange="mostrarFuncionario()">
       <option value="">Carregando funcionários...</option>
     </select>
   </div>
 
+  <div id="previewFuncionario" class="preview">
+    <img id="fotoFuncionario" src="">
+    <div>
+      <strong id="nomeFuncionarioPreview"></strong>
+      <small id="funcaoFuncionarioPreview"></small>
+    </div>
+  </div>
+
   <div class="campo">
     <label>Tipo de registro</label>
-
     <select id="tipo">
-
       <option value="">Selecione</option>
-
-      <option value="entrada">
-        Entrada
-      </option>
-
-      <option value="saida_intervalo">
-        Saída para intervalo
-      </option>
-
-      <option value="retorno_intervalo">
-        Retorno do intervalo
-      </option>
-
-      <option value="saida">
-        Saída
-      </option>
-
+      <option value="entrada">Entrada</option>
+      <option value="saida_intervalo">Saída para intervalo</option>
+      <option value="retorno_intervalo">Retorno do intervalo</option>
+      <option value="saida">Saída</option>
     </select>
   </div>
 
   <div class="campo">
-    <label>Observação (opcional)</label>
-
-    <textarea
-      id="observacao"
-      placeholder="Digite uma observação..."
-    ></textarea>
+    <label>Foto do funcionário</label>
+    <input id="fotoPonto" type="file" accept="image/*" capture="user">
   </div>
 
-  <button onclick="registrarPonto()">
+  <div class="campo">
+    <label>Observação opcional</label>
+    <textarea id="observacao" placeholder="Digite uma observação..."></textarea>
+  </div>
+
+  <button id="btnRegistrar" onclick="registrarPonto()">
     Registrar ponto
   </button>
 
@@ -217,21 +222,18 @@
 </div>
 
 <script>
-
   const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
 
-  const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
 
-  const supabaseClient = window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  const empresaId = "COLOQUE_AQUI_O_ID_DA_EMPRESA";
+  const params = new URLSearchParams(window.location.search);
+  const empresaId = params.get("empresa");
+
+  let funcionarios = [];
 
   function atualizarRelogio(){
-
     const agora = new Date();
 
     document.getElementById("horaAtual").innerText =
@@ -247,16 +249,33 @@
         month:"long",
         year:"numeric"
       });
-
   }
 
   setInterval(atualizarRelogio, 1000);
-
   atualizarRelogio();
 
-  async function carregarFuncionarios(){
+  function normalizarNomeArquivo(texto){
+    return String(texto || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
 
+  function mostrarMensagem(tipo, texto){
+    document.getElementById("mensagem").innerHTML =
+      `<div class="${tipo}">${texto}</div>`;
+  }
+
+  async function carregarFuncionarios(){
     const select = document.getElementById("funcionario");
+
+    if(!empresaId){
+      select.innerHTML = `<option value="">Empresa não identificada</option>`;
+      mostrarMensagem("erro", "QR Code inválido. Empresa não identificada.");
+      return;
+    }
 
     const { data, error } = await supabaseClient
       .from("funcionarios")
@@ -266,62 +285,112 @@
       .order("nome_completo");
 
     if(error){
-
       console.log(error);
-
-      select.innerHTML =
-        `<option value="">Erro ao carregar</option>`;
-
+      select.innerHTML = `<option value="">Erro ao carregar</option>`;
+      mostrarMensagem("erro", "Erro ao carregar funcionários.");
       return;
     }
 
-    if(!data || data.length === 0){
+    funcionarios = data || [];
 
-      select.innerHTML =
-        `<option value="">Nenhum funcionário</option>`;
-
+    if(funcionarios.length === 0){
+      select.innerHTML = `<option value="">Nenhum funcionário ativo</option>`;
       return;
     }
 
-    select.innerHTML =
-      `<option value="">Selecione</option>`;
-
-    data.forEach(funcionario => {
-
-      select.innerHTML += `
+    select.innerHTML = `
+      <option value="">Selecione seu nome</option>
+      ${funcionarios.map(funcionario => `
         <option value="${funcionario.id}">
           ${funcionario.nome_completo}
         </option>
-      `;
+      `).join("")}
+    `;
+  }
 
-    });
+  function mostrarFuncionario(){
+    const funcionarioId = document.getElementById("funcionario").value;
+    const funcionario = funcionarios.find(f => String(f.id) === String(funcionarioId));
+    const preview = document.getElementById("previewFuncionario");
 
+    if(!funcionario){
+      preview.style.display = "none";
+      return;
+    }
+
+    document.getElementById("fotoFuncionario").src = funcionario.foto_url || "";
+    document.getElementById("nomeFuncionarioPreview").innerText = funcionario.nome_completo;
+    document.getElementById("funcaoFuncionarioPreview").innerText = funcionario.funcao || "Funcionário";
+
+    preview.style.display = "flex";
+  }
+
+  async function enviarFotoPonto(funcionarioId, tipo){
+    const input = document.getElementById("fotoPonto");
+
+    if(!input.files || input.files.length === 0){
+      return null;
+    }
+
+    const arquivo = input.files[0];
+    const extensao = arquivo.name.split(".").pop().toLowerCase();
+
+    const nomeArquivo = `${empresaId}/${funcionarioId}/${tipo}-${Date.now()}.${extensao}`;
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("pontos")
+      .upload(nomeArquivo, arquivo, {
+        cacheControl:"3600",
+        upsert:false
+      });
+
+    if(uploadError){
+      console.log("Erro upload foto ponto:", uploadError);
+      return null;
+    }
+
+    const { data: urlData } = supabaseClient
+      .storage
+      .from("pontos")
+      .getPublicUrl(nomeArquivo);
+
+    return urlData.publicUrl;
   }
 
   async function registrarPonto(){
+    const funcionarioId = document.getElementById("funcionario").value;
+    const tipo = document.getElementById("tipo").value;
+    const observacao = document.getElementById("observacao").value.trim();
+    const fotoInput = document.getElementById("fotoPonto");
+    const botao = document.getElementById("btnRegistrar");
 
-    const funcionarioId =
-      document.getElementById("funcionario").value;
+    document.getElementById("mensagem").innerHTML = "";
 
-    const tipo =
-      document.getElementById("tipo").value;
+    if(!funcionarioId){
+      mostrarMensagem("erro", "Selecione o funcionário.");
+      return;
+    }
 
-    const observacao =
-      document.getElementById("observacao").value.trim();
+    if(!tipo){
+      mostrarMensagem("erro", "Selecione o tipo de registro.");
+      return;
+    }
 
-    const mensagem =
-      document.getElementById("mensagem");
+    if(!fotoInput.files || fotoInput.files.length === 0){
+      mostrarMensagem("erro", "Tire ou envie uma foto para registrar o ponto.");
+      return;
+    }
 
-    mensagem.innerHTML = "";
+    botao.disabled = true;
+    botao.innerText = "Registrando...";
 
-    if(!funcionarioId || !tipo){
+    const fotoUrl = await enviarFotoPonto(funcionarioId, tipo);
 
-      mensagem.innerHTML = `
-        <div class="erro">
-          Selecione funcionário e tipo.
-        </div>
-      `;
-
+    if(!fotoUrl){
+      mostrarMensagem("erro", "Erro ao enviar foto do ponto.");
+      botao.disabled = false;
+      botao.innerText = "Registrar ponto";
       return;
     }
 
@@ -329,40 +398,34 @@
       .from("registros_ponto")
       .insert([
         {
-          empresa_id:empresaId,
-          funcionario_id:funcionarioId,
+          empresa_id: empresaId,
+          funcionario_id: funcionarioId,
           tipo,
           observacao,
-          data_hora:new Date().toISOString()
+          foto_url: fotoUrl,
+          data_hora: new Date().toISOString()
         }
       ]);
 
     if(error){
-
       console.log(error);
-
-      mensagem.innerHTML = `
-        <div class="erro">
-          Erro ao registrar ponto.
-        </div>
-      `;
-
+      mostrarMensagem("erro", "Erro ao registrar ponto.");
+      botao.disabled = false;
+      botao.innerText = "Registrar ponto";
       return;
     }
 
     document.getElementById("tipo").value = "";
     document.getElementById("observacao").value = "";
+    document.getElementById("fotoPonto").value = "";
 
-    mensagem.innerHTML = `
-      <div class="sucesso">
-        ✅ Ponto registrado com sucesso.
-      </div>
-    `;
+    mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
 
+    botao.disabled = false;
+    botao.innerText = "Registrar ponto";
   }
 
   carregarFuncionarios();
-
 </script>
 
 </body>
