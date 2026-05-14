@@ -8,11 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-    *{
-      box-sizing:border-box;
-      margin:0;
-      padding:0;
-    }
+    *{ box-sizing:border-box; margin:0; padding:0; }
 
     body{
       font-family:Arial, sans-serif;
@@ -74,12 +70,21 @@
       gap:12px;
     }
 
+    label{
+      display:block;
+      margin-bottom:6px;
+      color:#334155;
+      font-size:14px;
+      font-weight:700;
+    }
+
     input{
       width:100%;
       padding:14px;
       border:1px solid #dbe4f0;
       border-radius:12px;
       font-size:15px;
+      background:white;
     }
 
     input:focus{
@@ -111,6 +116,25 @@
       gap:14px;
       align-items:center;
       flex-wrap:wrap;
+    }
+
+    .empresa-info{
+      display:flex;
+      gap:14px;
+      align-items:center;
+      min-width:260px;
+      flex:1;
+    }
+
+    .logo-empresa{
+      width:76px;
+      height:76px;
+      border-radius:14px;
+      object-fit:contain;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      flex-shrink:0;
+      padding:6px;
     }
 
     .empresa strong{
@@ -196,6 +220,7 @@
     }
   </style>
 </head>
+
 <body>
 
 <div class="container">
@@ -213,10 +238,32 @@
     <h2>Cadastrar empresa</h2>
 
     <div class="form-grid">
-      <input id="nome" placeholder="Nome da empresa">
-      <input id="cnpj" placeholder="CNPJ">
-      <input id="email_gestao" placeholder="E-mail de gestão">
-      <input id="senha_gestao" placeholder="Senha da gestão">
+
+      <div>
+        <label>Logomarca da empresa</label>
+        <input id="logo" type="file" accept="image/*">
+      </div>
+
+      <div>
+        <label>Nome da empresa</label>
+        <input id="nome" placeholder="Nome da empresa">
+      </div>
+
+      <div>
+        <label>CNPJ</label>
+        <input id="cnpj" placeholder="CNPJ">
+      </div>
+
+      <div>
+        <label>E-mail de gestão</label>
+        <input id="email_gestao" placeholder="E-mail de gestão">
+      </div>
+
+      <div>
+        <label>Senha da gestão</label>
+        <input id="senha_gestao" placeholder="Senha da gestão">
+      </div>
+
     </div>
 
     <button class="btn-salvar" onclick="salvarEmpresa()">
@@ -233,6 +280,7 @@
 
 <script>
   const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
 
   const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
@@ -246,6 +294,48 @@
     window.location.href = "./index.html";
   }
 
+  function normalizarNomeArquivo(texto){
+    return String(texto || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  async function enviarLogoEmpresa(nomeEmpresa){
+    const inputLogo = document.getElementById("logo");
+
+    if(!inputLogo.files || inputLogo.files.length === 0){
+      return "";
+    }
+
+    const arquivo = inputLogo.files[0];
+    const extensao = arquivo.name.split(".").pop().toLowerCase();
+    const nomeArquivo = `${normalizarNomeArquivo(nomeEmpresa)}-${Date.now()}.${extensao}`;
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("logos")
+      .upload(nomeArquivo, arquivo, {
+        cacheControl:"3600",
+        upsert:false
+      });
+
+    if(uploadError){
+      console.log("Erro ao enviar logo:", uploadError);
+      alert("Erro ao enviar logomarca.");
+      return null;
+    }
+
+    const { data: urlData } = supabaseClient
+      .storage
+      .from("logos")
+      .getPublicUrl(nomeArquivo);
+
+    return urlData.publicUrl;
+  }
+
   async function salvarEmpresa(){
     const nome = document.getElementById("nome").value.trim();
     const cnpj = document.getElementById("cnpj").value.trim();
@@ -257,6 +347,12 @@
       return;
     }
 
+    const logoUrl = await enviarLogoEmpresa(nome);
+
+    if(logoUrl === null){
+      return;
+    }
+
     const { error } = await supabaseClient
       .from("empresas")
       .insert([
@@ -265,6 +361,7 @@
           cnpj,
           email_gestao,
           senha_gestao,
+          logo_url: logoUrl || "",
           ativa:true
         }
       ]);
@@ -277,6 +374,7 @@
 
     alert("Empresa cadastrada com sucesso.");
 
+    document.getElementById("logo").value = "";
     document.getElementById("nome").value = "";
     document.getElementById("cnpj").value = "";
     document.getElementById("email_gestao").value = "";
@@ -306,18 +404,44 @@
 
     lista.innerHTML = data.map(empresa => `
       <div class="empresa">
-        <div>
-          <strong>${empresa.nome}</strong>
-          <small><b>CNPJ:</b> ${empresa.cnpj || "-"}</small>
-          <small><b>E-mail gestão:</b> ${empresa.email_gestao || "-"}</small>
-          <span class="status ${empresa.ativa ? "ativa" : "inativa"}">
-            ${empresa.ativa ? "ATIVA" : "INATIVA"}
-          </span>
+
+        <div class="empresa-info">
+          <img
+            class="logo-empresa"
+            src="${empresa.logo_url || ""}"
+            onerror="this.style.display='none'"
+          >
+
+          <div>
+            <strong>${empresa.nome}</strong>
+            <small><b>CNPJ:</b> ${empresa.cnpj || "-"}</small>
+            <small><b>E-mail gestão:</b> ${empresa.email_gestao || "-"}</small>
+
+            <span class="status ${empresa.ativa ? "ativa" : "inativa"}">
+              ${empresa.ativa ? "ATIVA" : "INATIVA"}
+            </span>
+          </div>
         </div>
 
         <div class="acoes">
-          <button class="btn-editar" onclick="editarEmpresa('${empresa.id}', '${escapeTexto(empresa.nome)}', '${escapeTexto(empresa.cnpj)}', '${escapeTexto(empresa.email_gestao)}', '${escapeTexto(empresa.senha_gestao)}')">
+          <button
+            class="btn-editar"
+            onclick="editarEmpresa(
+              '${empresa.id}',
+              '${escapeTexto(empresa.nome)}',
+              '${escapeTexto(empresa.cnpj)}',
+              '${escapeTexto(empresa.email_gestao)}',
+              '${escapeTexto(empresa.senha_gestao)}'
+            )"
+          >
             Editar
+          </button>
+
+          <button
+            class="btn-editar"
+            onclick="trocarLogoEmpresa('${empresa.id}', '${escapeTexto(empresa.nome)}')"
+          >
+            Trocar logo
           </button>
 
           <button class="btn-status" onclick="alterarStatusEmpresa('${empresa.id}', ${empresa.ativa})">
@@ -371,6 +495,57 @@
 
     alert("Empresa editada com sucesso.");
     carregarEmpresas();
+  }
+
+  async function trocarLogoEmpresa(id, nomeEmpresa){
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+
+    input.onchange = async function(){
+      if(!input.files || input.files.length === 0) return;
+
+      const arquivo = input.files[0];
+      const extensao = arquivo.name.split(".").pop().toLowerCase();
+      const nomeArquivo = `${normalizarNomeArquivo(nomeEmpresa)}-${Date.now()}.${extensao}`;
+
+      const { error: uploadError } = await supabaseClient
+        .storage
+        .from("logos")
+        .upload(nomeArquivo, arquivo, {
+          cacheControl:"3600",
+          upsert:false
+        });
+
+      if(uploadError){
+        console.log("Erro ao trocar logo:", uploadError);
+        alert("Erro ao enviar nova logomarca.");
+        return;
+      }
+
+      const { data: urlData } = supabaseClient
+        .storage
+        .from("logos")
+        .getPublicUrl(nomeArquivo);
+
+      const { error } = await supabaseClient
+        .from("empresas")
+        .update({
+          logo_url: urlData.publicUrl
+        })
+        .eq("id", id);
+
+      if(error){
+        console.log("Erro ao salvar logo:", error);
+        alert("Erro ao salvar nova logomarca.");
+        return;
+      }
+
+      alert("Logomarca atualizada com sucesso.");
+      carregarEmpresas();
+    };
+
+    input.click();
   }
 
   async function alterarStatusEmpresa(id, statusAtual){
