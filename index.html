@@ -154,11 +154,17 @@
       password: senha
     });
 
-    if(error){
-      erro.innerText = "E-mail ou senha inválidos.";
-      erro.style.display = "block";
-      return;
-    }
+    if(error || !data){
+  console.log("ERRO LOGIN:", error);
+  console.log("DATA LOGIN:", data);
+
+  erro.innerText = error
+    ? error.message
+    : "Nenhum administrador encontrado.";
+
+  erro.style.display = "block";
+  return;
+}
 
     localStorage.setItem("pontofacil_logado", "sim");
 
