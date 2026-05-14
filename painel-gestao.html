@@ -177,6 +177,13 @@
       .acoes button{
         flex:1;
       }
+      label{
+  display:block;
+  margin-bottom:6px;
+  color:#334155;
+  font-size:14px;
+  font-weight:700;
+}
     }
   </style>
 </head>
@@ -197,16 +204,53 @@
     <h2>Cadastrar funcionário</h2>
 
     <div class="grid">
-      <input id="foto" type="file" accept="image/*">
-      <input id="nome" placeholder="Nome completo">
-      <input id="cpf" placeholder="CPF">
-      <input id="funcao" placeholder="Função">
-      <input id="data_nascimento" type="date">
-      <input id="horario_entrada" type="time">
-      <input id="horario_intervalo" type="time">
-      <input id="horario_retorno" type="time">
-      <input id="horario_saida" type="time">
-    </div>
+
+  <div>
+    <label>Foto do funcionário</label>
+    <input id="foto" type="file" accept="image/*">
+  </div>
+
+  <div>
+    <label>Nome completo</label>
+    <input id="nome" placeholder="Ex: João da Silva">
+  </div>
+
+  <div>
+    <label>CPF</label>
+    <input id="cpf" placeholder="000.000.000-00">
+  </div>
+
+  <div>
+    <label>Função</label>
+    <input id="funcao" placeholder="Ex: Recepcionista">
+  </div>
+
+  <div>
+    <label>Data de nascimento</label>
+    <input id="data_nascimento" type="date">
+  </div>
+
+  <div>
+    <label>Horário de entrada</label>
+    <input id="horario_entrada" type="time">
+  </div>
+
+  <div>
+    <label>Saída para intervalo</label>
+    <input id="horario_intervalo" type="time">
+  </div>
+
+  <div>
+    <label>Retorno do intervalo</label>
+    <input id="horario_retorno" type="time">
+  </div>
+
+  <div>
+    <label>Horário de saída</label>
+    <input id="horario_saida" type="time">
+  </div>
+
+</div>
 
     <button class="btn" onclick="salvarFuncionario()">
       Salvar funcionário
