@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Banco de Horas</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      font-family:Arial, sans-serif;
+      background:#f4f7fb;
+      color:#0f172a;
+      padding:24px;
+    }
+
+    .container{
+      max-width:1300px;
+      margin:auto;
+    }
+
+    .topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:24px;
+    }
+
+    h1{
+      color:#2563eb;
+      font-size:34px;
+    }
+
+    .sub{
+      color:#64748b;
+      margin-top:4px;
+    }
+
+    .botoes-topo{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    button{
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      font-weight:bold;
+      cursor:pointer;
+      color:white;
+    }
+
+    .btn-voltar{background:#64748b}
+    .btn-pdf{background:#2563eb}
+
+    .card{
+      background:white;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:0 12px 35px rgba(15,23,42,.08);
+      margin-bottom:22px;
+    }
+
+    .filtros{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+      align-items:end;
+    }
+
+    label{
+      display:block;
+      font-weight:bold;
+      font-size:14px;
+      color:#334155;
+      margin-bottom:6px;
+    }
+
+    input, select{
+      width:100%;
+      padding:14px;
+      border:1px solid #dbe4f0;
+      border-radius:12px;
+      font-size:15px;
+      background:white;
+    }
+
+    .btn-filtrar{
+      background:#2563eb;
+      width:100%;
+      padding:15px;
+    }
+
+    .resumo{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:14px;
+    }
+
+    .resumo-card{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .resumo-card strong{
+      display:block;
+      font-size:28px;
+      margin-top:6px;
+      color:#2563eb;
+    }
+
+    .positivo{color:#166534 !important}
+    .negativo{color:#dc2626 !important}
+    .neutro{color:#2563eb !important}
+
+    .tabela-wrap{
+      overflow:auto;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1000px;
+    }
+
+    th,td{
+      padding:12px;
+      border-bottom:1px solid #e2e8f0;
+      text-align:left;
+      font-size:14px;
+      vertical-align:top;
+    }
+
+    th{
+      background:#f8fafc;
+      color:#334155;
+      font-size:13px;
+      text-transform:uppercase;
+    }
+
+    .funcionario{
+      font-weight:bold;
+      color:#0f172a;
+    }
+
+    .badge{
+      display:inline-block;
+      padding:5px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:bold;
+      margin-top:4px;
+    }
+
+    .badge-pos{
+      background:#dcfce7;
+      color:#166534;
+    }
+
+    .badge-neg{
+      background:#fee2e2;
+      color:#991b1b;
+    }
+
+    .badge-zero{
+      background:#dbeafe;
+      color:#1d4ed8;
+    }
+
+    .vazio{
+      color:#64748b;
+      font-style:italic;
+      padding:12px 0;
+    }
+
+    @media(max-width:700px){
+      body{padding:16px}
+      h1{font-size:28px}
+    }
+
+    @media print{
+      body{
+        background:white;
+        padding:0;
+      }
+
+      .container{
+        max-width:100%;
+      }
+
+      .card{
+        box-shadow:none;
+        border-radius:0;
+        margin-bottom:0;
+      }
+
+      .botoes-topo,
+      .filtros-card{
+        display:none;
+      }
+
+      th,td{
+        font-size:11px;
+        padding:8px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <div class="topo">
+    <div>
+      <h1>Banco de Horas</h1>
+      <div class="sub" id="empresaNome">PontoFácil</div>
+    </div>
+
+    <div class="botoes-topo">
+      <button class="btn-voltar" onclick="window.location.href='./painel-gestao.html'">
+        Voltar
+      </button>
+
+      <button class="btn-pdf" onclick="window.print()">
+        Imprimir / Salvar PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="card filtros-card">
+    <div class="filtros">
+
+      <div>
+        <label>Mês</label>
+        <input id="mes" type="month">
+      </div>
+
+      <div>
+        <label>Funcionário</label>
+        <select id="filtroFuncionario">
+          <option value="todos">Todos os funcionários</option>
+        </select>
+      </div>
+
+      <div>
+        <button class="btn-filtrar" onclick="carregarBancoHoras()">
+          Calcular banco de horas
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:16px;">Resumo mensal</h2>
+
+    <div class="resumo">
+      <div class="resumo-card">
+        Horas previstas
+        <strong id="horasPrevistas" class="neutro">0h</strong>
+      </div>
+
+      <div class="resumo-card">
+        Horas trabalhadas
+        <strong id="horasTrabalhadas" class="neutro">0h</strong>
+      </div>
+
+      <div class="resumo-card">
+        Saldo positivo
+        <strong id="saldoPositivo" class="positivo">0h</strong>
+      </div>
+
+      <div class="resumo-card">
+        Saldo negativo
+        <strong id="saldoNegativo" class="negativo">0h</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:16px;">Detalhamento por funcionário e dia</h2>
+    <div id="resultado"></div>
+  </div>
+
+</div>
+
+<script>
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  const empresaId = localStorage.getItem("pontofacil_empresa_id");
+  const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
+
+  let funcionarios = [];
+
+  if(!empresaId){
+    window.location.href = "./gestao.html";
+  }
+
+  document.getElementById("empresaNome").textContent = empresaNome || "PontoFácil";
+
+  function definirMesAtual(){
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    document.getElementById("mes").value = `${ano}-${mes}`;
+  }
+
+  function horaParaMinutos(hora){
+    if(!hora) return null;
+
+    const partes = hora.split(":");
+
+    if(partes.length < 2) return null;
+
+    return Number(partes[0]) * 60 + Number(partes[1]);
+  }
+
+  function minutosParaTexto(minutos){
+    const sinal = minutos < 0 ? "-" : "";
+    const abs = Math.abs(minutos);
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+
+    return `${sinal}${h}h${String(m).padStart(2, "0")}`;
+  }
+
+  function formatarData(dataIso){
+    return new Date(dataIso).toLocaleDateString("pt-BR", {
+      timeZone:"America/Sao_Paulo"
+    });
+  }
+
+  function formatarHora(dataIso){
+    return new Date(dataIso).toLocaleTimeString("pt-BR", {
+      timeZone:"America/Sao_Paulo",
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }
+
+  function minutosEntre(inicio, fim){
+    const minInicio = horaParaMinutos(inicio);
+    const minFim = horaParaMinutos(fim);
+
+    if(minInicio === null || minFim === null) return 0;
+
+    return Math.max(0, minFim - minInicio);
+  }
+
+  function calcularPrevistoFuncionario(funcionario){
+    const entrada = funcionario.horario_entrada;
+    const intervalo = funcionario.horario_intervalo;
+    const retorno = funcionario.horario_retorno;
+    const saida = funcionario.horario_saida;
+
+    let total = 0;
+
+    if(entrada && intervalo){
+      total += minutosEntre(entrada, intervalo);
+    }
+
+    if(retorno && saida){
+      total += minutosEntre(retorno, saida);
+    }
+
+    if(!intervalo && !retorno && entrada && saida){
+      total += minutosEntre(entrada, saida);
+    }
+
+    return total;
+  }
+
+  function organizarRegistros(registros){
+    const mapa = {};
+
+    registros.forEach(registro => {
+      const data = formatarData(registro.data_hora);
+      const chave = `${registro.funcionario_id}_${data}`;
+
+      if(!mapa[chave]){
+        mapa[chave] = {
+          funcionario_id: registro.funcionario_id,
+          data,
+          entrada:null,
+          saida_intervalo:null,
+          retorno_intervalo:null,
+          saida:null
+        };
+      }
+
+      mapa[chave][registro.tipo] = registro;
+    });
+
+    return Object.values(mapa);
+  }
+
+  function calcularTrabalhadoDia(linha){
+    let total = 0;
+
+    if(linha.entrada && linha.saida_intervalo){
+      total += minutosEntre(
+        formatarHora(linha.entrada.data_hora),
+        formatarHora(linha.saida_intervalo.data_hora)
+      );
+    }
+
+    if(linha.retorno_intervalo && linha.saida){
+      total += minutosEntre(
+        formatarHora(linha.retorno_intervalo.data_hora),
+        formatarHora(linha.saida.data_hora)
+      );
+    }
+
+    if(!linha.saida_intervalo && !linha.retorno_intervalo && linha.entrada && linha.saida){
+      total += minutosEntre(
+        formatarHora(linha.entrada.data_hora),
+        formatarHora(linha.saida.data_hora)
+      );
+    }
+
+    return total;
+  }
+
+  function badgeSaldo(saldo){
+    if(saldo > 0){
+      return `<span class="badge badge-pos">+${minutosParaTexto(saldo)}</span>`;
+    }
+
+    if(saldo < 0){
+      return `<span class="badge badge-neg">${minutosParaTexto(saldo)}</span>`;
+    }
+
+    return `<span class="badge badge-zero">0h00</span>`;
+  }
+
+  async function carregarFuncionarios(){
+    const { data, error } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .order("nome_completo");
+
+    if(error){
+      console.log("Erro ao carregar funcionários:", error);
+      return;
+    }
+
+    funcionarios = data || [];
+
+    const select = document.getElementById("filtroFuncionario");
+
+    select.innerHTML = `
+      <option value="todos">Todos os funcionários</option>
+      ${funcionarios.map(f => `
+        <option value="${f.id}">${f.nome_completo}</option>
+      `).join("")}
+    `;
+  }
+
+  async function carregarBancoHoras(){
+    const mes = document.getElementById("mes").value;
+    const filtroFuncionario = document.getElementById("filtroFuncionario").value;
+    const resultado = document.getElementById("resultado");
+
+    if(!mes){
+      alert("Selecione o mês.");
+      return;
+    }
+
+    const inicio = `${mes}-01T00:00:00-03:00`;
+
+    const [ano, mesNumero] = mes.split("-").map(Number);
+    const proximoMes = new Date(ano, mesNumero, 1);
+    const fimAno = proximoMes.getFullYear();
+    const fimMes = String(proximoMes.getMonth() + 1).padStart(2, "0");
+    const fim = `${fimAno}-${fimMes}-01T00:00:00-03:00`;
+
+    let query = supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .gte("data_hora", inicio)
+      .lt("data_hora", fim)
+      .order("data_hora", { ascending:true });
+
+    if(filtroFuncionario !== "todos"){
+      query = query.eq("funcionario_id", filtroFuncionario);
+    }
+
+    const { data, error } = await query;
+
+    if(error){
+      console.log("Erro ao carregar registros:", error);
+      resultado.innerHTML = `<div class="vazio">Erro ao carregar registros.</div>`;
+      return;
+    }
+
+    const registros = data || [];
+
+    if(registros.length === 0){
+      resultado.innerHTML = `<div class="vazio">Nenhum registro encontrado para este mês.</div>`;
+
+      document.getElementById("horasPrevistas").textContent = "0h00";
+      document.getElementById("horasTrabalhadas").textContent = "0h00";
+      document.getElementById("saldoPositivo").textContent = "0h00";
+      document.getElementById("saldoNegativo").textContent = "0h00";
+
+      return;
+    }
+
+    const linhas = organizarRegistros(registros).sort((a,b) => {
+      const fa = funcionarios.find(f => f.id === a.funcionario_id)?.nome_completo || "";
+      const fb = funcionarios.find(f => f.id === b.funcionario_id)?.nome_completo || "";
+
+      const nomeCompare = fa.localeCompare(fb, "pt-BR");
+      if(nomeCompare !== 0) return nomeCompare;
+
+      return a.data.localeCompare(b.data, "pt-BR");
+    });
+
+    let totalPrevisto = 0;
+    let totalTrabalhado = 0;
+    let totalPositivo = 0;
+    let totalNegativo = 0;
+
+    const linhasHtml = linhas.map(linha => {
+      const funcionario = funcionarios.find(f => f.id === linha.funcionario_id);
+
+      const nome = funcionario?.nome_completo || "Funcionário";
+      const funcao = funcionario?.funcao || "-";
+
+      const previsto = calcularPrevistoFuncionario(funcionario || {});
+      const trabalhado = calcularTrabalhadoDia(linha);
+      const saldo = trabalhado - previsto;
+
+      totalPrevisto += previsto;
+      totalTrabalhado += trabalhado;
+
+      if(saldo > 0) totalPositivo += saldo;
+      if(saldo < 0) totalNegativo += Math.abs(saldo);
+
+      return `
+        <tr>
+          <td>
+            <div class="funcionario">${nome}</div>
+            <div style="color:#64748b; font-size:12px;">${funcao}</div>
+          </td>
+
+          <td>${linha.data}</td>
+
+          <td>${linha.entrada ? formatarHora(linha.entrada.data_hora) : "-"}</td>
+
+          <td>${linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-"}</td>
+
+          <td>${linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-"}</td>
+
+          <td>${linha.saida ? formatarHora(linha.saida.data_hora) : "-"}</td>
+
+          <td>${minutosParaTexto(previsto)}</td>
+
+          <td>${minutosParaTexto(trabalhado)}</td>
+
+          <td>${badgeSaldo(saldo)}</td>
+        </tr>
+      `;
+    }).join("");
+
+    document.getElementById("horasPrevistas").textContent = minutosParaTexto(totalPrevisto);
+    document.getElementById("horasTrabalhadas").textContent = minutosParaTexto(totalTrabalhado);
+    document.getElementById("saldoPositivo").textContent = minutosParaTexto(totalPositivo);
+    document.getElementById("saldoNegativo").textContent = "-" + minutosParaTexto(totalNegativo);
+
+    resultado.innerHTML = `
+      <div class="tabela-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Funcionário</th>
+              <th>Data</th>
+              <th>Entrada</th>
+              <th>Saída intervalo</th>
+              <th>Retorno intervalo</th>
+              <th>Saída</th>
+              <th>Previsto</th>
+              <th>Trabalhado</th>
+              <th>Saldo</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${linhasHtml}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async function iniciar(){
+    definirMesAtual();
+    await carregarFuncionarios();
+    await carregarBancoHoras();
+  }
+
+  iniciar();
+</script>
+
+</body>
+</html>
