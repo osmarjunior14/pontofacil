@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PontoFácil - Dashboard</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:Arial,sans-serif;
+      background:#f4f7fb;
+      color:#0f172a;
+      padding:24px;
+    }
+
+    .container{
+      max-width:1400px;
+      margin:auto;
+    }
+
+    .topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:26px;
+    }
+
+    h1{
+      color:#2563eb;
+      font-size:36px;
+    }
+
+    .sub{
+      color:#64748b;
+      margin-top:4px;
+    }
+
+    .acoes-topo{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    button{
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+    }
+
+    .btn-voltar{
+      background:#64748b;
+    }
+
+    .btn-relatorio{
+      background:#2563eb;
+    }
+
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:18px;
+      margin-bottom:24px;
+    }
+
+    .card{
+      background:white;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:0 12px 35px rgba(15,23,42,.08);
+    }
+
+    .card small{
+      color:#64748b;
+      display:block;
+      margin-bottom:8px;
+      font-size:14px;
+    }
+
+    .card strong{
+      font-size:40px;
+      color:#2563eb;
+    }
+
+    .bloco{
+      background:white;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:0 12px 35px rgba(15,23,42,.08);
+      margin-bottom:22px;
+    }
+
+    .bloco h2{
+      margin-bottom:18px;
+      font-size:24px;
+    }
+
+    .registro{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      padding:14px 0;
+      border-bottom:1px solid #e2e8f0;
+      flex-wrap:wrap;
+    }
+
+    .registro:last-child{
+      border-bottom:none;
+    }
+
+    .registro strong{
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .registro small{
+      color:#64748b;
+      line-height:1.5;
+    }
+
+    .badge{
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:bold;
+      color:white;
+      white-space:nowrap;
+    }
+
+    .entrada{
+      background:#16a34a;
+    }
+
+    .saida_intervalo{
+      background:#f59e0b;
+    }
+
+    .retorno_intervalo{
+      background:#2563eb;
+    }
+
+    .saida{
+      background:#dc2626;
+    }
+
+    .foto{
+      width:58px;
+      height:58px;
+      object-fit:cover;
+      border-radius:14px;
+      border:1px solid #dbe4f0;
+      background:#e2e8f0;
+      cursor:pointer;
+    }
+
+    .registro-esquerda{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      flex:1;
+      min-width:260px;
+    }
+
+    .vazio{
+      color:#64748b;
+      font-style:italic;
+    }
+
+    .modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.82);
+      z-index:9999;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .modal img{
+      max-width:95vw;
+      max-height:90vh;
+      border-radius:16px;
+      background:white;
+    }
+
+    @media(max-width:700px){
+
+      body{
+        padding:16px;
+      }
+
+      .registro{
+        align-items:flex-start;
+      }
+
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="topo">
+
+    <div>
+      <h1>Dashboard</h1>
+      <div class="sub" id="empresaNome">
+        PontoFácil
+      </div>
+    </div>
+
+    <div class="acoes-topo">
+
+      <button
+        class="btn-relatorio"
+        onclick="window.location.href='./relatorio.html'"
+      >
+        Relatório mensal
+      </button>
+
+      <button
+        class="btn-voltar"
+        onclick="window.location.href='./painel-gestao.html'"
+      >
+        Voltar
+      </button>
+
+    </div>
+
+  </div>
+
+  <div class="cards">
+
+    <div class="card">
+      <small>Funcionários ativos</small>
+      <strong id="totalFuncionarios">0</strong>
+    </div>
+
+    <div class="card">
+      <small>Pontos registrados hoje</small>
+      <strong id="totalPontosHoje">0</strong>
+    </div>
+
+    <div class="card">
+      <small>Atrasos hoje</small>
+      <strong id="totalAtrasos">0</strong>
+    </div>
+
+    <div class="card">
+      <small>Funcionários sem ponto hoje</small>
+      <strong id="totalSemPonto">0</strong>
+    </div>
+
+  </div>
+
+  <div class="bloco">
+
+    <h2>Últimos registros</h2>
+
+    <div id="ultimosRegistros"></div>
+
+  </div>
+
+</div>
+
+<div
+  id="modalFoto"
+  class="modal"
+  onclick="fecharModal()"
+>
+  <img id="imgModal" src="">
+</div>
+
+<script>
+
+  const supabaseUrl =
+  "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+  const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient =
+  window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+  const empresaId =
+  localStorage.getItem("pontofacil_empresa_id");
+
+  const empresaNome =
+  localStorage.getItem("pontofacil_empresa_nome");
+
+  if(!empresaId){
+    window.location.href = "./gestao.html";
+  }
+
+  document.getElementById("empresaNome").innerText =
+  empresaNome || "PontoFácil";
+
+  let funcionarios = [];
+  let registrosHoje = [];
+
+  function abrirModal(url){
+
+    if(!url) return;
+
+    document.getElementById("imgModal").src = url;
+
+    document.getElementById("modalFoto").style.display =
+    "flex";
+
+  }
+
+  function fecharModal(){
+
+    document.getElementById("modalFoto").style.display =
+    "none";
+
+    document.getElementById("imgModal").src = "";
+
+  }
+
+  function formatarHora(dataIso){
+
+    return new Date(dataIso).toLocaleTimeString(
+      "pt-BR",
+      {
+        hour:"2-digit",
+        minute:"2-digit"
+      }
+    );
+
+  }
+
+  function tipoTexto(tipo){
+
+    const mapa = {
+      entrada:"Entrada",
+      saida_intervalo:"Saída intervalo",
+      retorno_intervalo:"Retorno intervalo",
+      saida:"Saída"
+    };
+
+    return mapa[tipo] || tipo;
+
+  }
+
+  function horaParaMinutos(hora){
+
+    if(!hora) return null;
+
+    const partes = hora.split(":");
+
+    return (
+      Number(partes[0]) * 60 +
+      Number(partes[1])
+    );
+
+  }
+
+  function houveAtraso(registro, funcionario){
+
+    if(!registro || !funcionario) return false;
+
+    const horaRegistro =
+    formatarHora(registro.data_hora);
+
+    let horarioPrevisto = null;
+
+    if(registro.tipo === "entrada"){
+      horarioPrevisto = funcionario.horario_entrada;
+    }
+
+    if(registro.tipo === "saida_intervalo"){
+      horarioPrevisto = funcionario.horario_intervalo;
+    }
+
+    if(registro.tipo === "retorno_intervalo"){
+      horarioPrevisto = funcionario.horario_retorno;
+    }
+
+    if(registro.tipo === "saida"){
+      horarioPrevisto = funcionario.horario_saida;
+    }
+
+    if(!horarioPrevisto) return false;
+
+    return (
+      horaParaMinutos(horaRegistro) >
+      horaParaMinutos(horarioPrevisto)
+    );
+
+  }
+
+  async function carregarDashboard(){
+
+    const hoje = new Date();
+
+    const inicioHoje =
+    new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate()
+    ).toISOString();
+
+    const amanha =
+    new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate() + 1
+    ).toISOString();
+
+    const { data: funcionariosData } =
+    await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true);
+
+    funcionarios = funcionariosData || [];
+
+    document.getElementById("totalFuncionarios").innerText =
+    funcionarios.length;
+
+    const { data: registrosData, error } =
+    await supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .gte("data_hora", inicioHoje)
+      .lt("data_hora", amanha)
+      .order("data_hora", {
+        ascending:false
+      });
+
+    if(error){
+
+      console.log(error);
+
+      document.getElementById("ultimosRegistros").innerHTML =
+      `<div class="vazio">Erro ao carregar registros.</div>`;
+
+      return;
+
+    }
+
+    registrosHoje = registrosData || [];
+
+    document.getElementById("totalPontosHoje").innerText =
+    registrosHoje.length;
+
+    let atrasos = 0;
+
+    registrosHoje.forEach(registro => {
+
+      const funcionario =
+      funcionarios.find(
+        f => f.id === registro.funcionario_id
+      );
+
+      if(houveAtraso(registro, funcionario)){
+        atrasos++;
+      }
+
+    });
+
+    document.getElementById("totalAtrasos").innerText =
+    atrasos;
+
+    const funcionariosComPonto =
+    [
+      ...new Set(
+        registrosHoje.map(
+          r => r.funcionario_id
+        )
+      )
+    ];
+
+    const semPonto =
+    funcionarios.filter(
+      f => !funcionariosComPonto.includes(f.id)
+    );
+
+    document.getElementById("totalSemPonto").innerText =
+    semPonto.length;
+
+    const lista =
+    document.getElementById("ultimosRegistros");
+
+    if(registrosHoje.length === 0){
+
+      lista.innerHTML =
+      `<div class="vazio">Nenhum registro hoje.</div>`;
+
+      return;
+
+    }
+
+    lista.innerHTML =
+    registrosHoje.map(registro => {
+
+      const funcionario =
+      funcionarios.find(
+        f => f.id === registro.funcionario_id
+      );
+
+      const atraso =
+      houveAtraso(registro, funcionario);
+
+      return `
+
+        <div class="registro">
+
+          <div class="registro-esquerda">
+
+            <img
+              class="foto"
+              src="${registro.foto_url || ""}"
+              onclick="abrirModal('${registro.foto_url || ""}')"
+              onerror="this.style.display='none'"
+            >
+
+            <div>
+
+              <strong>
+                ${funcionario?.nome_completo || "Funcionário"}
+              </strong>
+
+              <small>
+                ${funcionario?.funcao || "-"}
+              </small>
+
+              <small>
+                ${formatarHora(registro.data_hora)}
+                ${atraso ? " • ATRASO" : ""}
+              </small>
+
+              ${
+                registro.observacao
+                ? `
+                  <small>
+                    Obs: ${registro.observacao}
+                  </small>
+                `
+                : ""
+              }
+
+            </div>
+
+          </div>
+
+          <span class="badge ${registro.tipo}">
+            ${tipoTexto(registro.tipo)}
+          </span>
+
+        </div>
+
+      `;
+
+    }).join("");
+
+  }
+
+  carregarDashboard();
+
+  setInterval(
+    carregarDashboard,
+    30000
+  );
+
+</script>
+
+</body>
+</html>
