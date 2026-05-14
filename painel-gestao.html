@@ -542,68 +542,73 @@
   }
 
   async function gerarQRCode(){
-    const link = `https://osmarjunior14.github.io/pontofacil/ponto.html?empresa=${empresaId}`;
+  const link = `https://osmarjunior14.github.io/pontofacil/ponto.html?empresa=${empresaId}`;
 
-    const canvas = document.createElement("canvas");
+  const dataUrl = await QRCode.toDataURL(link, {
+    width: 320,
+    margin: 2
+  });
 
-    await QRCode.toCanvas(canvas, link, {
-      width: 320
-    });
+  const janela = window.open("");
 
-    const janela = window.open("");
+  janela.document.write(`
+    <html>
+      <head>
+        <title>QR Code do Ponto</title>
+        <style>
+          body{
+            font-family:Arial;
+            display:flex;
+            flex-direction:column;
+            justify-content:center;
+            align-items:center;
+            padding:30px;
+            text-align:center;
+          }
 
-    janela.document.write(`
-      <html>
-        <head>
-          <title>QR Code do Ponto</title>
-          <style>
-            body{
-              font-family:Arial;
-              display:flex;
-              flex-direction:column;
-              justify-content:center;
-              align-items:center;
-              padding:30px;
-              text-align:center;
-            }
+          h1{
+            color:#2563eb;
+            margin-bottom:20px;
+          }
 
-            h1{
-              color:#2563eb;
-              margin-bottom:20px;
-            }
+          img{
+            width:320px;
+            height:320px;
+          }
 
-            p{
-              margin-top:16px;
-              color:#475569;
-              max-width:400px;
-            }
+          p{
+            margin-top:16px;
+            color:#475569;
+            max-width:400px;
+          }
 
-            button{
-              margin-top:20px;
-              border:none;
-              background:#2563eb;
-              color:white;
-              padding:12px 18px;
-              border-radius:12px;
-              font-weight:bold;
-              cursor:pointer;
-            }
-          </style>
-        </head>
+          button{
+            margin-top:20px;
+            border:none;
+            background:#2563eb;
+            color:white;
+            padding:12px 18px;
+            border-radius:12px;
+            font-weight:bold;
+            cursor:pointer;
+          }
+        </style>
+      </head>
 
-        <body>
-          <h1>${empresaNome || "PontoFácil"}</h1>
-        </body>
-      </html>
-    `);
+      <body>
+        <h1>${empresaNome || "PontoFácil"}</h1>
 
-    janela.document.body.appendChild(canvas);
+        <img src="${dataUrl}" alt="QR Code do ponto">
 
-    janela.document.body.innerHTML += `
-      <p>Escaneie este QR Code para registrar o ponto.</p>
-      <button onclick="window.print()">Imprimir QR Code</button>
-    `;
-  }
+        <p>Escaneie este QR Code para registrar o ponto.</p>
+
+        <button onclick="window.print()">Imprimir QR Code</button>
+      </body>
+    </html>
+  `);
+
+  janela.document.close();
+}
 
   carregarFuncionarios();
 </script>
