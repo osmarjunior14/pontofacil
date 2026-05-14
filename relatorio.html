@@ -31,16 +31,6 @@
       margin-bottom:24px;
     }
 
-    h1{
-      color:#2563eb;
-      font-size:34px;
-    }
-
-    .sub{
-      color:#64748b;
-      margin-top:4px;
-    }
-
     .botoes-topo{
       display:flex;
       gap:10px;
@@ -65,6 +55,60 @@
       padding:22px;
       box-shadow:0 12px 35px rgba(15,23,42,.08);
       margin-bottom:22px;
+    }
+
+    .cabecalho-relatorio{
+      display:grid;
+      grid-template-columns:120px 1fr;
+      gap:20px;
+      align-items:center;
+      margin-bottom:18px;
+      border-bottom:1px solid #e2e8f0;
+      padding-bottom:18px;
+    }
+
+    .logo-box{
+      width:110px;
+      height:110px;
+      border:1px solid #dbe4f0;
+      border-radius:18px;
+      background:#f8fafc;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      overflow:hidden;
+      padding:8px;
+    }
+
+    .logo-box img{
+      max-width:100%;
+      max-height:100%;
+      object-fit:contain;
+    }
+
+    .logo-placeholder{
+      color:#94a3b8;
+      font-size:13px;
+      text-align:center;
+      line-height:1.3;
+    }
+
+    h1{
+      color:#2563eb;
+      font-size:34px;
+      margin-bottom:6px;
+    }
+
+    .sub{
+      color:#64748b;
+      line-height:1.5;
+    }
+
+    .meta{
+      margin-top:10px;
+      color:#334155;
+      font-size:14px;
+      line-height:1.6;
     }
 
     .filtros{
@@ -94,6 +138,26 @@
       background:#2563eb;
       width:100%;
       padding:15px;
+    }
+
+    .resumo{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:14px;
+    }
+
+    .resumo-card{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .resumo-card strong{
+      display:block;
+      font-size:30px;
+      margin-top:6px;
+      color:#2563eb;
     }
 
     .tabela-wrap{
@@ -157,24 +221,19 @@
       padding:12px 0;
     }
 
-    .resumo{
+    .assinaturas{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:14px;
+      grid-template-columns:1fr 1fr;
+      gap:40px;
+      margin-top:42px;
     }
 
-    .resumo-card{
-      background:#f8fafc;
-      border:1px solid #e2e8f0;
-      border-radius:16px;
-      padding:16px;
-    }
-
-    .resumo-card strong{
-      display:block;
-      font-size:30px;
-      margin-top:6px;
-      color:#2563eb;
+    .assinatura{
+      text-align:center;
+      padding-top:44px;
+      border-top:1px solid #0f172a;
+      color:#334155;
+      font-size:14px;
     }
 
     .modal{
@@ -195,28 +254,57 @@
       background:white;
     }
 
+    @media(max-width:700px){
+      body{padding:16px}
+
+      .cabecalho-relatorio{
+        grid-template-columns:1fr;
+      }
+
+      .assinaturas{
+        grid-template-columns:1fr;
+      }
+    }
+
     @media print{
       body{
         background:white;
         padding:0;
       }
 
+      .container{
+        max-width:100%;
+      }
+
       .card{
         box-shadow:none;
         border-radius:0;
+        margin-bottom:0;
+        page-break-inside:auto;
       }
 
       .botoes-topo,
-      .card.filtros-card{
+      .filtros-card{
         display:none;
       }
 
-      .container{
-        max-width:100%;
+      .foto{
+        width:38px;
+        height:38px;
+      }
+
+      th,td{
+        font-size:11px;
+        padding:8px;
+      }
+
+      h1{
+        font-size:26px;
       }
     }
   </style>
 </head>
+
 <body>
 
 <div class="container">
@@ -224,7 +312,7 @@
   <div class="topo">
     <div>
       <h1>Relatório Mensal</h1>
-      <div class="sub" id="empresaNome">PontoFácil</div>
+      <div class="sub">Folha de ponto eletrônica</div>
     </div>
 
     <div class="botoes-topo">
@@ -235,6 +323,27 @@
       <button class="btn-imprimir" onclick="window.print()">
         Imprimir / Salvar PDF
       </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="cabecalho-relatorio">
+      <div class="logo-box" id="logoEmpresaBox">
+        <div class="logo-placeholder">Logomarca<br>da empresa</div>
+      </div>
+
+      <div>
+        <h1 id="nomeEmpresaCabecalho">Empresa</h1>
+        <div class="sub">
+          Relatório mensal de registros de ponto.
+        </div>
+
+        <div class="meta">
+          <div><strong>Mês de referência:</strong> <span id="mesReferenciaTexto">-</span></div>
+          <div><strong>Data de emissão:</strong> <span id="dataEmissao">-</span></div>
+          <div><strong>Sistema:</strong> PontoFácil</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -285,8 +394,17 @@
 
   <div class="card">
     <h2 style="margin-bottom:16px;">Registros do mês</h2>
-
     <div id="resultado"></div>
+
+    <div class="assinaturas">
+      <div class="assinatura">
+        Assinatura do responsável pela empresa
+      </div>
+
+      <div class="assinatura">
+        Assinatura do funcionário
+      </div>
+    </div>
   </div>
 
 </div>
@@ -303,15 +421,13 @@
   const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   const empresaId = localStorage.getItem("pontofacil_empresa_id");
-  const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
 
+  let empresa = null;
   let funcionarios = [];
 
   if(!empresaId){
     window.location.href = "./gestao.html";
   }
-
-  document.getElementById("empresaNome").textContent = empresaNome || "PontoFácil";
 
   function abrirModal(url){
     if(!url) return;
@@ -329,6 +445,35 @@
     const ano = hoje.getFullYear();
     const mes = String(hoje.getMonth() + 1).padStart(2, "0");
     document.getElementById("mes").value = `${ano}-${mes}`;
+  }
+
+  function atualizarDataEmissao(){
+    document.getElementById("dataEmissao").textContent =
+      new Date().toLocaleDateString("pt-BR", {
+        day:"2-digit",
+        month:"2-digit",
+        year:"numeric",
+        hour:"2-digit",
+        minute:"2-digit"
+      });
+  }
+
+  function atualizarMesReferencia(){
+    const mes = document.getElementById("mes").value;
+
+    if(!mes){
+      document.getElementById("mesReferenciaTexto").textContent = "-";
+      return;
+    }
+
+    const [ano, mesNumero] = mes.split("-");
+    const data = new Date(Number(ano), Number(mesNumero) - 1, 1);
+
+    document.getElementById("mesReferenciaTexto").textContent =
+      data.toLocaleDateString("pt-BR", {
+        month:"long",
+        year:"numeric"
+      });
   }
 
   function formatarData(dataIso){
@@ -375,6 +520,30 @@
         onerror="this.style.display='none'"
       >
     `;
+  }
+
+  async function carregarEmpresa(){
+    const { data, error } = await supabaseClient
+      .from("empresas")
+      .select("*")
+      .eq("id", empresaId)
+      .single();
+
+    if(error){
+      console.log("Erro ao carregar empresa:", error);
+      return;
+    }
+
+    empresa = data;
+
+    document.getElementById("nomeEmpresaCabecalho").textContent =
+      empresa.nome || "Empresa";
+
+    if(empresa.logo_url){
+      document.getElementById("logoEmpresaBox").innerHTML = `
+        <img src="${empresa.logo_url}" alt="Logomarca da empresa">
+      `;
+    }
   }
 
   async function carregarFuncionarios(){
@@ -459,6 +628,8 @@
   }
 
   async function carregarRelatorio(){
+    atualizarMesReferencia();
+
     const mes = document.getElementById("mes").value;
     const filtroFuncionario = document.getElementById("filtroFuncionario").value;
     const resultado = document.getElementById("resultado");
@@ -570,6 +741,9 @@
 
   async function iniciar(){
     definirMesAtual();
+    atualizarDataEmissao();
+    atualizarMesReferencia();
+    await carregarEmpresa();
     await carregarFuncionarios();
     await carregarRelatorio();
   }
