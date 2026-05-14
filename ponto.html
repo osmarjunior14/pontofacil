@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>PontoFácil - Registrar ponto</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    body{
+      font-family:Arial, sans-serif;
+      background:#f4f7fb;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      color:#0f172a;
+    }
+
+    .card{
+      width:100%;
+      max-width:460px;
+      background:white;
+      border-radius:26px;
+      padding:26px;
+      box-shadow:0 18px 45px rgba(15,23,42,.08);
+    }
+
+    h1{
+      color:#2563eb;
+      font-size:34px;
+      text-align:center;
+      margin-bottom:8px;
+    }
+
+    .sub{
+      text-align:center;
+      color:#64748b;
+      margin-bottom:28px;
+      line-height:1.5;
+    }
+
+    .relogio{
+      background:#eff6ff;
+      border:1px solid #bfdbfe;
+      border-radius:18px;
+      padding:16px;
+      text-align:center;
+      margin-bottom:20px;
+    }
+
+    .hora{
+      font-size:38px;
+      font-weight:900;
+      color:#2563eb;
+    }
+
+    .data{
+      margin-top:6px;
+      color:#64748b;
+      font-size:14px;
+    }
+
+    .campo{
+      margin-bottom:16px;
+    }
+
+    label{
+      display:block;
+      margin-bottom:7px;
+      font-size:14px;
+      font-weight:bold;
+      color:#334155;
+    }
+
+    select,
+    textarea,
+    button{
+      width:100%;
+      border-radius:14px;
+      border:1px solid #dbe4f0;
+      padding:16px;
+      font-size:16px;
+      font-family:Arial, sans-serif;
+    }
+
+    select:focus,
+    textarea:focus{
+      outline:none;
+      border-color:#2563eb;
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    textarea{
+      resize:none;
+      min-height:90px;
+    }
+
+    button{
+      margin-top:10px;
+      border:none;
+      background:#2563eb;
+      color:white;
+      font-weight:bold;
+      cursor:pointer;
+      font-size:17px;
+      transition:.2s;
+    }
+
+    button:hover{
+      transform:translateY(-1px);
+    }
+
+    .sucesso{
+      margin-top:18px;
+      background:#dcfce7;
+      color:#166534;
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+      font-weight:bold;
+    }
+
+    .erro{
+      margin-top:18px;
+      background:#fee2e2;
+      color:#991b1b;
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+      font-weight:bold;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="card">
+
+  <h1>PontoFácil</h1>
+
+  <div class="sub">
+    Registro eletrônico de ponto
+  </div>
+
+  <div class="relogio">
+
+    <div class="hora" id="horaAtual">
+      --:--
+    </div>
+
+    <div class="data" id="dataAtual">
+      --
+    </div>
+
+  </div>
+
+  <div class="campo">
+    <label>Funcionário</label>
+
+    <select id="funcionario">
+      <option value="">Carregando funcionários...</option>
+    </select>
+  </div>
+
+  <div class="campo">
+    <label>Tipo de registro</label>
+
+    <select id="tipo">
+
+      <option value="">Selecione</option>
+
+      <option value="entrada">
+        Entrada
+      </option>
+
+      <option value="saida_intervalo">
+        Saída para intervalo
+      </option>
+
+      <option value="retorno_intervalo">
+        Retorno do intervalo
+      </option>
+
+      <option value="saida">
+        Saída
+      </option>
+
+    </select>
+  </div>
+
+  <div class="campo">
+    <label>Observação (opcional)</label>
+
+    <textarea
+      id="observacao"
+      placeholder="Digite uma observação..."
+    ></textarea>
+  </div>
+
+  <button onclick="registrarPonto()">
+    Registrar ponto
+  </button>
+
+  <div id="mensagem"></div>
+
+</div>
+
+<script>
+
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+  const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+  const empresaId = "COLOQUE_AQUI_O_ID_DA_EMPRESA";
+
+  function atualizarRelogio(){
+
+    const agora = new Date();
+
+    document.getElementById("horaAtual").innerText =
+      agora.toLocaleTimeString("pt-BR", {
+        hour:"2-digit",
+        minute:"2-digit"
+      });
+
+    document.getElementById("dataAtual").innerText =
+      agora.toLocaleDateString("pt-BR", {
+        weekday:"long",
+        day:"2-digit",
+        month:"long",
+        year:"numeric"
+      });
+
+  }
+
+  setInterval(atualizarRelogio, 1000);
+
+  atualizarRelogio();
+
+  async function carregarFuncionarios(){
+
+    const select = document.getElementById("funcionario");
+
+    const { data, error } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true)
+      .order("nome_completo");
+
+    if(error){
+
+      console.log(error);
+
+      select.innerHTML =
+        `<option value="">Erro ao carregar</option>`;
+
+      return;
+    }
+
+    if(!data || data.length === 0){
+
+      select.innerHTML =
+        `<option value="">Nenhum funcionário</option>`;
+
+      return;
+    }
+
+    select.innerHTML =
+      `<option value="">Selecione</option>`;
+
+    data.forEach(funcionario => {
+
+      select.innerHTML += `
+        <option value="${funcionario.id}">
+          ${funcionario.nome_completo}
+        </option>
+      `;
+
+    });
+
+  }
+
+  async function registrarPonto(){
+
+    const funcionarioId =
+      document.getElementById("funcionario").value;
+
+    const tipo =
+      document.getElementById("tipo").value;
+
+    const observacao =
+      document.getElementById("observacao").value.trim();
+
+    const mensagem =
+      document.getElementById("mensagem");
+
+    mensagem.innerHTML = "";
+
+    if(!funcionarioId || !tipo){
+
+      mensagem.innerHTML = `
+        <div class="erro">
+          Selecione funcionário e tipo.
+        </div>
+      `;
+
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("registros_ponto")
+      .insert([
+        {
+          empresa_id:empresaId,
+          funcionario_id:funcionarioId,
+          tipo,
+          observacao,
+          data_hora:new Date().toISOString()
+        }
+      ]);
+
+    if(error){
+
+      console.log(error);
+
+      mensagem.innerHTML = `
+        <div class="erro">
+          Erro ao registrar ponto.
+        </div>
+      `;
+
+      return;
+    }
+
+    document.getElementById("tipo").value = "";
+    document.getElementById("observacao").value = "";
+
+    mensagem.innerHTML = `
+      <div class="sucesso">
+        ✅ Ponto registrado com sucesso.
+      </div>
+    `;
+
+  }
+
+  carregarFuncionarios();
+
+</script>
+
+</body>
+</html>
