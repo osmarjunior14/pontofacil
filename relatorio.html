@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Relatório Mensal</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+
+    body{
+      font-family:Arial,sans-serif;
+      background:#f4f7fb;
+      color:#0f172a;
+      padding:24px;
+    }
+
+    .container{
+      max-width:1300px;
+      margin:auto;
+    }
+
+    .topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+      margin-bottom:24px;
+    }
+
+    h1{
+      color:#2563eb;
+      font-size:34px;
+    }
+
+    .sub{
+      color:#64748b;
+      margin-top:4px;
+    }
+
+    .botoes-topo{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    button{
+      border:none;
+      border-radius:12px;
+      padding:12px 16px;
+      font-weight:bold;
+      cursor:pointer;
+      color:white;
+    }
+
+    .btn-voltar{background:#64748b}
+    .btn-imprimir{background:#2563eb}
+
+    .card{
+      background:white;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:0 12px 35px rgba(15,23,42,.08);
+      margin-bottom:22px;
+    }
+
+    .filtros{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:14px;
+      align-items:end;
+    }
+
+    label{
+      display:block;
+      font-weight:bold;
+      font-size:14px;
+      color:#334155;
+      margin-bottom:6px;
+    }
+
+    input, select{
+      width:100%;
+      padding:14px;
+      border:1px solid #dbe4f0;
+      border-radius:12px;
+      font-size:15px;
+    }
+
+    .btn-filtrar{
+      background:#2563eb;
+      width:100%;
+      padding:15px;
+    }
+
+    .tabela-wrap{
+      overflow:auto;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:950px;
+    }
+
+    th,td{
+      padding:12px;
+      border-bottom:1px solid #e2e8f0;
+      text-align:left;
+      font-size:14px;
+      vertical-align:top;
+    }
+
+    th{
+      background:#f8fafc;
+      color:#334155;
+      font-size:13px;
+      text-transform:uppercase;
+    }
+
+    .funcionario{
+      font-weight:bold;
+      color:#0f172a;
+    }
+
+    .ok{
+      color:#166534;
+      font-weight:bold;
+    }
+
+    .atraso{
+      color:#dc2626;
+      font-weight:bold;
+    }
+
+    .foto{
+      width:46px;
+      height:46px;
+      object-fit:cover;
+      border-radius:10px;
+      cursor:pointer;
+      border:1px solid #dbe4f0;
+      background:#e2e8f0;
+    }
+
+    .sem-foto{
+      color:#94a3b8;
+      font-style:italic;
+    }
+
+    .vazio{
+      color:#64748b;
+      font-style:italic;
+      padding:12px 0;
+    }
+
+    .resumo{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+      gap:14px;
+    }
+
+    .resumo-card{
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:16px;
+      padding:16px;
+    }
+
+    .resumo-card strong{
+      display:block;
+      font-size:30px;
+      margin-top:6px;
+      color:#2563eb;
+    }
+
+    .modal{
+      display:none;
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,.82);
+      z-index:9999;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .modal img{
+      max-width:95vw;
+      max-height:90vh;
+      border-radius:16px;
+      background:white;
+    }
+
+    @media print{
+      body{
+        background:white;
+        padding:0;
+      }
+
+      .card{
+        box-shadow:none;
+        border-radius:0;
+      }
+
+      .botoes-topo,
+      .card.filtros-card{
+        display:none;
+      }
+
+      .container{
+        max-width:100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="topo">
+    <div>
+      <h1>Relatório Mensal</h1>
+      <div class="sub" id="empresaNome">PontoFácil</div>
+    </div>
+
+    <div class="botoes-topo">
+      <button class="btn-voltar" onclick="window.location.href='./painel-gestao.html'">
+        Voltar
+      </button>
+
+      <button class="btn-imprimir" onclick="window.print()">
+        Imprimir / Salvar PDF
+      </button>
+    </div>
+  </div>
+
+  <div class="card filtros-card">
+    <div class="filtros">
+
+      <div>
+        <label>Mês</label>
+        <input id="mes" type="month">
+      </div>
+
+      <div>
+        <label>Funcionário</label>
+        <select id="filtroFuncionario">
+          <option value="todos">Todos os funcionários</option>
+        </select>
+      </div>
+
+      <div>
+        <button class="btn-filtrar" onclick="carregarRelatorio()">
+          Gerar relatório
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:16px;">Resumo</h2>
+
+    <div class="resumo">
+      <div class="resumo-card">
+        Dias com registro
+        <strong id="totalDias">0</strong>
+      </div>
+
+      <div class="resumo-card">
+        Pontos registrados
+        <strong id="totalPontos">0</strong>
+      </div>
+
+      <div class="resumo-card">
+        Atrasos identificados
+        <strong id="totalAtrasos">0</strong>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2 style="margin-bottom:16px;">Registros do mês</h2>
+
+    <div id="resultado"></div>
+  </div>
+
+</div>
+
+<div id="modalFoto" class="modal" onclick="fecharModal()">
+  <img id="imgModal" src="">
+</div>
+
+<script>
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  const empresaId = localStorage.getItem("pontofacil_empresa_id");
+  const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
+
+  let funcionarios = [];
+
+  if(!empresaId){
+    window.location.href = "./gestao.html";
+  }
+
+  document.getElementById("empresaNome").textContent = empresaNome || "PontoFácil";
+
+  function abrirModal(url){
+    if(!url) return;
+    document.getElementById("imgModal").src = url;
+    document.getElementById("modalFoto").style.display = "flex";
+  }
+
+  function fecharModal(){
+    document.getElementById("modalFoto").style.display = "none";
+    document.getElementById("imgModal").src = "";
+  }
+
+  function definirMesAtual(){
+    const hoje = new Date();
+    const ano = hoje.getFullYear();
+    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
+    document.getElementById("mes").value = `${ano}-${mes}`;
+  }
+
+  function formatarData(dataIso){
+    return new Date(dataIso).toLocaleDateString("pt-BR", {
+      timeZone:"America/Sao_Paulo"
+    });
+  }
+
+  function formatarHora(dataIso){
+    return new Date(dataIso).toLocaleTimeString("pt-BR", {
+      timeZone:"America/Sao_Paulo",
+      hour:"2-digit",
+      minute:"2-digit"
+    });
+  }
+
+  function horaParaMinutos(hora){
+    if(!hora) return null;
+    const partes = hora.split(":");
+    return Number(partes[0]) * 60 + Number(partes[1]);
+  }
+
+  function compararAtraso(horaRegistrada, horaPrevista){
+    if(!horaPrevista || !horaRegistrada) return false;
+
+    const registrada = horaParaMinutos(horaRegistrada);
+    const prevista = horaParaMinutos(horaPrevista);
+
+    if(registrada === null || prevista === null) return false;
+
+    return registrada > prevista;
+  }
+
+  function fotoHtml(url){
+    if(!url){
+      return `<span class="sem-foto">Sem foto</span>`;
+    }
+
+    return `
+      <img
+        class="foto"
+        src="${url}"
+        onclick="abrirModal('${url}')"
+        onerror="this.style.display='none'"
+      >
+    `;
+  }
+
+  async function carregarFuncionarios(){
+    const { data, error } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .order("nome_completo");
+
+    if(error){
+      console.log("Erro ao carregar funcionários:", error);
+      return;
+    }
+
+    funcionarios = data || [];
+
+    const select = document.getElementById("filtroFuncionario");
+
+    select.innerHTML = `
+      <option value="todos">Todos os funcionários</option>
+      ${funcionarios.map(f => `
+        <option value="${f.id}">${f.nome_completo}</option>
+      `).join("")}
+    `;
+  }
+
+  function organizarRegistros(registros){
+    const mapa = {};
+
+    registros.forEach(registro => {
+      const funcionario = funcionarios.find(f => f.id === registro.funcionario_id);
+      const funcionarioNome = funcionario?.nome_completo || "Funcionário";
+      const data = formatarData(registro.data_hora);
+
+      const chave = `${registro.funcionario_id}_${data}`;
+
+      if(!mapa[chave]){
+        mapa[chave] = {
+          funcionario,
+          funcionarioNome,
+          data,
+          entrada:null,
+          saida_intervalo:null,
+          retorno_intervalo:null,
+          saida:null
+        };
+      }
+
+      mapa[chave][registro.tipo] = registro;
+    });
+
+    return Object.values(mapa).sort((a,b) => {
+      const nomeCompare = a.funcionarioNome.localeCompare(b.funcionarioNome, "pt-BR");
+      if(nomeCompare !== 0) return nomeCompare;
+      return a.data.localeCompare(b.data, "pt-BR");
+    });
+  }
+
+  function montarCelula(registro, horarioPrevisto){
+    if(!registro){
+      return `<span class="sem-foto">-</span>`;
+    }
+
+    const hora = formatarHora(registro.data_hora);
+    const atrasado = compararAtraso(hora, horarioPrevisto);
+
+    return `
+      <div class="${atrasado ? "atraso" : "ok"}">
+        ${hora} ${atrasado ? "• Atraso" : ""}
+      </div>
+
+      <div style="margin-top:6px;">
+        ${fotoHtml(registro.foto_url)}
+      </div>
+
+      ${
+        registro.observacao
+        ? `<div style="margin-top:6px; color:#64748b; font-size:12px;">${registro.observacao}</div>`
+        : ""
+      }
+    `;
+  }
+
+  async function carregarRelatorio(){
+    const mes = document.getElementById("mes").value;
+    const filtroFuncionario = document.getElementById("filtroFuncionario").value;
+    const resultado = document.getElementById("resultado");
+
+    if(!mes){
+      alert("Selecione o mês.");
+      return;
+    }
+
+    const inicio = `${mes}-01T00:00:00-03:00`;
+
+    const [ano, mesNumero] = mes.split("-").map(Number);
+    const proximoMes = new Date(ano, mesNumero, 1);
+    const fimAno = proximoMes.getFullYear();
+    const fimMes = String(proximoMes.getMonth() + 1).padStart(2, "0");
+    const fim = `${fimAno}-${fimMes}-01T00:00:00-03:00`;
+
+    let query = supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .gte("data_hora", inicio)
+      .lt("data_hora", fim)
+      .order("data_hora", { ascending:true });
+
+    if(filtroFuncionario !== "todos"){
+      query = query.eq("funcionario_id", filtroFuncionario);
+    }
+
+    const { data, error } = await query;
+
+    if(error){
+      console.log("Erro ao carregar relatório:", error);
+      resultado.innerHTML = `<div class="vazio">Erro ao carregar relatório.</div>`;
+      return;
+    }
+
+    const registros = data || [];
+
+    document.getElementById("totalPontos").textContent = registros.length;
+
+    if(registros.length === 0){
+      resultado.innerHTML = `<div class="vazio">Nenhum registro encontrado para este mês.</div>`;
+      document.getElementById("totalDias").textContent = 0;
+      document.getElementById("totalAtrasos").textContent = 0;
+      return;
+    }
+
+    const linhas = organizarRegistros(registros);
+
+    let totalAtrasos = 0;
+
+    linhas.forEach(linha => {
+      const f = linha.funcionario;
+
+      if(linha.entrada && compararAtraso(formatarHora(linha.entrada.data_hora), f?.horario_entrada)) totalAtrasos++;
+      if(linha.saida_intervalo && compararAtraso(formatarHora(linha.saida_intervalo.data_hora), f?.horario_intervalo)) totalAtrasos++;
+      if(linha.retorno_intervalo && compararAtraso(formatarHora(linha.retorno_intervalo.data_hora), f?.horario_retorno)) totalAtrasos++;
+      if(linha.saida && compararAtraso(formatarHora(linha.saida.data_hora), f?.horario_saida)) totalAtrasos++;
+    });
+
+    const diasUnicos = new Set(linhas.map(l => `${l.funcionarioNome}_${l.data}`));
+
+    document.getElementById("totalDias").textContent = diasUnicos.size;
+    document.getElementById("totalAtrasos").textContent = totalAtrasos;
+
+    resultado.innerHTML = `
+      <div class="tabela-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Funcionário</th>
+              <th>Data</th>
+              <th>Entrada</th>
+              <th>Saída intervalo</th>
+              <th>Retorno intervalo</th>
+              <th>Saída</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            ${linhas.map(linha => {
+              const f = linha.funcionario;
+
+              return `
+                <tr>
+                  <td>
+                    <div class="funcionario">${linha.funcionarioNome}</div>
+                    <div style="color:#64748b; font-size:12px;">${f?.funcao || ""}</div>
+                  </td>
+
+                  <td>${linha.data}</td>
+
+                  <td>${montarCelula(linha.entrada, f?.horario_entrada)}</td>
+
+                  <td>${montarCelula(linha.saida_intervalo, f?.horario_intervalo)}</td>
+
+                  <td>${montarCelula(linha.retorno_intervalo, f?.horario_retorno)}</td>
+
+                  <td>${montarCelula(linha.saida, f?.horario_saida)}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  async function iniciar(){
+    definirMesAtual();
+    await carregarFuncionarios();
+    await carregarRelatorio();
+  }
+
+  iniciar();
+</script>
+
+</body>
+</html>
