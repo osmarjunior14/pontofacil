@@ -632,26 +632,33 @@
   }
 
   function calcularPrevistoFuncionario(funcionario){
-    const entrada = funcionario.horario_entrada;
-    const intervalo = funcionario.horario_intervalo;
-    const retorno = funcionario.horario_retorno;
-    const saida = funcionario.horario_saida;
-    let total = 0;
+  if(!funcionario) return 0;
 
-    if(entrada && intervalo){
-      total += minutosEntre(entrada, intervalo);
-    }
+  const entrada = funcionario.horario_entrada;
+  const intervalo = funcionario.horario_intervalo;
+  const retorno = funcionario.horario_retorno;
+  const saida = funcionario.horario_saida;
 
-    if(retorno && saida){
-      total += minutosEntre(retorno, saida);
-    }
+  let total = 0;
 
-    if(!intervalo && !retorno && entrada && saida){
+  if(funcionario.sem_intervalo === true){
+    if(entrada && saida){
       total += minutosEntre(entrada, saida);
     }
 
     return total;
   }
+
+  if(entrada && intervalo){
+    total += minutosEntre(entrada, intervalo);
+  }
+
+  if(retorno && saida){
+    total += minutosEntre(retorno, saida);
+  }
+
+  return total;
+}
 
   function organizarRegistros(registros){
     const mapa = {};
@@ -678,23 +685,13 @@
   }
 
   function calcularTrabalhadoDia(linha){
-    let total = 0;
+  let total = 0;
 
-    if(linha.entrada && linha.saida_intervalo){
-      total += minutosEntre(
-        formatarHora(linha.entrada.data_hora),
-        formatarHora(linha.saida_intervalo.data_hora)
-      );
-    }
+  const funcionario =
+    funcionarios.find(f => f.id === linha.funcionario_id);
 
-    if(linha.retorno_intervalo && linha.saida){
-      total += minutosEntre(
-        formatarHora(linha.retorno_intervalo.data_hora),
-        formatarHora(linha.saida.data_hora)
-      );
-    }
-
-    if(!linha.saida_intervalo && !linha.retorno_intervalo && linha.entrada && linha.saida){
+  if(funcionario?.sem_intervalo === true){
+    if(linha.entrada && linha.saida){
       total += minutosEntre(
         formatarHora(linha.entrada.data_hora),
         formatarHora(linha.saida.data_hora)
@@ -703,6 +700,23 @@
 
     return total;
   }
+
+  if(linha.entrada && linha.saida_intervalo){
+    total += minutosEntre(
+      formatarHora(linha.entrada.data_hora),
+      formatarHora(linha.saida_intervalo.data_hora)
+    );
+  }
+
+  if(linha.retorno_intervalo && linha.saida){
+    total += minutosEntre(
+      formatarHora(linha.retorno_intervalo.data_hora),
+      formatarHora(linha.saida.data_hora)
+    );
+  }
+
+  return total;
+}
 
   function badgeSaldo(saldo){
     if(saldo > 0){
@@ -821,8 +835,8 @@
           </td>
           <td>${linha.data}</td>
           <td>${linha.entrada ? formatarHora(linha.entrada.data_hora) : "-"}</td>
-          <td>${linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-"}</td>
-          <td>${linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-"}</td>
+          <td>${funcionario?.sem_intervalo ? "Sem intervalo" : (linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-")}</td>
+          <td>${funcionario?.sem_intervalo ? "Sem intervalo" : (linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-")}</td>
           <td>${linha.saida ? formatarHora(linha.saida.data_hora) : "-"}</td>
           <td>${minutosParaTexto(previsto)}</td>
           <td>${minutosParaTexto(trabalhado)}</td>
