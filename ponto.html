@@ -429,6 +429,7 @@
   const empresaId = params.get("empresa");
 
   let funcionarios = [];
+  let empresaDados = null;
 
   function atualizarRelogio(){
     const agora = new Date();
@@ -480,7 +481,115 @@
     document.getElementById("mensagem").innerHTML =
       `<div class="${tipo}">${texto}</div>`;
   }
+  async function carregarEmpresa(){
+  if(!empresaId) return;
 
+  const { data, error } = await supabaseClient
+    .from("empresas")
+    .select("id, nome, latitude, longitude, raio_permitido_metros")
+    .eq("id", empresaId)
+    .single();
+
+  if(error){
+    console.log("Erro ao carregar empresa:", error);
+    mostrarMensagem("erro", "Erro ao carregar dados da empresa.");
+    return;
+  }
+
+  empresaDados = data;
+}
+
+function calcularDistanciaMetros(lat1, lon1, lat2, lon2){
+  const R = 6371000;
+
+  const rad = Math.PI / 180;
+  const dLat = (lat2 - lat1) * rad;
+  const dLon = (lon2 - lon1) * rad;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * rad) *
+    Math.cos(lat2 * rad) *
+    Math.sin(dLon / 2) *
+    Math.sin(dLon / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c;
+}
+
+function obterLocalizacaoAtual(){
+  return new Promise((resolve, reject) => {
+    if(!navigator.geolocation){
+      reject("Geolocalização não suportada neste aparelho.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      posicao => {
+        resolve({
+          latitude: posicao.coords.latitude,
+          longitude: posicao.coords.longitude,
+          precisao: posicao.coords.accuracy
+        });
+      },
+      erro => {
+        console.log("Erro GPS:", erro);
+        reject("Não foi possível obter sua localização. Ative o GPS e permita o acesso à localização.");
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+    );
+  });
+}
+
+async function validarLocalizacao(){
+  if(!empresaDados){
+    mostrarMensagem("erro", "Dados da empresa não carregados.");
+    return null;
+  }
+
+  if(!empresaDados.latitude || !empresaDados.longitude){
+    mostrarMensagem("erro", "Esta empresa ainda não possui localização GPS cadastrada.");
+    return null;
+  }
+
+  try{
+    const localizacao = await obterLocalizacaoAtual();
+
+    const distancia = calcularDistanciaMetros(
+      Number(empresaDados.latitude),
+      Number(empresaDados.longitude),
+      Number(localizacao.latitude),
+      Number(localizacao.longitude)
+    );
+
+    const raioPermitido = Number(empresaDados.raio_permitido_metros || 50);
+
+    if(distancia > raioPermitido){
+      mostrarMensagem(
+        "erro",
+        `Registro bloqueado. Você está a aproximadamente ${Math.round(distancia)}m da empresa. Limite permitido: ${raioPermitido}m.`
+      );
+
+      return null;
+    }
+
+    return {
+      latitude: localizacao.latitude,
+      longitude: localizacao.longitude,
+      distancia_metros: Math.round(distancia)
+    };
+
+  }catch(erro){
+    mostrarMensagem("erro", erro);
+    return null;
+  }
+}
+  
   async function carregarFuncionarios(){
     const select = document.getElementById("funcionario");
 
@@ -605,8 +714,18 @@
       return;
     }
 
-    botao.disabled = true;
-    botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
+  botao.disabled = true;
+  botao.innerHTML = `<i class="fa-solid fa-location-dot"></i> Verificando localização...`;
+
+const localizacaoValidada = await validarLocalizacao();
+
+if(!localizacaoValidada){
+  botao.disabled = false;
+  botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+  return;
+}
+
+botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
 
     const fotoUrl = await enviarFotoPonto(funcionarioId, tipo);
 
@@ -621,13 +740,16 @@
       .from("registros_ponto")
       .insert([
         {
-          empresa_id: empresaId,
-          funcionario_id: funcionarioId,
-          tipo,
-          observacao,
-          foto_url: fotoUrl,
-          data_hora: new Date().toISOString()
-        }
+  empresa_id: empresaId,
+  funcionario_id: funcionarioId,
+  tipo,
+  observacao,
+  foto_url: fotoUrl,
+  data_hora: new Date().toISOString(),
+  latitude: localizacaoValidada.latitude,
+  longitude: localizacaoValidada.longitude,
+  distancia_metros: localizacaoValidada.distancia_metros
+}
       ]);
 
     if(error){
@@ -651,7 +773,12 @@
     botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
   }
 
-  carregarFuncionarios();
+  async function iniciar(){
+  await carregarEmpresa();
+  await carregarFuncionarios();
+}
+
+iniciar();
 </script>
 
 </body>
