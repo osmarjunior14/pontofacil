@@ -9,7 +9,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
-
     *{
       margin:0;
       padding:0;
@@ -72,7 +71,7 @@
 
     .cards{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
       gap:18px;
       margin-bottom:24px;
     }
@@ -92,8 +91,16 @@
     }
 
     .card strong{
-      font-size:40px;
+      font-size:38px;
       color:#2563eb;
+    }
+
+    .card.alerta strong{
+      color:#dc2626;
+    }
+
+    .card.sucesso strong{
+      color:#166534;
     }
 
     .bloco{
@@ -114,7 +121,7 @@
       justify-content:space-between;
       align-items:center;
       gap:16px;
-      padding:14px 0;
+      padding:16px 0;
       border-bottom:1px solid #e2e8f0;
       flex-wrap:wrap;
     }
@@ -131,6 +138,7 @@
     .registro small{
       color:#64748b;
       line-height:1.5;
+      display:block;
     }
 
     .badge{
@@ -170,10 +178,46 @@
 
     .registro-esquerda{
       display:flex;
-      align-items:center;
+      align-items:flex-start;
       gap:14px;
       flex:1;
       min-width:260px;
+    }
+
+    .auditoria{
+      margin-top:8px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:6px;
+    }
+
+    .audit-badge{
+      padding:5px 9px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .audit-ok{
+      background:#dcfce7;
+      color:#166534;
+    }
+
+    .audit-alerta{
+      background:#fee2e2;
+      color:#991b1b;
+    }
+
+    .audit-info{
+      background:#eff6ff;
+      color:#2563eb;
+    }
+
+    .gps-info{
+      margin-top:6px;
+      font-size:12px;
+      color:#64748b;
+      line-height:1.5;
     }
 
     .vazio{
@@ -200,7 +244,6 @@
     }
 
     @media(max-width:700px){
-
       body{
         padding:16px;
       }
@@ -208,11 +251,10 @@
       .registro{
         align-items:flex-start;
       }
-
     }
-
   </style>
 </head>
+
 <body>
 
 <div class="container">
@@ -221,9 +263,7 @@
 
     <div>
       <h1>Dashboard</h1>
-      <div class="sub" id="empresaNome">
-        PontoFácil
-      </div>
+      <div class="sub" id="empresaNome">PontoFácil</div>
     </div>
 
     <div class="acoes-topo">
@@ -268,14 +308,31 @@
       <strong id="totalSemPonto">0</strong>
     </div>
 
+    <div class="card sucesso">
+      <small>Capturas ao vivo hoje</small>
+      <strong id="totalAoVivo">0</strong>
+    </div>
+
+    <div class="card alerta">
+      <small>Registros suspeitos</small>
+      <strong id="totalSuspeitos">0</strong>
+    </div>
+
+    <div class="card">
+      <small>Distância média</small>
+      <strong id="distanciaMedia">0m</strong>
+    </div>
+
+    <div class="card">
+      <small>Maior distância</small>
+      <strong id="maiorDistancia">0m</strong>
+    </div>
+
   </div>
 
   <div class="bloco">
-
     <h2>Últimos registros</h2>
-
     <div id="ultimosRegistros"></div>
-
   </div>
 
 </div>
@@ -319,27 +376,18 @@
   let registrosHoje = [];
 
   function abrirModal(url){
-
     if(!url) return;
 
     document.getElementById("imgModal").src = url;
-
-    document.getElementById("modalFoto").style.display =
-    "flex";
-
+    document.getElementById("modalFoto").style.display = "flex";
   }
 
   function fecharModal(){
-
-    document.getElementById("modalFoto").style.display =
-    "none";
-
+    document.getElementById("modalFoto").style.display = "none";
     document.getElementById("imgModal").src = "";
-
   }
 
   function formatarHora(dataIso){
-
     return new Date(dataIso).toLocaleTimeString(
       "pt-BR",
       {
@@ -347,11 +395,9 @@
         minute:"2-digit"
       }
     );
-
   }
 
   function tipoTexto(tipo){
-
     const mapa = {
       entrada:"Entrada",
       saida_intervalo:"Saída intervalo",
@@ -360,11 +406,9 @@
     };
 
     return mapa[tipo] || tipo;
-
   }
 
   function horaParaMinutos(hora){
-
     if(!hora) return null;
 
     const partes = hora.split(":");
@@ -373,11 +417,9 @@
       Number(partes[0]) * 60 +
       Number(partes[1])
     );
-
   }
 
   function houveAtraso(registro, funcionario){
-
     if(!registro || !funcionario) return false;
 
     const horaRegistro =
@@ -407,7 +449,33 @@
       horaParaMinutos(horaRegistro) >
       horaParaMinutos(horarioPrevisto)
     );
+  }
 
+  function calcularAuditoria(registros){
+    const totalAoVivo = registros.filter(r => r.captura_ao_vivo === true).length;
+
+    const suspeitos = registros.filter(r =>
+      r.captura_ao_vivo !== true ||
+      !r.metodo_captura ||
+      r.metodo_captura !== "camera"
+    ).length;
+
+    const distancias = registros
+      .map(r => Number(r.distancia_metros))
+      .filter(valor => !isNaN(valor));
+
+    const media = distancias.length
+      ? Math.round(distancias.reduce((a,b) => a + b, 0) / distancias.length)
+      : 0;
+
+    const maior = distancias.length
+      ? Math.max(...distancias)
+      : 0;
+
+    document.getElementById("totalAoVivo").innerText = totalAoVivo;
+    document.getElementById("totalSuspeitos").innerText = suspeitos;
+    document.getElementById("distanciaMedia").innerText = `${media}m`;
+    document.getElementById("maiorDistancia").innerText = `${maior}m`;
   }
 
   async function carregarDashboard(){
@@ -452,14 +520,12 @@
       });
 
     if(error){
-
       console.log(error);
 
       document.getElementById("ultimosRegistros").innerHTML =
       `<div class="vazio">Erro ao carregar registros.</div>`;
 
       return;
-
     }
 
     registrosHoje = registrosData || [];
@@ -467,10 +533,11 @@
     document.getElementById("totalPontosHoje").innerText =
     registrosHoje.length;
 
+    calcularAuditoria(registrosHoje);
+
     let atrasos = 0;
 
     registrosHoje.forEach(registro => {
-
       const funcionario =
       funcionarios.find(
         f => f.id === registro.funcionario_id
@@ -479,7 +546,6 @@
       if(houveAtraso(registro, funcionario)){
         atrasos++;
       }
-
     });
 
     document.getElementById("totalAtrasos").innerText =
@@ -506,12 +572,10 @@
     document.getElementById("ultimosRegistros");
 
     if(registrosHoje.length === 0){
-
       lista.innerHTML =
       `<div class="vazio">Nenhum registro hoje.</div>`;
 
       return;
-
     }
 
     lista.innerHTML =
@@ -524,6 +588,24 @@
 
       const atraso =
       houveAtraso(registro, funcionario);
+
+      const capturaAoVivo =
+      registro.captura_ao_vivo === true;
+
+      const metodo =
+      registro.metodo_captura || "Não informado";
+
+      const distancia =
+      registro.distancia_metros !== null &&
+      registro.distancia_metros !== undefined
+      ? `${registro.distancia_metros}m`
+      : "-";
+
+      const latitude =
+      registro.latitude || "-";
+
+      const longitude =
+      registro.longitude || "-";
 
       return `
 
@@ -563,6 +645,27 @@
                 : ""
               }
 
+              <div class="auditoria">
+
+                <span class="audit-badge ${capturaAoVivo ? "audit-ok" : "audit-alerta"}">
+                  ${capturaAoVivo ? "Captura ao vivo" : "Arquivo/antigo"}
+                </span>
+
+                <span class="audit-badge audit-info">
+                  Método: ${metodo}
+                </span>
+
+                <span class="audit-badge audit-info">
+                  Distância: ${distancia}
+                </span>
+
+              </div>
+
+              <div class="gps-info">
+                Latitude: ${latitude}<br>
+                Longitude: ${longitude}
+              </div>
+
             </div>
 
           </div>
@@ -574,9 +677,7 @@
         </div>
 
       `;
-
     }).join("");
-
   }
 
   carregarDashboard();
