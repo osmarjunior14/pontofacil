@@ -559,6 +559,43 @@ async function obterProximoTipoPermitido(funcionarioId){
 
   return "finalizado";
 }
+  async function validarIntervaloMinimo(funcionarioId){
+  const agora = new Date();
+  const cincoMinAtras = new Date(agora.getTime() - (60 * 1000));
+
+  const { data, error } = await supabaseClient
+    .from("registros_ponto")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .eq("funcionario_id", funcionarioId)
+    .gte("data_hora", cincoMinAtras.toISOString())
+    .order("data_hora", { ascending:false })
+    .limit(1);
+
+  if(error){
+    console.log("Erro ao validar intervalo mínimo:", error);
+    return {
+      permitido:false,
+      motivo:"Erro ao validar intervalo."
+    };
+  }
+
+  if(data && data.length > 0){
+    const ultimoRegistro = new Date(data[0].data_hora);
+    const diferencaSegundos = Math.floor(
+      (agora.getTime() - ultimoRegistro.getTime()) / 1000
+    );
+
+    return {
+      permitido:false,
+      motivo:`Aguarde ${60 - diferencaSegundos}s para registrar novamente.`
+    };
+  }
+
+  return {
+    permitido:true
+  };
+}
   
   async function abrirCamera(){
     const video = document.getElementById("cameraVideo");
@@ -781,17 +818,34 @@ async function obterProximoTipoPermitido(funcionarioId){
     `;
   }
 
-  function mostrarFuncionario(){
-    const funcionarioId = document.getElementById("funcionario").value;
-    const funcionario = funcionarios.find(f => String(f.id) === String(funcionarioId));
-    const preview = document.getElementById("previewFuncionario");
-    const foto = document.getElementById("fotoFuncionario");
-    const avatarFallback = document.getElementById("avatarFallback");
+function mostrarFuncionario(){
+  const funcionarioId = document.getElementById("funcionario").value;
+  const funcionario = funcionarios.find(f => String(f.id) === String(funcionarioId));
+  const preview = document.getElementById("previewFuncionario");
+  const foto = document.getElementById("fotoFuncionario");
+  const avatarFallback = document.getElementById("avatarFallback");
 
-    if(!funcionario){
-      preview.style.display = "none";
-      return;
-    }
+  if(!funcionario){
+    preview.style.display = "none";
+    return;
+  }
+
+  avatarFallback.style.display = "none";
+  foto.style.display = "block";
+  foto.src = funcionario.foto_url || "";
+
+  if(!funcionario.foto_url){
+    foto.style.display = "none";
+    avatarFallback.style.display = "flex";
+  }
+
+  document.getElementById("nomeFuncionarioPreview").innerText = funcionario.nome_completo;
+  document.getElementById("funcaoFuncionarioPreview").innerText = funcionario.funcao || "Funcionário";
+
+  preview.style.display = "flex";
+
+  atualizarTipoAutomatico(funcionarioId);
+}
 
 async function atualizarTipoAutomatico(funcionarioId){
   const selectTipo = document.getElementById("tipo");
@@ -825,22 +879,6 @@ async function atualizarTipoAutomatico(funcionarioId){
   selectTipo.disabled = true;
   botao.disabled = false;
 }
-    
-    avatarFallback.style.display = "none";
-    foto.style.display = "block";
-    foto.src = funcionario.foto_url || "";
-
-    if(!funcionario.foto_url){
-      foto.style.display = "none";
-      avatarFallback.style.display = "flex";
-      atualizarTipoAutomatico(funcionarioId);
-    }
-
-    document.getElementById("nomeFuncionarioPreview").innerText = funcionario.nome_completo;
-    document.getElementById("funcaoFuncionarioPreview").innerText = funcionario.funcao || "Funcionário";
-
-    preview.style.display = "flex";
-  }
 
   async function enviarFotoPonto(funcionarioId, tipo){
     if(!fotoCapturadaBlob){
@@ -888,7 +926,7 @@ async function atualizarTipoAutomatico(funcionarioId){
       mostrarMensagem("erro", "Selecione o tipo de registro.");
       return;
     }
-
+    
 const proximoTipoPermitido = await obterProximoTipoPermitido(funcionarioId);
 
 if(proximoTipoPermitido === "finalizado"){
@@ -901,11 +939,19 @@ if(proximoTipoPermitido === null){
   return;
 }
 
+if(tipo !== proximoTipoPermitido){
   mostrarMensagem(
     "erro",
     `Registro inválido. O próximo registro permitido é: ${nomesTipos[proximoTipoPermitido]}.`
   );
 
+  return;
+}
+
+const validacaoTempo = await validarIntervaloMinimo(funcionarioId);
+
+if(!validacaoTempo.permitido){
+  mostrarMensagem("erro", validacaoTempo.motivo);
   return;
 }
     
@@ -974,6 +1020,7 @@ if(proximoTipoPermitido === null){
     document.getElementById("cameraStatus").innerText = "Nenhuma foto capturada.";
 
     mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
+    await atualizarTipoAutomatico(funcionarioId);
 
     botao.disabled = false;
     botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
