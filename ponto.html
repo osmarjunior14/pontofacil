@@ -504,6 +504,55 @@
       `<div class="${tipo}">${texto}</div>`;
   }
 
+async function obterProximoTipoPermitido(funcionarioId){
+  const hoje = new Date();
+
+  const inicioHoje = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate()
+  ).toISOString();
+
+  const amanha = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate() + 1
+  ).toISOString();
+
+  const { data, error } = await supabaseClient
+    .from("registros_ponto")
+    .select("tipo, data_hora")
+    .eq("empresa_id", empresaId)
+    .eq("funcionario_id", funcionarioId)
+    .gte("data_hora", inicioHoje)
+    .lt("data_hora", amanha)
+    .order("data_hora", { ascending:true });
+
+  if(error){
+    console.log("Erro ao buscar registros do dia:", error);
+    return null;
+  }
+
+  const funcionario = funcionarios.find(
+    f => String(f.id) === String(funcionarioId)
+  );
+
+  const tiposHoje = (data || []).map(registro => registro.tipo);
+
+  if(funcionario?.sem_intervalo === true){
+    if(!tiposHoje.includes("entrada")) return "entrada";
+    if(!tiposHoje.includes("saida")) return "saida";
+    return "finalizado";
+  }
+
+  if(!tiposHoje.includes("entrada")) return "entrada";
+  if(!tiposHoje.includes("saida_intervalo")) return "saida_intervalo";
+  if(!tiposHoje.includes("retorno_intervalo")) return "retorno_intervalo";
+  if(!tiposHoje.includes("saida")) return "saida";
+
+  return "finalizado";
+}
+  
   async function abrirCamera(){
     const video = document.getElementById("cameraVideo");
     const foto = document.getElementById("fotoCapturada");
@@ -799,6 +848,34 @@
       return;
     }
 
+const proximoTipoPermitido = await obterProximoTipoPermitido(funcionarioId);
+
+if(proximoTipoPermitido === "finalizado"){
+  mostrarMensagem("erro", "Você já concluiu todos os registros de ponto de hoje.");
+  return;
+}
+
+if(proximoTipoPermitido === null){
+  mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
+  return;
+}
+
+if(tipo !== proximoTipoPermitido){
+  const nomesTipos = {
+    entrada: "Entrada",
+    saida_intervalo: "Saída para intervalo",
+    retorno_intervalo: "Retorno do intervalo",
+    saida: "Saída"
+  };
+
+  mostrarMensagem(
+    "erro",
+    `Registro inválido. O próximo registro permitido é: ${nomesTipos[proximoTipoPermitido]}.`
+  );
+
+  return;
+}
+    
     if(!fotoCapturadaBlob){
       mostrarMensagem("erro", "Capture uma foto ao vivo para registrar o ponto.");
       return;
