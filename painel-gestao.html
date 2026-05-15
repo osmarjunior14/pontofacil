@@ -754,18 +754,7 @@
             <input id="horario_entrada" type="time">
           </div>
         </div>
-
-<div class="campo checkbox-sem-intervalo">
-  <label>
-    <input
-      type="checkbox"
-      id="sem_intervalo"
-      onchange="toggleIntervalo()"
-    >
-    Funcionário sem intervalo
-  </label>
-</div>
-        
+    
         <div class="campo" id="campo_intervalo_saida">
   <label>Saída para intervalo</label>
           <div class="input-icon">
@@ -792,6 +781,17 @@
 
       </div>
 
+      <div class="campo checkbox-sem-intervalo">
+  <label>
+    <input
+      type="checkbox"
+      id="sem_intervalo"
+      onchange="toggleIntervalo()"
+    >
+    Funcionário sem intervalo
+  </label>
+</div>
+      
       <button class="btn-salvar" onclick="salvarFuncionario()">
         <i class="fa-regular fa-floppy-disk"></i>
         Salvar funcionário
