@@ -16,47 +16,56 @@
 
     body{
       font-family:Arial, sans-serif;
-      background:#f4f7fb;
+      background:
+        radial-gradient(circle at top, rgba(37,99,235,.10), transparent 35%),
+        #f4f7fb;
       min-height:100vh;
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:20px;
+      padding:22px;
       color:#0f172a;
     }
 
     .login-box{
       width:100%;
-      max-width:430px;
-      background:#ffffff;
-      border-radius:24px;
-      padding:34px;
-      box-shadow:0 18px 45px rgba(15,23,42,.08);
+      max-width:520px;
+      background:rgba(255,255,255,.96);
+      border:1px solid rgba(226,232,240,.9);
+      border-radius:34px;
+      padding:64px 54px 42px;
+      box-shadow:0 30px 80px rgba(15,23,42,.10);
     }
 
-    .logo{
+    .brand-login{
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      margin-bottom:24px;
+    }
+
+    .logo-login{
+      width:360px;
+      max-width:88%;
+      display:block;
+    }
+
+    .premium-sub{
       text-align:center;
-      margin-bottom:26px;
-    }
-
-    .logo h1{
-      color:#2563eb;
-      font-size:38px;
-      margin-bottom:8px;
-    }
-
-    .logo p{
+      font-size:19px;
       color:#64748b;
-      font-size:15px;
+      margin-bottom:38px;
+      font-weight:600;
     }
 
     input{
       width:100%;
-      padding:15px;
+      height:58px;
+      padding:0 18px;
       border:1px solid #dbe4f0;
-      border-radius:14px;
-      margin-bottom:14px;
-      font-size:15px;
+      border-radius:16px;
+      margin-bottom:16px;
+      font-size:16px;
       background:#ffffff;
     }
 
@@ -68,23 +77,25 @@
 
     button{
       width:100%;
-      padding:15px;
+      height:58px;
       border:none;
-      border-radius:14px;
-      background:#2563eb;
+      border-radius:16px;
+      background:linear-gradient(90deg,#2563eb,#1d4ed8);
       color:white;
-      font-size:16px;
-      font-weight:bold;
+      font-size:17px;
+      font-weight:800;
       cursor:pointer;
+      margin-top:6px;
+      box-shadow:0 12px 28px rgba(37,99,235,.22);
     }
 
     button:hover{
-      background:#1d4ed8;
+      filter:brightness(.96);
     }
 
     .erro{
       display:none;
-      margin-top:14px;
+      margin-top:16px;
       color:#dc2626;
       text-align:center;
       font-size:14px;
@@ -92,54 +103,58 @@
     }
 
     .voltar{
-      margin-top:18px;
+      margin-top:24px;
       text-align:center;
-      font-size:14px;
+      font-size:15px;
     }
 
     .voltar a{
       color:#2563eb;
       text-decoration:none;
-      font-weight:bold;
+      font-weight:800;
     }
-    .logo-login{
-  width:220px;
-  max-width:80%;
-  display:block;
-  margin:0 auto 18px;
-}
 
-.creditos{
-  margin-top:28px;
-  text-align:center;
-  font-size:12px;
-  color:#94a3b8;
-  font-weight:500;
-  letter-spacing:.3px;
-}
+    .creditos{
+      margin-top:30px;
+      text-align:center;
+      font-size:12px;
+      color:#94a3b8;
+      font-weight:500;
+      letter-spacing:.3px;
+    }
+
+    @media(max-width:600px){
+      .login-box{
+        padding:44px 26px 34px;
+        border-radius:28px;
+      }
+
+      .logo-login{
+        width:300px;
+      }
+
+      .premium-sub{
+        font-size:16px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
 <div class="login-box">
 
-  <div class="logo">
+  <div class="brand-login">
     <img src="./logo-pontofacil.png" class="logo-login" alt="PontoFácil">
-<h1>PontoFácil</h1>
-    <p>Acesso da gestão da empresa</p>
   </div>
 
-  <input
-    type="email"
-    id="email"
-    placeholder="E-mail da gestão"
-  >
+  <div class="premium-sub">
+    Acesso seguro à gestão da empresa
+  </div>
 
-  <input
-    type="password"
-    id="senha"
-    placeholder="Senha"
-  >
+  <input type="email" id="email" placeholder="E-mail da gestão">
+
+  <input type="password" id="senha" placeholder="Senha">
 
   <button onclick="loginGestao()">
     Entrar
@@ -151,10 +166,11 @@
 
   <div class="voltar">
     <a href="./index.html">Acesso do administrador</a>
-    <p class="creditos">
-  Desenvolvido por: Osmar Júnior
-</p>
   </div>
+
+  <p class="creditos">
+    Desenvolvido por: Osmar Júnior
+  </p>
 
 </div>
 
