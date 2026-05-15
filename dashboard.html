@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>PontoFácil - Dashboard</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <style>
     *{
@@ -15,174 +16,490 @@
       box-sizing:border-box;
     }
 
-    body{
-      font-family:Arial,sans-serif;
-      background:#f4f7fb;
-      color:#0f172a;
-      padding:24px;
+    :root{
+      --azul:#2563eb;
+      --azul-escuro:#0f2f66;
+      --azul-noite:#071426;
+      --texto:#0f172a;
+      --muted:#64748b;
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --borda:#e2e8f0;
+      --verde:#16a34a;
+      --vermelho:#dc2626;
+      --laranja:#f97316;
+      --roxo:#7c3aed;
     }
 
-    .container{
-      max-width:1400px;
-      margin:auto;
+    body{
+      font-family:Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.10), transparent 32%),
+        linear-gradient(135deg,#f8fbff,#eef3fa);
+      color:var(--texto);
+      min-height:100vh;
+    }
+
+    .layout{
+      min-height:100vh;
+      display:grid;
+      grid-template-columns:280px 1fr;
+    }
+
+    .sidebar{
+      background:
+        radial-gradient(circle at top left, rgba(37,99,235,.32), transparent 38%),
+        linear-gradient(180deg,#06152b,#0b2342 52%,#06152b);
+      color:white;
+      padding:28px 24px;
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+      position:sticky;
+      top:0;
+      height:100vh;
+      box-shadow:20px 0 60px rgba(15,23,42,.16);
+    }
+
+    .brand{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:18px;
+    }
+
+    .brand-mark{
+      width:48px;
+      height:48px;
+      border-radius:14px;
+      background:linear-gradient(135deg,#2563eb,#38bdf8);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:28px;
+      font-weight:900;
+      box-shadow:0 14px 30px rgba(37,99,235,.35);
+    }
+
+    .brand-text strong{
+      display:block;
+      font-size:21px;
+      line-height:1;
+    }
+
+    .brand-text small{
+      color:#cbd5e1;
+      font-size:13px;
+    }
+
+    .menu{
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+
+    .menu button{
+      width:100%;
+      border:none;
+      background:transparent;
+      color:#cbd5e1;
+      display:flex;
+      align-items:center;
+      gap:14px;
+      padding:15px 16px;
+      border-radius:14px;
+      cursor:pointer;
+      font-weight:800;
+      font-size:15px;
+      text-align:left;
+      transition:.2s;
+    }
+
+    .menu button:hover,
+    .menu button.active{
+      background:linear-gradient(90deg,#2563eb,#1d4ed8);
+      color:white;
+      box-shadow:0 12px 28px rgba(37,99,235,.24);
+    }
+
+    .sidebar-footer{
+      margin-top:auto;
+      display:flex;
+      flex-direction:column;
+      gap:14px;
+    }
+
+    .empresa-card,
+    .admin-card,
+    .logout-card{
+      border:1px solid rgba(148,163,184,.20);
+      background:rgba(15,23,42,.38);
+      border-radius:16px;
+      padding:16px;
+      backdrop-filter:blur(14px);
+    }
+
+    .empresa-card small,
+    .admin-card small{
+      color:#94a3b8;
+      display:block;
+      margin-bottom:4px;
+    }
+
+    .empresa-card strong,
+    .admin-card strong{
+      display:block;
+      font-size:14px;
+    }
+
+    .admin-card{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .avatar{
+      width:42px;
+      height:42px;
+      border-radius:50%;
+      background:linear-gradient(135deg,#dbeafe,#93c5fd);
+      color:#1e3a8a;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-weight:900;
+      flex-shrink:0;
+    }
+
+    .online{
+      color:#22c55e!important;
+      font-size:12px!important;
+      margin-top:4px;
+    }
+
+    .logout-card{
+      width:100%;
+      color:#cbd5e1;
+      border:none;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      cursor:pointer;
+      font-weight:800;
+    }
+
+    .main{
+      padding:34px 42px 28px;
+      min-width:0;
     }
 
     .topo{
       display:flex;
       justify-content:space-between;
-      align-items:center;
-      gap:16px;
+      align-items:flex-start;
+      gap:20px;
+      margin-bottom:30px;
       flex-wrap:wrap;
-      margin-bottom:26px;
     }
 
-    h1{
-      color:#2563eb;
+    .titulo h1{
+      color:#0f274c;
       font-size:36px;
+      line-height:1;
+      letter-spacing:-1px;
+      margin-bottom:10px;
     }
 
-    .sub{
-      color:#64748b;
-      margin-top:4px;
+    .titulo p{
+      color:var(--muted);
+      font-size:16px;
+      font-weight:700;
     }
 
-    .acoes-topo{
+    .top-actions{
       display:flex;
-      gap:10px;
+      align-items:center;
+      gap:14px;
       flex-wrap:wrap;
     }
 
-    button{
+    .date-chip{
+      height:58px;
+      padding:0 20px;
+      border-radius:14px;
+      background:white;
+      box-shadow:0 10px 30px rgba(15,23,42,.06);
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:#334155;
+      font-weight:800;
+      min-width:230px;
+    }
+
+    .date-chip small{
+      display:block;
+      color:#64748b;
+      font-weight:700;
+      margin-top:2px;
+    }
+
+    .btn-top{
+      height:58px;
       border:none;
-      border-radius:12px;
-      padding:12px 16px;
-      color:white;
-      font-weight:bold;
+      border-radius:14px;
+      padding:0 20px;
+      font-weight:900;
       cursor:pointer;
+      color:white;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      box-shadow:0 12px 30px rgba(37,99,235,.18);
     }
 
-    .btn-voltar{
-      background:#64748b;
-    }
-
-    .btn-relatorio{
-      background:#2563eb;
-    }
+    .btn-blue{background:linear-gradient(90deg,#2563eb,#1d4ed8)}
+    .btn-dark{background:#0f274c}
 
     .cards{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      grid-template-columns:repeat(5,minmax(0,1fr));
       gap:18px;
-      margin-bottom:24px;
-    }
-
-    .card{
-      background:white;
-      border-radius:22px;
-      padding:22px;
-      box-shadow:0 12px 35px rgba(15,23,42,.08);
-    }
-
-    .card small{
-      color:#64748b;
-      display:block;
-      margin-bottom:8px;
-      font-size:14px;
-    }
-
-    .card strong{
-      font-size:38px;
-      color:#2563eb;
-    }
-
-    .card.alerta strong{
-      color:#dc2626;
-    }
-
-    .card.sucesso strong{
-      color:#166534;
-    }
-
-    .bloco{
-      background:white;
-      border-radius:22px;
-      padding:22px;
-      box-shadow:0 12px 35px rgba(15,23,42,.08);
       margin-bottom:22px;
     }
 
-    .bloco h2{
-      margin-bottom:18px;
+    .metric-card{
+      background:white;
+      border:1px solid rgba(226,232,240,.80);
+      border-radius:22px;
+      padding:22px;
+      min-height:160px;
+      box-shadow:0 18px 46px rgba(15,23,42,.06);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .metric-head{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:14px;
+    }
+
+    .metric-icon{
+      width:48px;
+      height:48px;
+      border-radius:15px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+    }
+
+    .icon-blue{background:#eff6ff;color:#2563eb}
+    .icon-green{background:#dcfce7;color:#16a34a}
+    .icon-red{background:#fee2e2;color:#dc2626}
+    .icon-orange{background:#ffedd5;color:#f97316}
+    .icon-purple{background:#f3e8ff;color:#7c3aed}
+
+    .metric-card small{
+      color:#334155;
+      font-size:13px;
+      font-weight:900;
+      display:block;
+      line-height:1.25;
+    }
+
+    .metric-card strong{
+      display:block;
+      font-size:40px;
+      line-height:1;
+      color:#2563eb;
+      margin:10px 0 16px;
+    }
+
+    .metric-card.green strong{color:#166534}
+    .metric-card.red strong{color:#dc2626}
+    .metric-card.orange strong{color:#f97316}
+    .metric-card.purple strong{color:#7c3aed}
+
+    .metric-note{
+      font-size:13px;
+      color:#64748b;
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:6px;
+    }
+
+    .progress{
+      width:100%;
+      height:5px;
+      background:#e2e8f0;
+      border-radius:999px;
+      overflow:hidden;
+      margin-top:12px;
+    }
+
+    .progress span{
+      display:block;
+      height:100%;
+      border-radius:999px;
+      width:0%;
+      background:#2563eb;
+      transition:.4s;
+    }
+
+    .grid-bottom{
+      display:grid;
+      grid-template-columns:1.45fr 1fr;
+      gap:24px;
+      margin-top:24px;
+    }
+
+    .panel{
+      background:white;
+      border-radius:24px;
+      border:1px solid rgba(226,232,240,.90);
+      padding:26px;
+      box-shadow:0 18px 46px rgba(15,23,42,.06);
+      min-height:360px;
+    }
+
+    .panel-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .panel-title{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      color:#0f274c;
+      font-size:20px;
+      font-weight:900;
+    }
+
+    .tabs{
+      display:flex;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:12px;
+      padding:4px;
+      gap:4px;
+    }
+
+    .tab{
+      border:none;
+      padding:8px 14px;
+      border-radius:9px;
+      background:transparent;
+      color:#64748b;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .tab.active{
+      background:#2563eb;
+      color:white;
+    }
+
+    .chart-box{
+      height:270px;
+    }
+
+    .mini-stats{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      border-top:1px solid #e2e8f0;
+      margin-top:20px;
+      padding-top:20px;
+    }
+
+    .mini-stat{
+      padding:0 16px;
+      border-right:1px solid #e2e8f0;
+    }
+
+    .mini-stat:last-child{border-right:none}
+
+    .mini-stat small{
+      color:#64748b;
+      display:block;
+      font-size:12px;
+      margin-bottom:8px;
+      font-weight:800;
+    }
+
+    .mini-stat strong{
+      color:#2563eb;
       font-size:24px;
+    }
+
+    .ultimos-lista{
+      min-height:240px;
     }
 
     .registro{
       display:flex;
       justify-content:space-between;
-      align-items:center;
-      gap:16px;
-      padding:16px 0;
+      align-items:flex-start;
+      gap:14px;
+      padding:14px 0;
       border-bottom:1px solid #e2e8f0;
-      flex-wrap:wrap;
     }
 
-    .registro:last-child{
-      border-bottom:none;
-    }
-
-    .registro strong{
-      display:block;
-      margin-bottom:4px;
-    }
-
-    .registro small{
-      color:#64748b;
-      line-height:1.5;
-      display:block;
-    }
-
-    .badge{
-      padding:6px 12px;
-      border-radius:999px;
-      font-size:12px;
-      font-weight:bold;
-      color:white;
-      white-space:nowrap;
-    }
-
-    .entrada{
-      background:#16a34a;
-    }
-
-    .saida_intervalo{
-      background:#f59e0b;
-    }
-
-    .retorno_intervalo{
-      background:#2563eb;
-    }
-
-    .saida{
-      background:#dc2626;
-    }
-
-    .foto{
-      width:58px;
-      height:58px;
-      object-fit:cover;
-      border-radius:14px;
-      border:1px solid #dbe4f0;
-      background:#e2e8f0;
-      cursor:pointer;
-    }
+    .registro:last-child{border-bottom:none}
 
     .registro-esquerda{
       display:flex;
       align-items:flex-start;
-      gap:14px;
+      gap:12px;
       flex:1;
-      min-width:260px;
+      min-width:0;
     }
+
+    .foto{
+      width:54px;
+      height:54px;
+      object-fit:cover;
+      border-radius:15px;
+      border:1px solid #dbe4f0;
+      background:#e2e8f0;
+      cursor:pointer;
+      flex-shrink:0;
+    }
+
+    .registro strong{
+      display:block;
+      color:#0f172a;
+      margin-bottom:4px;
+      font-size:14px;
+    }
+
+    .registro small{
+      display:block;
+      color:#64748b;
+      line-height:1.45;
+      font-size:12px;
+    }
+
+    .badge{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:11px;
+      font-weight:900;
+      color:white;
+      white-space:nowrap;
+    }
+
+    .entrada{background:#16a34a}
+    .saida_intervalo{background:#f59e0b}
+    .retorno_intervalo{background:#2563eb}
+    .saida{background:#dc2626}
 
     .auditoria{
       margin-top:8px;
@@ -192,37 +509,65 @@
     }
 
     .audit-badge{
-      padding:5px 9px;
+      padding:5px 8px;
       border-radius:999px;
-      font-size:11px;
-      font-weight:800;
+      font-size:10px;
+      font-weight:900;
     }
 
-    .audit-ok{
-      background:#dcfce7;
-      color:#166534;
-    }
-
-    .audit-alerta{
-      background:#fee2e2;
-      color:#991b1b;
-    }
-
-    .audit-info{
-      background:#eff6ff;
-      color:#2563eb;
-    }
+    .audit-ok{background:#dcfce7;color:#166534}
+    .audit-alerta{background:#fee2e2;color:#991b1b}
+    .audit-info{background:#eff6ff;color:#2563eb}
 
     .gps-info{
       margin-top:6px;
-      font-size:12px;
+      font-size:11px;
       color:#64748b;
-      line-height:1.5;
+      line-height:1.45;
     }
 
-    .vazio{
+    .empty-state{
+      min-height:280px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      justify-content:center;
+      text-align:center;
       color:#64748b;
-      font-style:italic;
+      gap:14px;
+    }
+
+    .empty-icon{
+      width:86px;
+      height:86px;
+      border-radius:50%;
+      background:#eff6ff;
+      color:#2563eb;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin-bottom:4px;
+    }
+
+    .empty-state strong{
+      color:#0f274c;
+      font-size:18px;
+    }
+
+    .footer-sync{
+      width:max-content;
+      max-width:100%;
+      margin:26px auto 0;
+      padding:14px 24px;
+      border-radius:999px;
+      background:white;
+      box-shadow:0 14px 34px rgba(15,23,42,.06);
+      color:#64748b;
+      font-size:13px;
+      font-weight:800;
+      display:flex;
+      align-items:center;
+      gap:14px;
     }
 
     .modal{
@@ -243,141 +588,292 @@
       background:white;
     }
 
-    @media(max-width:700px){
-      body{
-        padding:16px;
-      }
+    .mobile-menu{
+      display:none;
+      margin-bottom:18px;
+      gap:10px;
+      flex-wrap:wrap;
+    }
 
-      .registro{
-        align-items:flex-start;
-      }
+    .mobile-menu button{
+      border:none;
+      border-radius:12px;
+      background:#0f274c;
+      color:white;
+      padding:12px 14px;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    @media(max-width:1280px){
+      .cards{grid-template-columns:repeat(4,1fr)}
+      .grid-bottom{grid-template-columns:1fr}
+    }
+
+    @media(max-width:1020px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{display:none}
+      .main{padding:24px}
+      .mobile-menu{display:flex}
+      .cards{grid-template-columns:repeat(2,1fr)}
+    }
+
+    @media(max-width:640px){
+      .main{padding:16px}
+      .cards{grid-template-columns:1fr}
+      .top-actions{width:100%}
+      .date-chip,.btn-top{width:100%;justify-content:center}
+      .mini-stats{grid-template-columns:1fr 1fr;gap:14px}
+      .mini-stat{border-right:none;border-bottom:1px solid #e2e8f0;padding:12px 0}
+      .panel{padding:20px}
+      .titulo h1{font-size:32px}
     }
   </style>
 </head>
-
 <body>
 
-<div class="container">
+<div class="layout">
 
-  <div class="topo">
-
-    <div>
-      <h1>Dashboard</h1>
-      <div class="sub" id="empresaNome">PontoFácil</div>
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">P</div>
+      <div class="brand-text">
+        <strong>PontoFácil</strong>
+        <small>Gestão de Ponto</small>
+      </div>
     </div>
 
-    <div class="acoes-topo">
+    <nav class="menu">
+      <button class="active"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+      <button onclick="window.location.href='./painel-gestao.html'"><i data-lucide="users"></i> Funcionários</button>
+      <button onclick="window.location.href='./relatorio.html'"><i data-lucide="clipboard-list"></i> Registros</button>
+      <button onclick="window.location.href='./relatorio.html'"><i data-lucide="file-text"></i> Relatório mensal</button>
+      <button onclick="window.location.href='./painel.html'"><i data-lucide="building-2"></i> Empresas</button>
+      <button><i data-lucide="settings"></i> Configurações</button>
+    </nav>
 
-      <button
-        class="btn-relatorio"
-        onclick="window.location.href='./relatorio.html'"
-      >
-        Relatório mensal
+    <div class="sidebar-footer">
+      <div class="empresa-card">
+        <small>Empresa</small>
+        <strong id="empresaNomeSidebar">PontoFácil</strong>
+        <small style="color:#60a5fa;margin-top:8px;">Ver perfil →</small>
+      </div>
+
+      <div class="admin-card">
+        <div class="avatar">A</div>
+        <div>
+          <strong>Administrador</strong>
+          <small>Gestor</small>
+          <small class="online">● Online</small>
+        </div>
+      </div>
+
+      <button class="logout-card" onclick="window.location.href='./painel-gestao.html'">
+        <i data-lucide="log-out"></i> Voltar
       </button>
+    </div>
+  </aside>
 
-      <button
-        class="btn-voltar"
-        onclick="window.location.href='./painel-gestao.html'"
-      >
-        Voltar
-      </button>
-
+  <main class="main">
+    <div class="mobile-menu">
+      <button onclick="window.location.href='./painel-gestao.html'">Voltar</button>
+      <button onclick="window.location.href='./relatorio.html'">Relatório mensal</button>
     </div>
 
-  </div>
+    <div class="topo">
+      <div class="titulo">
+        <h1>Dashboard</h1>
+        <p>Visão geral da sua empresa</p>
+      </div>
 
-  <div class="cards">
+      <div class="top-actions">
+        <div class="date-chip">
+          <i data-lucide="calendar-days"></i>
+          <div>
+            <span id="dataTopo">--</span>
+            <small id="diaTopo">--</small>
+          </div>
+        </div>
 
-    <div class="card">
-      <small>Funcionários ativos</small>
-      <strong id="totalFuncionarios">0</strong>
+        <button class="btn-top btn-blue" onclick="window.location.href='./relatorio.html'">
+          <i data-lucide="file-text"></i> Relatório mensal
+        </button>
+
+        <button class="btn-top btn-dark" onclick="window.location.href='./painel-gestao.html'">
+          <i data-lucide="arrow-left"></i> Voltar
+        </button>
+      </div>
     </div>
 
-    <div class="card">
-      <small>Pontos registrados hoje</small>
-      <strong id="totalPontosHoje">0</strong>
+    <section class="cards">
+      <div class="metric-card">
+        <div class="metric-head">
+          <div class="metric-icon icon-blue"><i data-lucide="users"></i></div>
+          <small>Funcionários ativos</small>
+        </div>
+        <strong id="totalFuncionarios">0</strong>
+        <div class="metric-note">100% do total</div>
+        <div class="progress"><span id="progFuncionarios"></span></div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-head">
+          <div class="metric-icon icon-blue"><i data-lucide="calendar-days"></i></div>
+          <small>Pontos registrados hoje</small>
+        </div>
+        <strong id="totalPontosHoje">0</strong>
+        <div class="metric-note">● Atualizado agora</div>
+      </div>
+
+      <div class="metric-card orange">
+        <div class="metric-head">
+          <div class="metric-icon icon-orange"><i data-lucide="clock-3"></i></div>
+          <small>Atrasos hoje</small>
+        </div>
+        <strong id="totalAtrasos">0</strong>
+        <div class="metric-note" id="statusAtrasos">✓ Sem atrasos</div>
+      </div>
+
+      <div class="metric-card purple">
+        <div class="metric-head">
+          <div class="metric-icon icon-purple"><i data-lucide="user-round-x"></i></div>
+          <small>Funcionários sem ponto hoje</small>
+        </div>
+        <strong id="totalSemPonto">0</strong>
+        <div class="metric-note" id="semPontoTexto">0% do total</div>
+        <div class="progress"><span id="progSemPonto" style="background:#7c3aed;"></span></div>
+      </div>
+
+      <div class="metric-card green">
+        <div class="metric-head">
+          <div class="metric-icon icon-green"><i data-lucide="camera"></i></div>
+          <small>Capturas ao vivo hoje</small>
+        </div>
+        <strong id="totalAoVivo">0</strong>
+        <div class="metric-note" id="aoVivoTexto">0% do total</div>
+        <div class="progress"><span id="progAoVivo" style="background:#16a34a;"></span></div>
+      </div>
+
+      <div class="metric-card red">
+        <div class="metric-head">
+          <div class="metric-icon icon-red"><i data-lucide="shield-alert"></i></div>
+          <small>Registros suspeitos</small>
+        </div>
+        <strong id="totalSuspeitos">0</strong>
+        <div class="metric-note" id="statusSuspeitos">✓ Tudo certo!</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-head">
+          <div class="metric-icon icon-blue"><i data-lucide="map-pin"></i></div>
+          <small>Distância média</small>
+        </div>
+        <strong id="distanciaMedia">0m</strong>
+        <div class="metric-note">✓ Dentro do esperado</div>
+      </div>
+
+      <div class="metric-card purple">
+        <div class="metric-head">
+          <div class="metric-icon icon-purple"><i data-lucide="target"></i></div>
+          <small>Maior distância</small>
+        </div>
+        <strong id="maiorDistancia">0m</strong>
+        <div class="metric-note">✓ Dentro do limite</div>
+      </div>
+    </section>
+
+    <section class="grid-bottom">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><i data-lucide="line-chart"></i> Resumo de hoje</div>
+          <div class="tabs">
+            <button class="tab active">Pontos</button>
+            <button class="tab">Funcionários</button>
+          </div>
+        </div>
+
+        <div class="chart-box">
+          <canvas id="graficoHoje"></canvas>
+        </div>
+
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <small>Total de pontos</small>
+            <strong id="miniTotalPontos">0</strong>
+          </div>
+          <div class="mini-stat">
+            <small>Capturas ao vivo</small>
+            <strong id="miniAoVivo" style="color:#16a34a;">0</strong>
+          </div>
+          <div class="mini-stat">
+            <small>Atrasos</small>
+            <strong id="miniAtrasos" style="color:#f97316;">0</strong>
+          </div>
+          <div class="mini-stat">
+            <small>Suspeitos</small>
+            <strong id="miniSuspeitos" style="color:#dc2626;">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <div class="panel-title"><i data-lucide="clock"></i> Últimos registros</div>
+          <button class="tab" onclick="window.location.href='./relatorio.html'">Ver todos</button>
+        </div>
+
+        <div id="ultimosRegistros" class="ultimos-lista"></div>
+      </div>
+    </section>
+
+    <div class="footer-sync">
+      <i data-lucide="lock"></i>
+      Dados atualizados em tempo real
+      <span>•</span>
+      <span id="ultimaAtualizacao">Última atualização: agora há pouco</span>
+      <i data-lucide="refresh-cw"></i>
     </div>
-
-    <div class="card">
-      <small>Atrasos hoje</small>
-      <strong id="totalAtrasos">0</strong>
-    </div>
-
-    <div class="card">
-      <small>Funcionários sem ponto hoje</small>
-      <strong id="totalSemPonto">0</strong>
-    </div>
-
-    <div class="card sucesso">
-      <small>Capturas ao vivo hoje</small>
-      <strong id="totalAoVivo">0</strong>
-    </div>
-
-    <div class="card alerta">
-      <small>Registros suspeitos</small>
-      <strong id="totalSuspeitos">0</strong>
-    </div>
-
-    <div class="card">
-      <small>Distância média</small>
-      <strong id="distanciaMedia">0m</strong>
-    </div>
-
-    <div class="card">
-      <small>Maior distância</small>
-      <strong id="maiorDistancia">0m</strong>
-    </div>
-
-  </div>
-
-  <div class="bloco">
-    <h2>Últimos registros</h2>
-    <div id="ultimosRegistros"></div>
-  </div>
-
+  </main>
 </div>
 
-<div
-  id="modalFoto"
-  class="modal"
-  onclick="fecharModal()"
->
+<div id="modalFoto" class="modal" onclick="fecharModal()">
   <img id="imgModal" src="">
 </div>
 
 <script>
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  const supabaseUrl =
-  "https://ixeeperktitbzmnvcaqz.supabase.co";
-
-  const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-
-  const supabaseClient =
-  window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
-
-  const empresaId =
-  localStorage.getItem("pontofacil_empresa_id");
-
-  const empresaNome =
-  localStorage.getItem("pontofacil_empresa_nome");
+  const empresaId = localStorage.getItem("pontofacil_empresa_id");
+  const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
 
   if(!empresaId){
     window.location.href = "./gestao.html";
   }
 
-  document.getElementById("empresaNome").innerText =
-  empresaNome || "PontoFácil";
+  document.getElementById("empresaNomeSidebar").innerText = empresaNome || "PontoFácil";
 
   let funcionarios = [];
   let registrosHoje = [];
+  let graficoHoje = null;
+
+  function atualizarDataTopo(){
+    const hoje = new Date();
+
+    document.getElementById("dataTopo").innerText = hoje.toLocaleDateString("pt-BR", {
+      day:"2-digit",
+      month:"long",
+      year:"numeric"
+    });
+
+    document.getElementById("diaTopo").innerText = hoje.toLocaleDateString("pt-BR", {
+      weekday:"long"
+    });
+  }
 
   function abrirModal(url){
     if(!url) return;
-
     document.getElementById("imgModal").src = url;
     document.getElementById("modalFoto").style.display = "flex";
   }
@@ -388,13 +884,10 @@
   }
 
   function formatarHora(dataIso){
-    return new Date(dataIso).toLocaleTimeString(
-      "pt-BR",
-      {
-        hour:"2-digit",
-        minute:"2-digit"
-      }
-    );
+    return new Date(dataIso).toLocaleTimeString("pt-BR", {
+      hour:"2-digit",
+      minute:"2-digit"
+    });
   }
 
   function tipoTexto(tipo){
@@ -404,56 +897,38 @@
       retorno_intervalo:"Retorno intervalo",
       saida:"Saída"
     };
-
     return mapa[tipo] || tipo;
   }
 
   function horaParaMinutos(hora){
     if(!hora) return null;
-
     const partes = hora.split(":");
-
-    return (
-      Number(partes[0]) * 60 +
-      Number(partes[1])
-    );
+    return Number(partes[0]) * 60 + Number(partes[1]);
   }
 
   function houveAtraso(registro, funcionario){
     if(!registro || !funcionario) return false;
 
-    const horaRegistro =
-    formatarHora(registro.data_hora);
-
+    const horaRegistro = formatarHora(registro.data_hora);
     let horarioPrevisto = null;
 
-    if(registro.tipo === "entrada"){
-      horarioPrevisto = funcionario.horario_entrada;
-    }
-
-    if(registro.tipo === "saida_intervalo"){
-      horarioPrevisto = funcionario.horario_intervalo;
-    }
-
-    if(registro.tipo === "retorno_intervalo"){
-      horarioPrevisto = funcionario.horario_retorno;
-    }
-
-    if(registro.tipo === "saida"){
-      horarioPrevisto = funcionario.horario_saida;
-    }
+    if(registro.tipo === "entrada") horarioPrevisto = funcionario.horario_entrada;
+    if(registro.tipo === "saida_intervalo") horarioPrevisto = funcionario.horario_intervalo;
+    if(registro.tipo === "retorno_intervalo") horarioPrevisto = funcionario.horario_retorno;
+    if(registro.tipo === "saida") horarioPrevisto = funcionario.horario_saida;
 
     if(!horarioPrevisto) return false;
+    return horaParaMinutos(horaRegistro) > horaParaMinutos(horarioPrevisto);
+  }
 
-    return (
-      horaParaMinutos(horaRegistro) >
-      horaParaMinutos(horarioPrevisto)
-    );
+  function definirTexto(id, valor){
+    const el = document.getElementById(id);
+    if(el) el.innerText = valor;
   }
 
   function calcularAuditoria(registros){
+    const total = registros.length;
     const totalAoVivo = registros.filter(r => r.captura_ao_vivo === true).length;
-
     const suspeitos = registros.filter(r =>
       r.captura_ao_vivo !== true ||
       !r.metodo_captura ||
@@ -468,151 +943,95 @@
       ? Math.round(distancias.reduce((a,b) => a + b, 0) / distancias.length)
       : 0;
 
-    const maior = distancias.length
-      ? Math.max(...distancias)
-      : 0;
+    const maior = distancias.length ? Math.max(...distancias) : 0;
+    const percAoVivo = total ? Math.round((totalAoVivo / total) * 100) : 0;
 
-    document.getElementById("totalAoVivo").innerText = totalAoVivo;
-    document.getElementById("totalSuspeitos").innerText = suspeitos;
-    document.getElementById("distanciaMedia").innerText = `${media}m`;
-    document.getElementById("maiorDistancia").innerText = `${maior}m`;
+    definirTexto("totalAoVivo", totalAoVivo);
+    definirTexto("totalSuspeitos", suspeitos);
+    definirTexto("distanciaMedia", `${media}m`);
+    definirTexto("maiorDistancia", `${maior}m`);
+    definirTexto("aoVivoTexto", `${percAoVivo}% do total`);
+    definirTexto("miniAoVivo", totalAoVivo);
+    definirTexto("miniSuspeitos", suspeitos);
+
+    document.getElementById("progAoVivo").style.width = `${percAoVivo}%`;
+    document.getElementById("statusSuspeitos").innerText = suspeitos ? "⚠ Verificar registros" : "✓ Tudo certo!";
   }
 
-  async function carregarDashboard(){
+  function atualizarGrafico(registros){
+    const horas = Array.from({length:24}, (_,i) => i);
+    const contagem = horas.map(hora => registros.filter(r => new Date(r.data_hora).getHours() === hora).length);
 
-    const hoje = new Date();
+    const ctx = document.getElementById("graficoHoje");
 
-    const inicioHoje =
-    new Date(
-      hoje.getFullYear(),
-      hoje.getMonth(),
-      hoje.getDate()
-    ).toISOString();
-
-    const amanha =
-    new Date(
-      hoje.getFullYear(),
-      hoje.getMonth(),
-      hoje.getDate() + 1
-    ).toISOString();
-
-    const { data: funcionariosData } =
-    await supabaseClient
-      .from("funcionarios")
-      .select("*")
-      .eq("empresa_id", empresaId)
-      .eq("ativo", true);
-
-    funcionarios = funcionariosData || [];
-
-    document.getElementById("totalFuncionarios").innerText =
-    funcionarios.length;
-
-    const { data: registrosData, error } =
-    await supabaseClient
-      .from("registros_ponto")
-      .select("*")
-      .eq("empresa_id", empresaId)
-      .gte("data_hora", inicioHoje)
-      .lt("data_hora", amanha)
-      .order("data_hora", {
-        ascending:false
-      });
-
-    if(error){
-      console.log(error);
-
-      document.getElementById("ultimosRegistros").innerHTML =
-      `<div class="vazio">Erro ao carregar registros.</div>`;
-
+    if(graficoHoje){
+      graficoHoje.data.datasets[0].data = contagem;
+      graficoHoje.update();
       return;
     }
 
-    registrosHoje = registrosData || [];
-
-    document.getElementById("totalPontosHoje").innerText =
-    registrosHoje.length;
-
-    calcularAuditoria(registrosHoje);
-
-    let atrasos = 0;
-
-    registrosHoje.forEach(registro => {
-      const funcionario =
-      funcionarios.find(
-        f => f.id === registro.funcionario_id
-      );
-
-      if(houveAtraso(registro, funcionario)){
-        atrasos++;
+    graficoHoje = new Chart(ctx, {
+      type:"line",
+      data:{
+        labels:horas.map(h => `${String(h).padStart(2,"0")}h`),
+        datasets:[{
+          label:"Pontos",
+          data:contagem,
+          tension:.42,
+          borderColor:"#2563eb",
+          backgroundColor:"rgba(37,99,235,.10)",
+          fill:true,
+          pointRadius:0,
+          borderWidth:3
+        }]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{
+          legend:{display:false}
+        },
+        scales:{
+          y:{
+            beginAtZero:true,
+            ticks:{precision:0},
+            grid:{color:"#e2e8f0"}
+          },
+          x:{
+            grid:{display:false}
+          }
+        }
       }
     });
+  }
 
-    document.getElementById("totalAtrasos").innerText =
-    atrasos;
-
-    const funcionariosComPonto =
-    [
-      ...new Set(
-        registrosHoje.map(
-          r => r.funcionario_id
-        )
-      )
-    ];
-
-    const semPonto =
-    funcionarios.filter(
-      f => !funcionariosComPonto.includes(f.id)
-    );
-
-    document.getElementById("totalSemPonto").innerText =
-    semPonto.length;
-
-    const lista =
-    document.getElementById("ultimosRegistros");
+  function renderizarUltimosRegistros(){
+    const lista = document.getElementById("ultimosRegistros");
 
     if(registrosHoje.length === 0){
-      lista.innerHTML =
-      `<div class="vazio">Nenhum registro hoje.</div>`;
-
+      lista.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon"><i data-lucide="clipboard-list"></i></div>
+          <strong>Nenhum registro hoje.</strong>
+          <p>Os registros de ponto aparecerão aqui assim que forem realizados.</p>
+        </div>
+      `;
+      lucide.createIcons();
       return;
     }
 
-    lista.innerHTML =
-    registrosHoje.map(registro => {
-
-      const funcionario =
-      funcionarios.find(
-        f => f.id === registro.funcionario_id
-      );
-
-      const atraso =
-      houveAtraso(registro, funcionario);
-
-      const capturaAoVivo =
-      registro.captura_ao_vivo === true;
-
-      const metodo =
-      registro.metodo_captura || "Não informado";
-
-      const distancia =
-      registro.distancia_metros !== null &&
-      registro.distancia_metros !== undefined
-      ? `${registro.distancia_metros}m`
-      : "-";
-
-      const latitude =
-      registro.latitude || "-";
-
-      const longitude =
-      registro.longitude || "-";
+    lista.innerHTML = registrosHoje.slice(0,8).map(registro => {
+      const funcionario = funcionarios.find(f => f.id === registro.funcionario_id);
+      const atraso = houveAtraso(registro, funcionario);
+      const capturaAoVivo = registro.captura_ao_vivo === true;
+      const metodo = registro.metodo_captura || "Não informado";
+      const distancia = registro.distancia_metros !== null && registro.distancia_metros !== undefined ? `${registro.distancia_metros}m` : "-";
+      const latitude = registro.latitude || "-";
+      const longitude = registro.longitude || "-";
 
       return `
-
         <div class="registro">
-
           <div class="registro-esquerda">
-
             <img
               class="foto"
               src="${registro.foto_url || ""}"
@@ -621,72 +1040,101 @@
             >
 
             <div>
+              <strong>${funcionario?.nome_completo || "Funcionário"}</strong>
+              <small>${funcionario?.funcao || "-"}</small>
+              <small>${formatarHora(registro.data_hora)} ${atraso ? " • ATRASO" : ""}</small>
 
-              <strong>
-                ${funcionario?.nome_completo || "Funcionário"}
-              </strong>
-
-              <small>
-                ${funcionario?.funcao || "-"}
-              </small>
-
-              <small>
-                ${formatarHora(registro.data_hora)}
-                ${atraso ? " • ATRASO" : ""}
-              </small>
-
-              ${
-                registro.observacao
-                ? `
-                  <small>
-                    Obs: ${registro.observacao}
-                  </small>
-                `
-                : ""
-              }
+              ${registro.observacao ? `<small>Obs: ${registro.observacao}</small>` : ""}
 
               <div class="auditoria">
-
                 <span class="audit-badge ${capturaAoVivo ? "audit-ok" : "audit-alerta"}">
                   ${capturaAoVivo ? "Captura ao vivo" : "Arquivo/antigo"}
                 </span>
-
-                <span class="audit-badge audit-info">
-                  Método: ${metodo}
-                </span>
-
-                <span class="audit-badge audit-info">
-                  Distância: ${distancia}
-                </span>
-
+                <span class="audit-badge audit-info">Método: ${metodo}</span>
+                <span class="audit-badge audit-info">Distância: ${distancia}</span>
               </div>
 
               <div class="gps-info">
                 Latitude: ${latitude}<br>
                 Longitude: ${longitude}
               </div>
-
             </div>
-
           </div>
 
-          <span class="badge ${registro.tipo}">
-            ${tipoTexto(registro.tipo)}
-          </span>
-
+          <span class="badge ${registro.tipo}">${tipoTexto(registro.tipo)}</span>
         </div>
-
       `;
     }).join("");
   }
 
+  async function carregarDashboard(){
+    const hoje = new Date();
+
+    const inicioHoje = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate()).toISOString();
+    const amanha = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() + 1).toISOString();
+
+    const { data: funcionariosData } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true);
+
+    funcionarios = funcionariosData || [];
+
+    definirTexto("totalFuncionarios", funcionarios.length);
+    document.getElementById("progFuncionarios").style.width = funcionarios.length ? "100%" : "0%";
+
+    const { data: registrosData, error } = await supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .gte("data_hora", inicioHoje)
+      .lt("data_hora", amanha)
+      .order("data_hora", { ascending:false });
+
+    if(error){
+      console.log(error);
+      document.getElementById("ultimosRegistros").innerHTML = `<div class="empty-state"><strong>Erro ao carregar registros.</strong></div>`;
+      return;
+    }
+
+    registrosHoje = registrosData || [];
+
+    definirTexto("totalPontosHoje", registrosHoje.length);
+    definirTexto("miniTotalPontos", registrosHoje.length);
+
+    calcularAuditoria(registrosHoje);
+
+    let atrasos = 0;
+
+    registrosHoje.forEach(registro => {
+      const funcionario = funcionarios.find(f => f.id === registro.funcionario_id);
+      if(houveAtraso(registro, funcionario)) atrasos++;
+    });
+
+    definirTexto("totalAtrasos", atrasos);
+    definirTexto("miniAtrasos", atrasos);
+    document.getElementById("statusAtrasos").innerText = atrasos ? "⚠ Verificar atrasos" : "✓ Sem atrasos";
+
+    const funcionariosComPonto = [...new Set(registrosHoje.map(r => r.funcionario_id))];
+    const semPonto = funcionarios.filter(f => !funcionariosComPonto.includes(f.id));
+    const percSemPonto = funcionarios.length ? Math.round((semPonto.length / funcionarios.length) * 100) : 0;
+
+    definirTexto("totalSemPonto", semPonto.length);
+    definirTexto("semPontoTexto", `${percSemPonto}% do total`);
+    document.getElementById("progSemPonto").style.width = `${percSemPonto}%`;
+
+    atualizarGrafico(registrosHoje);
+    renderizarUltimosRegistros();
+
+    document.getElementById("ultimaAtualizacao").innerText = `Última atualização: ${new Date().toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"})}`;
+    lucide.createIcons();
+  }
+
+  atualizarDataTopo();
+  lucide.createIcons();
   carregarDashboard();
-
-  setInterval(
-    carregarDashboard,
-    30000
-  );
-
+  setInterval(carregarDashboard, 30000);
 </script>
 
 </body>
