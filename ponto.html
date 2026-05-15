@@ -6,114 +6,146 @@
   <title>PontoFácil - Registrar ponto</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
-    *{margin:0;padding:0;box-sizing:border-box}
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
 
     body{
-      font-family:Arial,sans-serif;
-      background:#f4f7fb;
       min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:20px;
+      font-family:Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.45), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(14,165,233,.35), transparent 32%),
+        linear-gradient(145deg,#020617,#071426 48%,#0f172a);
       color:#0f172a;
+      padding:14px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
     }
 
-    .card{
+    .app{
       width:100%;
-      max-width:460px;
-      background:white;
-      border-radius:26px;
-      padding:26px;
-      box-shadow:0 18px 45px rgba(15,23,42,.08);
+      max-width:430px;
+      border-radius:34px;
+      overflow:hidden;
+      background:#ffffff;
+      box-shadow:
+        0 0 0 1px rgba(96,165,250,.35),
+        0 28px 80px rgba(0,0,0,.35);
+      margin:8px auto;
     }
 
-    h1{
-      color:#2563eb;
-      font-size:34px;
+    .hero{
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.55), transparent 42%),
+        linear-gradient(145deg,#020617,#071426);
+      padding:34px 24px 30px;
       text-align:center;
-      margin-bottom:8px;
+      color:white;
+      border-bottom-left-radius:28px;
+      border-bottom-right-radius:28px;
     }
 
-    .sub{
+    .logo{
+      width:210px;
+      max-width:86%;
+      display:block;
+      margin:0 auto 12px;
+      object-fit:contain;
+    }
+
+    .hero p{
+      color:#cbd5e1;
+      font-size:15px;
+      font-weight:600;
+    }
+
+    .content{
+      padding:26px 24px 30px;
+    }
+
+    .clock-card{
+      background:linear-gradient(135deg,#eff6ff,#f8fbff);
+      border:1px solid #dbeafe;
+      border-radius:22px;
+      padding:24px 18px;
       text-align:center;
-      color:#64748b;
       margin-bottom:24px;
-    }
-
-    .relogio{
-      background:#eff6ff;
-      border:1px solid #bfdbfe;
-      border-radius:18px;
-      padding:16px;
-      text-align:center;
-      margin-bottom:20px;
+      box-shadow:0 12px 28px rgba(37,99,235,.08);
     }
 
     .hora{
-      font-size:38px;
+      font-size:54px;
       font-weight:900;
       color:#2563eb;
+      line-height:1;
+      letter-spacing:-2px;
     }
 
     .data{
-      margin-top:6px;
+      margin-top:10px;
+      font-size:15px;
       color:#64748b;
-      font-size:14px;
+      font-weight:700;
+      text-transform:capitalize;
     }
 
     .campo{
-      margin-bottom:16px;
+      margin-bottom:18px;
     }
 
     label{
-      display:block;
-      margin-bottom:7px;
-      font-size:14px;
-      font-weight:bold;
-      color:#334155;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:9px;
+      font-size:15px;
+      font-weight:900;
+      color:#0f172a;
+    }
+
+    label i{
+      color:#2563eb;
+      font-size:18px;
+      width:22px;
+      text-align:center;
     }
 
     select,
-    textarea,
-    input,
-    button{
+    textarea{
       width:100%;
-      border-radius:14px;
       border:1px solid #dbe4f0;
-      padding:16px;
+      border-radius:16px;
+      background:#ffffff;
+      color:#0f172a;
       font-size:16px;
-      font-family:Arial,sans-serif;
+      outline:none;
+      box-shadow:0 6px 18px rgba(15,23,42,.03);
+      font-family:Arial, sans-serif;
     }
 
-    select:focus,
-    textarea:focus,
-    input:focus{
-      outline:none;
-      border-color:#2563eb;
-      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    select{
+      height:58px;
+      padding:0 18px;
     }
 
     textarea{
+      min-height:96px;
+      padding:16px;
       resize:none;
-      min-height:90px;
+      line-height:1.4;
     }
 
-    button{
-      margin-top:10px;
-      border:none;
-      background:#2563eb;
-      color:white;
-      font-weight:bold;
-      cursor:pointer;
-      font-size:17px;
-    }
-
-    button:disabled{
-      opacity:.7;
-      cursor:not-allowed;
+    select:focus,
+    textarea:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
     }
 
     .preview{
@@ -122,30 +154,124 @@
       gap:12px;
       background:#f8fafc;
       border:1px solid #e2e8f0;
-      border-radius:16px;
+      border-radius:18px;
       padding:12px;
-      margin-bottom:16px;
+      margin:-4px 0 18px;
+      box-shadow:0 8px 20px rgba(15,23,42,.04);
     }
 
     .preview img{
       width:64px;
       height:64px;
       object-fit:cover;
-      border-radius:14px;
+      border-radius:16px;
       background:#e2e8f0;
+      flex-shrink:0;
+    }
+
+    .avatar-fallback{
+      width:64px;
+      height:64px;
+      border-radius:16px;
+      background:#e2e8f0;
+      color:#94a3b8;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      font-size:26px;
+      flex-shrink:0;
     }
 
     .preview strong{
       display:block;
       margin-bottom:4px;
+      font-size:16px;
+      color:#0f172a;
     }
 
     .preview small{
       color:#64748b;
+      font-weight:700;
+    }
+
+    .upload-box{
+      border:1.5px dashed #bfdbfe;
+      border-radius:18px;
+      min-height:74px;
+      padding:14px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      cursor:pointer;
+      background:#f8fbff;
+      margin-bottom:0;
+    }
+
+    .upload-icon{
+      width:44px;
+      height:44px;
+      border-radius:13px;
+      background:#dbeafe;
+      color:#2563eb;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+      font-size:18px;
+    }
+
+    .upload-text strong{
+      display:block;
+      color:#2563eb;
+      font-size:15px;
+      margin-bottom:3px;
+    }
+
+    .upload-text span{
+      color:#64748b;
+      font-size:13px;
+      display:block;
+      word-break:break-word;
+    }
+
+    #fotoPonto{
+      display:none;
+    }
+
+    .contador{
+      text-align:right;
+      font-size:12px;
+      color:#64748b;
+      margin-top:6px;
+      font-weight:700;
+    }
+
+    .btn{
+      width:100%;
+      height:62px;
+      border:none;
+      border-radius:18px;
+      background:linear-gradient(90deg,#2563eb,#1d4ed8);
+      color:white;
+      font-size:18px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 14px 30px rgba(37,99,235,.28);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+      font-family:Arial, sans-serif;
+    }
+
+    .btn:disabled{
+      opacity:.65;
+      cursor:not-allowed;
     }
 
     .sucesso{
-      margin-top:18px;
+      margin-top:16px;
       background:#dcfce7;
       color:#166534;
       border-radius:14px;
@@ -155,7 +281,7 @@
     }
 
     .erro{
-      margin-top:18px;
+      margin-top:16px;
       background:#fee2e2;
       color:#991b1b;
       border-radius:14px;
@@ -163,61 +289,132 @@
       text-align:center;
       font-weight:bold;
     }
+
+    @media(max-width:480px){
+      body{
+        padding:10px;
+      }
+
+      .app{
+        border-radius:30px;
+      }
+
+      .hero{
+        padding:30px 18px 28px;
+      }
+
+      .content{
+        padding:24px 20px 28px;
+      }
+
+      .hora{
+        font-size:48px;
+      }
+
+      .logo{
+        width:190px;
+      }
+    }
   </style>
 </head>
+
 <body>
 
-<div class="card">
+<div class="app">
 
-  <h1>PontoFácil</h1>
-  <div class="sub">Registro eletrônico de ponto</div>
-
-  <div class="relogio">
-    <div class="hora" id="horaAtual">--:--</div>
-    <div class="data" id="dataAtual">--</div>
+  <div class="hero">
+    <img src="./pontofacil-logo-login-web.png" class="logo" alt="PontoFácil">
+    <p>Registro eletrônico de ponto</p>
   </div>
 
-  <div class="campo">
-    <label>Funcionário</label>
-    <select id="funcionario" onchange="mostrarFuncionario()">
-      <option value="">Carregando funcionários...</option>
-    </select>
-  </div>
+  <div class="content">
 
-  <div id="previewFuncionario" class="preview">
-    <img id="fotoFuncionario" src="">
-    <div>
-      <strong id="nomeFuncionarioPreview"></strong>
-      <small id="funcaoFuncionarioPreview"></small>
+    <div class="clock-card">
+      <div class="hora" id="horaAtual">--:--</div>
+      <div class="data" id="dataAtual">--</div>
     </div>
+
+    <div class="campo">
+      <label>
+        <i class="fa-regular fa-user"></i>
+        Funcionário
+      </label>
+
+      <select id="funcionario" onchange="mostrarFuncionario()">
+        <option value="">Carregando funcionários...</option>
+      </select>
+    </div>
+
+    <div id="previewFuncionario" class="preview">
+      <img
+        id="fotoFuncionario"
+        src=""
+        onerror="this.style.display='none'; document.getElementById('avatarFallback').style.display='flex';"
+      >
+
+      <div id="avatarFallback" class="avatar-fallback">
+        <i class="fa-solid fa-user"></i>
+      </div>
+
+      <div>
+        <strong id="nomeFuncionarioPreview"></strong>
+        <small id="funcaoFuncionarioPreview"></small>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label>
+        <i class="fa-regular fa-clock"></i>
+        Tipo de registro
+      </label>
+
+      <select id="tipo">
+        <option value="">Selecione</option>
+        <option value="entrada">Entrada</option>
+        <option value="saida_intervalo">Saída para intervalo</option>
+        <option value="retorno_intervalo">Retorno do intervalo</option>
+        <option value="saida">Saída</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>
+        <i class="fa-regular fa-camera"></i>
+        Foto do funcionário
+      </label>
+
+      <label class="upload-box" for="fotoPonto">
+        <div class="upload-icon">
+          <i class="fa-regular fa-image"></i>
+        </div>
+
+        <div class="upload-text">
+          <strong id="textoFoto">Tirar ou enviar foto</strong>
+          <span id="nomeArquivo">Nenhum arquivo selecionado.</span>
+        </div>
+      </label>
+
+      <input id="fotoPonto" type="file" accept="image/*" capture="user">
+    </div>
+
+    <div class="campo">
+      <label>
+        <i class="fa-regular fa-pen-to-square"></i>
+        Observação opcional
+      </label>
+
+      <textarea id="observacao" maxlength="200" placeholder="Digite uma observação..."></textarea>
+      <div class="contador"><span id="contadorObs">0</span>/200</div>
+    </div>
+
+    <button class="btn" id="btnRegistrar" onclick="registrarPonto()">
+      <i class="fa-regular fa-floppy-disk"></i>
+      Registrar ponto
+    </button>
+
+    <div id="mensagem"></div>
+
   </div>
-
-  <div class="campo">
-    <label>Tipo de registro</label>
-    <select id="tipo">
-      <option value="">Selecione</option>
-      <option value="entrada">Entrada</option>
-      <option value="saida_intervalo">Saída para intervalo</option>
-      <option value="retorno_intervalo">Retorno do intervalo</option>
-      <option value="saida">Saída</option>
-    </select>
-  </div>
-
-  <div class="campo">
-    <label>Foto do funcionário</label>
-    <input id="fotoPonto" type="file" accept="image/*" capture="user">
-  </div>
-
-  <div class="campo">
-    <label>Observação opcional</label>
-    <textarea id="observacao" placeholder="Digite uma observação..."></textarea>
-  </div>
-
-  <button id="btnRegistrar" onclick="registrarPonto()">
-    Registrar ponto
-  </button>
-
-  <div id="mensagem"></div>
 
 </div>
 
@@ -253,6 +450,22 @@
 
   setInterval(atualizarRelogio, 1000);
   atualizarRelogio();
+
+  document.getElementById("observacao").addEventListener("input", function(){
+    document.getElementById("contadorObs").innerText = this.value.length;
+  });
+
+  document.getElementById("fotoPonto").addEventListener("change", function(){
+    const arquivo = this.files && this.files.length > 0 ? this.files[0] : null;
+
+    if(arquivo){
+      document.getElementById("textoFoto").innerText = "Foto selecionada";
+      document.getElementById("nomeArquivo").innerText = arquivo.name;
+    }else{
+      document.getElementById("textoFoto").innerText = "Tirar ou enviar foto";
+      document.getElementById("nomeArquivo").innerText = "Nenhum arquivo selecionado.";
+    }
+  });
 
   function normalizarNomeArquivo(texto){
     return String(texto || "")
@@ -312,13 +525,23 @@
     const funcionarioId = document.getElementById("funcionario").value;
     const funcionario = funcionarios.find(f => String(f.id) === String(funcionarioId));
     const preview = document.getElementById("previewFuncionario");
+    const foto = document.getElementById("fotoFuncionario");
+    const avatarFallback = document.getElementById("avatarFallback");
 
     if(!funcionario){
       preview.style.display = "none";
       return;
     }
 
-    document.getElementById("fotoFuncionario").src = funcionario.foto_url || "";
+    avatarFallback.style.display = "none";
+    foto.style.display = "block";
+    foto.src = funcionario.foto_url || "";
+
+    if(!funcionario.foto_url){
+      foto.style.display = "none";
+      avatarFallback.style.display = "flex";
+    }
+
     document.getElementById("nomeFuncionarioPreview").innerText = funcionario.nome_completo;
     document.getElementById("funcaoFuncionarioPreview").innerText = funcionario.funcao || "Funcionário";
 
@@ -335,7 +558,7 @@
     const arquivo = input.files[0];
     const extensao = arquivo.name.split(".").pop().toLowerCase();
 
-    const nomeArquivo = `${empresaId}/${funcionarioId}/${tipo}-${Date.now()}.${extensao}`;
+    const nomeArquivo = `${empresaId}/${funcionarioId}/${tipo}-${Date.now()}-${normalizarNomeArquivo(arquivo.name)}.${extensao}`;
 
     const { error: uploadError } = await supabaseClient
       .storage
@@ -383,14 +606,14 @@
     }
 
     botao.disabled = true;
-    botao.innerText = "Registrando...";
+    botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
 
     const fotoUrl = await enviarFotoPonto(funcionarioId, tipo);
 
     if(!fotoUrl){
       mostrarMensagem("erro", "Erro ao enviar foto do ponto.");
       botao.disabled = false;
-      botao.innerText = "Registrar ponto";
+      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
       return;
     }
 
@@ -411,18 +634,21 @@
       console.log(error);
       mostrarMensagem("erro", "Erro ao registrar ponto.");
       botao.disabled = false;
-      botao.innerText = "Registrar ponto";
+      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
       return;
     }
 
     document.getElementById("tipo").value = "";
     document.getElementById("observacao").value = "";
+    document.getElementById("contadorObs").innerText = "0";
     document.getElementById("fotoPonto").value = "";
+    document.getElementById("textoFoto").innerText = "Tirar ou enviar foto";
+    document.getElementById("nomeArquivo").innerText = "Nenhum arquivo selecionado.";
 
     mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
 
     botao.disabled = false;
-    botao.innerText = "Registrar ponto";
+    botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
   }
 
   carregarFuncionarios();
