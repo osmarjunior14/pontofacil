@@ -9,11 +9,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
+    *{margin:0;padding:0;box-sizing:border-box}
 
     body{
       min-height:100vh;
@@ -194,47 +190,84 @@
       font-weight:700;
     }
 
-    .upload-box{
+    .camera-box{
+      background:#f8fbff;
       border:1.5px dashed #bfdbfe;
       border-radius:18px;
-      min-height:74px;
       padding:14px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      cursor:pointer;
-      background:#f8fbff;
-      margin-bottom:0;
+      overflow:hidden;
     }
 
-    .upload-icon{
-      width:44px;
-      height:44px;
-      border-radius:13px;
-      background:#dbeafe;
-      color:#2563eb;
+    .camera-area{
+      width:100%;
+      aspect-ratio:4/3;
+      background:#020617;
+      border-radius:16px;
+      overflow:hidden;
       display:flex;
       align-items:center;
       justify-content:center;
-      flex-shrink:0;
-      font-size:18px;
+      position:relative;
     }
 
-    .upload-text strong{
+    video,
+    #fotoCapturada{
+      width:100%;
+      height:100%;
+      object-fit:cover;
       display:block;
-      color:#2563eb;
-      font-size:15px;
-      margin-bottom:3px;
     }
 
-    .upload-text span{
+    #fotoCapturada{
+      display:none;
+    }
+
+    .camera-placeholder{
+      color:#cbd5e1;
+      text-align:center;
+      padding:20px;
+      font-size:14px;
+    }
+
+    .camera-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .btn-camera{
+      height:48px;
+      border:none;
+      border-radius:14px;
+      font-weight:900;
+      cursor:pointer;
+      color:white;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-family:Arial, sans-serif;
+    }
+
+    .btn-abrir{
+      background:#2563eb;
+    }
+
+    .btn-capturar{
+      background:#0f172a;
+    }
+
+    .camera-status{
+      margin-top:10px;
       color:#64748b;
       font-size:13px;
-      display:block;
-      word-break:break-word;
+      font-weight:700;
+      text-align:center;
     }
 
-    #fotoPonto{
+    canvas{
       display:none;
     }
 
@@ -265,7 +298,8 @@
       font-family:Arial, sans-serif;
     }
 
-    .btn:disabled{
+    .btn:disabled,
+    .btn-camera:disabled{
       opacity:.65;
       cursor:not-allowed;
     }
@@ -291,29 +325,12 @@
     }
 
     @media(max-width:480px){
-      body{
-        padding:10px;
-      }
-
-      .app{
-        border-radius:30px;
-      }
-
-      .hero{
-        padding:30px 18px 28px;
-      }
-
-      .content{
-        padding:24px 20px 28px;
-      }
-
-      .hora{
-        font-size:48px;
-      }
-
-      .logo{
-        width:190px;
-      }
+      body{padding:10px}
+      .app{border-radius:30px}
+      .hero{padding:30px 18px 28px}
+      .content{padding:24px 20px 28px}
+      .hora{font-size:48px}
+      .logo{width:190px}
     }
   </style>
 </head>
@@ -380,21 +397,36 @@
     <div class="campo">
       <label>
         <i class="fa-regular fa-camera"></i>
-        Foto do funcionário
+        Foto ao vivo do funcionário
       </label>
 
-      <label class="upload-box" for="fotoPonto">
-        <div class="upload-icon">
-          <i class="fa-regular fa-image"></i>
+      <div class="camera-box">
+        <div class="camera-area">
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <img id="fotoCapturada" src="">
+          <div id="cameraPlaceholder" class="camera-placeholder">
+            Clique em “Abrir câmera” para iniciar a validação ao vivo.
+          </div>
         </div>
 
-        <div class="upload-text">
-          <strong id="textoFoto">Tirar ou enviar foto</strong>
-          <span id="nomeArquivo">Nenhum arquivo selecionado.</span>
-        </div>
-      </label>
+        <div class="camera-actions">
+          <button type="button" class="btn-camera btn-abrir" onclick="abrirCamera()">
+            <i class="fa-solid fa-video"></i>
+            Abrir câmera
+          </button>
 
-      <input id="fotoPonto" type="file" accept="image/*" capture="user">
+          <button type="button" class="btn-camera btn-capturar" onclick="capturarFotoAoVivo()">
+            <i class="fa-solid fa-camera"></i>
+            Capturar foto
+          </button>
+        </div>
+
+        <div id="cameraStatus" class="camera-status">
+          Nenhuma foto capturada.
+        </div>
+      </div>
+
+      <canvas id="canvasFoto"></canvas>
     </div>
 
     <div class="campo">
@@ -430,6 +462,8 @@
 
   let funcionarios = [];
   let empresaDados = null;
+  let streamCamera = null;
+  let fotoCapturadaBlob = null;
 
   function atualizarRelogio(){
     const agora = new Date();
@@ -456,18 +490,6 @@
     document.getElementById("contadorObs").innerText = this.value.length;
   });
 
-  document.getElementById("fotoPonto").addEventListener("change", function(){
-    const arquivo = this.files && this.files.length > 0 ? this.files[0] : null;
-
-    if(arquivo){
-      document.getElementById("textoFoto").innerText = "Foto selecionada";
-      document.getElementById("nomeArquivo").innerText = arquivo.name;
-    }else{
-      document.getElementById("textoFoto").innerText = "Tirar ou enviar foto";
-      document.getElementById("nomeArquivo").innerText = "Nenhum arquivo selecionado.";
-    }
-  });
-
   function normalizarNomeArquivo(texto){
     return String(texto || "")
       .toLowerCase()
@@ -481,115 +503,188 @@
     document.getElementById("mensagem").innerHTML =
       `<div class="${tipo}">${texto}</div>`;
   }
-  async function carregarEmpresa(){
-  if(!empresaId) return;
 
-  const { data, error } = await supabaseClient
-    .from("empresas")
-    .select("id, nome, latitude, longitude, raio_permitido_metros")
-    .eq("id", empresaId)
-    .single();
+  async function abrirCamera(){
+    const video = document.getElementById("cameraVideo");
+    const foto = document.getElementById("fotoCapturada");
+    const placeholder = document.getElementById("cameraPlaceholder");
+    const status = document.getElementById("cameraStatus");
 
-  if(error){
-    console.log("Erro ao carregar empresa:", error);
-    mostrarMensagem("erro", "Erro ao carregar dados da empresa.");
-    return;
+    try{
+      if(streamCamera){
+        streamCamera.getTracks().forEach(track => track.stop());
+      }
+
+      streamCamera = await navigator.mediaDevices.getUserMedia({
+        video:{
+          facingMode:"user",
+          width:{ ideal:720 },
+          height:{ ideal:720 }
+        },
+        audio:false
+      });
+
+      video.srcObject = streamCamera;
+      video.style.display = "block";
+      foto.style.display = "none";
+      placeholder.style.display = "none";
+
+      fotoCapturadaBlob = null;
+      status.innerText = "Câmera ao vivo aberta. Agora capture a foto.";
+
+    }catch(error){
+      console.log("Erro ao abrir câmera:", error);
+      mostrarMensagem("erro", "Não foi possível abrir a câmera. Permita o acesso à câmera e tente novamente.");
+    }
   }
 
-  empresaDados = data;
-}
+  function capturarFotoAoVivo(){
+    const video = document.getElementById("cameraVideo");
+    const canvas = document.getElementById("canvasFoto");
+    const foto = document.getElementById("fotoCapturada");
+    const status = document.getElementById("cameraStatus");
 
-function calcularDistanciaMetros(lat1, lon1, lat2, lon2){
-  const R = 6371000;
-
-  const rad = Math.PI / 180;
-  const dLat = (lat2 - lat1) * rad;
-  const dLon = (lon2 - lon1) * rad;
-
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * rad) *
-    Math.cos(lat2 * rad) *
-    Math.sin(dLon / 2) *
-    Math.sin(dLon / 2);
-
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-
-  return R * c;
-}
-
-function obterLocalizacaoAtual(){
-  return new Promise((resolve, reject) => {
-    if(!navigator.geolocation){
-      reject("Geolocalização não suportada neste aparelho.");
+    if(!streamCamera || !video.videoWidth){
+      mostrarMensagem("erro", "Abra a câmera antes de capturar a foto.");
       return;
     }
 
-    navigator.geolocation.getCurrentPosition(
-      posicao => {
-        resolve({
-          latitude: posicao.coords.latitude,
-          longitude: posicao.coords.longitude,
-          precisao: posicao.coords.accuracy
-        });
-      },
-      erro => {
-        console.log("Erro GPS:", erro);
-        reject("Não foi possível obter sua localização. Ative o GPS e permita o acesso à localização.");
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(blob => {
+      if(!blob){
+        mostrarMensagem("erro", "Erro ao capturar a foto.");
+        return;
       }
-    );
-  });
-}
 
-async function validarLocalizacao(){
-  if(!empresaDados){
-    mostrarMensagem("erro", "Dados da empresa não carregados.");
-    return null;
+      fotoCapturadaBlob = blob;
+
+      const urlPreview = URL.createObjectURL(blob);
+      foto.src = urlPreview;
+      foto.style.display = "block";
+      video.style.display = "none";
+
+      status.innerText = "Foto capturada ao vivo com sucesso.";
+
+      if(streamCamera){
+        streamCamera.getTracks().forEach(track => track.stop());
+        streamCamera = null;
+      }
+    }, "image/jpeg", 0.9);
   }
 
-  if(!empresaDados.latitude || !empresaDados.longitude){
-    mostrarMensagem("erro", "Esta empresa ainda não possui localização GPS cadastrada.");
-    return null;
+  async function carregarEmpresa(){
+    if(!empresaId) return;
+
+    const { data, error } = await supabaseClient
+      .from("empresas")
+      .select("id, nome, latitude, longitude, raio_permitido_metros")
+      .eq("id", empresaId)
+      .single();
+
+    if(error){
+      console.log("Erro ao carregar empresa:", error);
+      mostrarMensagem("erro", "Erro ao carregar dados da empresa.");
+      return;
+    }
+
+    empresaDados = data;
   }
 
-  try{
-    const localizacao = await obterLocalizacaoAtual();
+  function calcularDistanciaMetros(lat1, lon1, lat2, lon2){
+    const R = 6371000;
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLon = (lon2 - lon1) * rad;
 
-    const distancia = calcularDistanciaMetros(
-      Number(empresaDados.latitude),
-      Number(empresaDados.longitude),
-      Number(localizacao.latitude),
-      Number(localizacao.longitude)
-    );
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * rad) *
+      Math.cos(lat2 * rad) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
 
-    const raioPermitido = Number(empresaDados.raio_permitido_metros || 50);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
-    if(distancia > raioPermitido){
-      mostrarMensagem(
-        "erro",
-        `Registro bloqueado. Você está a aproximadamente ${Math.round(distancia)}m da empresa. Limite permitido: ${raioPermitido}m.`
+    return R * c;
+  }
+
+  function obterLocalizacaoAtual(){
+    return new Promise((resolve, reject) => {
+      if(!navigator.geolocation){
+        reject("Geolocalização não suportada neste aparelho.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        posicao => {
+          resolve({
+            latitude: posicao.coords.latitude,
+            longitude: posicao.coords.longitude,
+            precisao: posicao.coords.accuracy
+          });
+        },
+        erro => {
+          console.log("Erro GPS:", erro);
+          reject("Não foi possível obter sua localização. Ative o GPS e permita o acesso à localização.");
+        },
+        {
+          enableHighAccuracy:true,
+          timeout:15000,
+          maximumAge:0
+        }
       );
+    });
+  }
 
+  async function validarLocalizacao(){
+    if(!empresaDados){
+      mostrarMensagem("erro", "Dados da empresa não carregados.");
       return null;
     }
 
-    return {
-      latitude: localizacao.latitude,
-      longitude: localizacao.longitude,
-      distancia_metros: Math.round(distancia)
-    };
+    if(!empresaDados.latitude || !empresaDados.longitude){
+      mostrarMensagem("erro", "Esta empresa ainda não possui localização GPS cadastrada.");
+      return null;
+    }
 
-  }catch(erro){
-    mostrarMensagem("erro", erro);
-    return null;
+    try{
+      const localizacao = await obterLocalizacaoAtual();
+
+      const distancia = calcularDistanciaMetros(
+        Number(empresaDados.latitude),
+        Number(empresaDados.longitude),
+        Number(localizacao.latitude),
+        Number(localizacao.longitude)
+      );
+
+      const raioPermitido = Number(empresaDados.raio_permitido_metros || 50);
+
+      if(distancia > raioPermitido){
+        mostrarMensagem(
+          "erro",
+          `Registro bloqueado. Você está a aproximadamente ${Math.round(distancia)}m da empresa. Limite permitido: ${raioPermitido}m.`
+        );
+
+        return null;
+      }
+
+      return {
+        latitude:localizacao.latitude,
+        longitude:localizacao.longitude,
+        distancia_metros:Math.round(distancia)
+      };
+
+    }catch(erro){
+      mostrarMensagem("erro", erro);
+      return null;
+    }
   }
-}
-  
+
   async function carregarFuncionarios(){
     const select = document.getElementById("funcionario");
 
@@ -658,23 +753,19 @@ async function validarLocalizacao(){
   }
 
   async function enviarFotoPonto(funcionarioId, tipo){
-    const input = document.getElementById("fotoPonto");
-
-    if(!input.files || input.files.length === 0){
+    if(!fotoCapturadaBlob){
       return null;
     }
 
-    const arquivo = input.files[0];
-    const extensao = arquivo.name.split(".").pop().toLowerCase();
-
-    const nomeArquivo = `${empresaId}/${funcionarioId}/${tipo}-${Date.now()}-${normalizarNomeArquivo(arquivo.name)}.${extensao}`;
+    const nomeArquivo = `${empresaId}/${funcionarioId}/${tipo}-${Date.now()}-camera-ao-vivo.jpg`;
 
     const { error: uploadError } = await supabaseClient
       .storage
       .from("pontos")
-      .upload(nomeArquivo, arquivo, {
+      .upload(nomeArquivo, fotoCapturadaBlob, {
         cacheControl:"3600",
-        upsert:false
+        upsert:false,
+        contentType:"image/jpeg"
       });
 
     if(uploadError){
@@ -694,7 +785,6 @@ async function validarLocalizacao(){
     const funcionarioId = document.getElementById("funcionario").value;
     const tipo = document.getElementById("tipo").value;
     const observacao = document.getElementById("observacao").value.trim();
-    const fotoInput = document.getElementById("fotoPonto");
     const botao = document.getElementById("btnRegistrar");
 
     document.getElementById("mensagem").innerHTML = "";
@@ -709,23 +799,23 @@ async function validarLocalizacao(){
       return;
     }
 
-    if(!fotoInput.files || fotoInput.files.length === 0){
-      mostrarMensagem("erro", "Tire ou envie uma foto para registrar o ponto.");
+    if(!fotoCapturadaBlob){
+      mostrarMensagem("erro", "Capture uma foto ao vivo para registrar o ponto.");
       return;
     }
 
-  botao.disabled = true;
-  botao.innerHTML = `<i class="fa-solid fa-location-dot"></i> Verificando localização...`;
+    botao.disabled = true;
+    botao.innerHTML = `<i class="fa-solid fa-location-dot"></i> Verificando localização...`;
 
-const localizacaoValidada = await validarLocalizacao();
+    const localizacaoValidada = await validarLocalizacao();
 
-if(!localizacaoValidada){
-  botao.disabled = false;
-  botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
-  return;
-}
+    if(!localizacaoValidada){
+      botao.disabled = false;
+      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+      return;
+    }
 
-botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
+    botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
 
     const fotoUrl = await enviarFotoPonto(funcionarioId, tipo);
 
@@ -740,16 +830,18 @@ botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
       .from("registros_ponto")
       .insert([
         {
-  empresa_id: empresaId,
-  funcionario_id: funcionarioId,
-  tipo,
-  observacao,
-  foto_url: fotoUrl,
-  data_hora: new Date().toISOString(),
-  latitude: localizacaoValidada.latitude,
-  longitude: localizacaoValidada.longitude,
-  distancia_metros: localizacaoValidada.distancia_metros
-}
+          empresa_id:empresaId,
+          funcionario_id:funcionarioId,
+          tipo,
+          observacao,
+          foto_url:fotoUrl,
+          data_hora:new Date().toISOString(),
+          latitude:localizacaoValidada.latitude,
+          longitude:localizacaoValidada.longitude,
+          distancia_metros:localizacaoValidada.distancia_metros,
+          captura_ao_vivo:true,
+          metodo_captura:"camera"
+        }
       ]);
 
     if(error){
@@ -763,9 +855,13 @@ botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
     document.getElementById("tipo").value = "";
     document.getElementById("observacao").value = "";
     document.getElementById("contadorObs").innerText = "0";
-    document.getElementById("fotoPonto").value = "";
-    document.getElementById("textoFoto").innerText = "Tirar ou enviar foto";
-    document.getElementById("nomeArquivo").innerText = "Nenhum arquivo selecionado.";
+
+    fotoCapturadaBlob = null;
+    document.getElementById("fotoCapturada").src = "";
+    document.getElementById("fotoCapturada").style.display = "none";
+    document.getElementById("cameraVideo").style.display = "block";
+    document.getElementById("cameraPlaceholder").style.display = "block";
+    document.getElementById("cameraStatus").innerText = "Nenhuma foto capturada.";
 
     mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
 
@@ -774,11 +870,11 @@ botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
   }
 
   async function iniciar(){
-  await carregarEmpresa();
-  await carregarFuncionarios();
-}
+    await carregarEmpresa();
+    await carregarFuncionarios();
+  }
 
-iniciar();
+  iniciar();
 </script>
 
 </body>
