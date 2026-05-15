@@ -1,25 +1,17 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PontoFácil - Painel Gestão</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
+*{margin:0;padding:0;box-sizing:border-box}
 
 body{
   background:#f4f7fb;
@@ -28,14 +20,7 @@ body{
   padding:24px;
 }
 
-/* CONTAINER */
-
-.container{
-  max-width:1450px;
-  margin:auto;
-}
-
-/* TOPO */
+.container{max-width:1450px;margin:auto}
 
 .topo{
   display:flex;
@@ -52,14 +37,9 @@ body{
   line-height:1.1;
   margin-bottom:6px;
   font-weight:800;
-  letter-spacing:-1px;
 }
 
-.titulo p{
-  color:#64748b;
-  font-size:16px;
-  font-weight:500;
-}
+.titulo p{color:#64748b;font-size:16px;font-weight:500}
 
 .botoes-topo{
   display:flex;
@@ -81,35 +61,16 @@ body{
   display:flex;
   align-items:center;
   gap:8px;
-
-  box-shadow:
-    0 6px 18px rgba(15,23,42,.05);
-
-  transition:.2s;
+  box-shadow:0 6px 18px rgba(15,23,42,.05);
 }
 
-.btn-topo:hover{
-  transform:translateY(-2px);
-}
-
-.btn-topo i{
-  font-size:15px;
-}
-
-.btn-sair{
-  background:#ef4444;
-  color:white;
-}
-
-/* CARDS */
+.btn-sair{background:#ef4444;color:white}
 
 .card{
   background:white;
   border-radius:24px;
   padding:28px;
-  box-shadow:
-    0 12px 35px rgba(15,23,42,.05);
-
+  box-shadow:0 12px 35px rgba(15,23,42,.05);
   margin-bottom:28px;
 }
 
@@ -124,43 +85,21 @@ body{
   width:58px;
   height:58px;
   border-radius:18px;
-
-  background:linear-gradient(
-    135deg,
-    #2563eb,
-    #1d4ed8
-  );
-
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
   display:flex;
   justify-content:center;
   align-items:center;
-
   color:white;
   font-size:22px;
   flex-shrink:0;
 }
 
-.card-header h2{
-  font-size:30px;
-  margin-bottom:4px;
-  color:#0f172a;
-  letter-spacing:-1px;
-}
-
-.card-header p{
-  color:#64748b;
-  font-size:15px;
-}
-
-/* GRID */
+.card-header h2{font-size:30px;margin-bottom:4px;color:#0f172a}
+.card-header p{color:#64748b;font-size:15px}
 
 .grid{
   display:grid;
-
-  grid-template-columns:
-  260px
-  repeat(4,1fr);
-
+  grid-template-columns:260px repeat(4,1fr);
   gap:18px;
   margin-bottom:22px;
 }
@@ -169,56 +108,23 @@ body{
   border:2px dashed #cbd5e1;
   border-radius:22px;
   min-height:180px;
-
   display:flex;
   flex-direction:column;
   justify-content:center;
   align-items:center;
   text-align:center;
-
   cursor:pointer;
-  transition:.2s;
-
   padding:18px;
 }
 
-.upload-box:hover{
-  border-color:#2563eb;
-  background:#f8fbff;
-}
+.upload-box i{font-size:42px;color:#2563eb;margin-bottom:14px}
+.upload-box strong{font-size:18px;color:#2563eb}
+.upload-box span{margin-top:6px;color:#64748b;font-size:14px}
 
-.upload-box i{
-  font-size:42px;
-  color:#2563eb;
-  margin-bottom:14px;
-}
+.campo{display:flex;flex-direction:column;gap:8px}
+.campo label{font-size:15px;color:#334155;font-weight:700}
 
-.upload-box strong{
-  font-size:18px;
-  color:#2563eb;
-}
-
-.upload-box span{
-  margin-top:6px;
-  color:#64748b;
-  font-size:14px;
-}
-
-.campo{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-}
-
-.campo label{
-  font-size:15px;
-  color:#334155;
-  font-weight:700;
-}
-
-.input-icon{
-  position:relative;
-}
+.input-icon{position:relative}
 
 .input-icon i{
   position:absolute;
@@ -229,69 +135,40 @@ body{
   font-size:16px;
 }
 
-.input-icon input{
-  padding-left:46px !important;
-}
+.input-icon input{padding-left:46px!important}
 
 input{
   width:100%;
   height:54px;
-
   border-radius:16px;
   border:1px solid #dbe4f0;
-
   padding:0 18px;
-
   font-size:16px;
   color:#0f172a;
-
-  transition:.2s;
   background:white;
 }
 
-input:focus{
+input:focus, select:focus{
   outline:none;
-
   border-color:#2563eb;
-
-  box-shadow:
-    0 0 0 4px rgba(37,99,235,.12);
+  box-shadow:0 0 0 4px rgba(37,99,235,.12);
 }
-
-/* BOTÃO SALVAR */
 
 .btn-salvar{
   width:100%;
   height:58px;
-
   border:none;
   border-radius:18px;
-
-  background:linear-gradient(
-    90deg,
-    #2563eb,
-    #1d4ed8
-  );
-
+  background:linear-gradient(90deg,#2563eb,#1d4ed8);
   color:white;
   font-size:20px;
   font-weight:800;
-
   cursor:pointer;
-
   display:flex;
   justify-content:center;
   align-items:center;
   gap:10px;
-
-  transition:.2s;
 }
-
-.btn-salvar:hover{
-  transform:translateY(-2px);
-}
-
-/* LISTAGEM */
 
 .funcionarios-topo{
   display:flex;
@@ -302,37 +179,22 @@ input:focus{
   flex-wrap:wrap;
 }
 
-.funcionarios-topo h2{
-  font-size:30px;
-  margin-bottom:6px;
-}
-
-.funcionarios-topo p{
-  color:#64748b;
-  font-size:15px;
-}
+.funcionarios-topo h2{font-size:30px;margin-bottom:6px}
+.funcionarios-topo p{color:#64748b;font-size:15px}
 
 .contador{
   background:#eff6ff;
   color:#2563eb;
-
   font-size:13px;
   padding:7px 12px;
   border-radius:999px;
-
   font-weight:700;
   margin-left:8px;
 }
 
-.filtros{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
+.filtros{display:flex;gap:12px;flex-wrap:wrap}
 
-.pesquisa{
-  position:relative;
-}
+.pesquisa{position:relative}
 
 .pesquisa i{
   position:absolute;
@@ -351,53 +213,30 @@ input:focus{
 
 select{
   height:50px;
-
   border-radius:16px;
   border:1px solid #dbe4f0;
-
   padding:0 16px;
-
   font-size:15px;
-
   background:white;
   color:#0f172a;
-
   min-width:150px;
 }
-
-/* FUNCIONÁRIO */
 
 .funcionario{
   border:1px solid #e2e8f0;
   border-radius:24px;
-
   padding:22px;
-
   display:flex;
   justify-content:space-between;
   align-items:center;
-
   gap:22px;
-
   margin-bottom:18px;
-
-  transition:.2s;
-}
-
-.funcionario:hover{
-  border-color:#cbd5e1;
-
-  transform:translateY(-2px);
-
-  box-shadow:
-    0 10px 25px rgba(15,23,42,.04);
 }
 
 .dados{
   display:flex;
   align-items:center;
   gap:18px;
-
   flex:1;
   min-width:260px;
 }
@@ -405,77 +244,49 @@ select{
 .foto{
   width:82px;
   height:82px;
-
   border-radius:20px;
-
   object-fit:cover;
   background:#e2e8f0;
-
   flex-shrink:0;
 }
 
 .foto-placeholder{
   width:82px;
   height:82px;
-
   border-radius:20px;
   background:#f1f5f9;
-
   display:flex;
   justify-content:center;
   align-items:center;
-
   color:#cbd5e1;
   font-size:30px;
-
   flex-shrink:0;
 }
 
-.dados strong{
-  font-size:22px;
-  display:block;
-  margin-bottom:6px;
-}
+.dados strong{font-size:22px;display:block;margin-bottom:6px}
 
 .dados small{
   display:block;
-
   color:#64748b;
-
   font-size:15px;
   line-height:1.7;
 }
 
-.dados small i{
-  width:22px;
-  color:#475569;
-}
+.dados small i{width:22px;color:#475569}
 
 .status{
   display:inline-flex;
   align-items:center;
   gap:6px;
-
   padding:8px 14px;
   border-radius:999px;
-
   font-size:13px;
   font-weight:700;
-
   margin-top:10px;
 }
 
-.ativo{
-  background:#dcfce7;
-  color:#166534;
-}
-
-.inativo{
-  background:#fee2e2;
-  color:#991b1b;
-}
-
-/* AÇÕES */
+.ativo{background:#dcfce7;color:#166534}
+.inativo{background:#fee2e2;color:#991b1b}
 
 .acoes{
   display:flex;
@@ -487,15 +298,11 @@ select{
 .btn-acao{
   height:50px;
   padding:0 18px;
-
   border-radius:14px;
   border:none;
-
   font-size:14px;
   font-weight:700;
-
   cursor:pointer;
-
   display:flex;
   align-items:center;
   gap:8px;
@@ -512,593 +319,554 @@ select{
   color:white;
 }
 
-.menu{
-  width:50px;
-  height:50px;
-
-  border-radius:14px;
-  border:1px solid #e2e8f0;
-
-  background:white;
-  color:#64748b;
-
-  font-size:18px;
-  cursor:pointer;
-}
-
-/* FOOTER */
-
 .footer-lista{
   display:flex;
   justify-content:space-between;
   align-items:center;
-
   margin-top:18px;
-
   flex-wrap:wrap;
   gap:18px;
 }
 
-.footer-lista p{
+.footer-lista p{color:#64748b;font-size:14px}
+
+.vazio{
   color:#64748b;
-  font-size:14px;
+  font-style:italic;
+  padding:14px 0;
 }
-
-.paginacao{
-  display:flex;
-  gap:8px;
-  align-items:center;
-}
-
-.pagina{
-  width:40px;
-  height:40px;
-
-  border-radius:12px;
-  border:1px solid #e2e8f0;
-
-  background:white;
-
-  cursor:pointer;
-  font-weight:700;
-}
-
-.ativa{
-  background:#2563eb;
-  color:white;
-  border:none;
-}
-
-/* RESPONSIVO */
 
 @media(max-width:1200px){
-
-  .grid{
-    grid-template-columns:1fr 1fr;
-  }
-
+  .grid{grid-template-columns:1fr 1fr}
 }
 
 @media(max-width:900px){
-
-  body{
-    padding:16px;
-  }
-
-  .titulo h1{
-    font-size:26px;
-  }
-
-  .titulo p{
-    font-size:15px;
-  }
-
-  .grid{
-    grid-template-columns:1fr;
-  }
-
-  .funcionario{
-    flex-direction:column;
-    align-items:flex-start;
-  }
-
-  .acoes{
-    width:100%;
-  }
-
-  .btn-acao{
-    flex:1;
-    justify-content:center;
-  }
-
-  .card-header h2{
-    font-size:24px;
-  }
-
-  .funcionarios-topo h2{
-    font-size:24px;
-  }
-
+  body{padding:16px}
+  .titulo h1{font-size:26px}
+  .titulo p{font-size:15px}
+  .grid{grid-template-columns:1fr}
+  .funcionario{flex-direction:column;align-items:flex-start}
+  .acoes{width:100%}
+  .btn-acao{flex:1;justify-content:center}
+  .card-header h2{font-size:24px}
+  .funcionarios-topo h2{font-size:24px}
 }
-
-</style>
+  </style>
 </head>
 
 <body>
 
 <div class="container">
 
-  <!-- TOPO -->
-
   <div class="topo">
-
     <div class="titulo">
-      <h1 id="empresaNome">
-        PontoFácil
-      </h1>
-
-      <p>
-        Painel da gestão da empresa
-      </p>
+      <h1 id="empresaNome">PontoFácil</h1>
+      <p>Painel da gestão da empresa</p>
     </div>
 
     <div class="botoes-topo">
-
-      <button class="btn-topo">
-        <i class="fa-solid fa-qrcode"></i>
-        QR Code
+      <button class="btn-topo" onclick="gerarQRCode()">
+        <i class="fa-solid fa-qrcode"></i> QR Code
       </button>
 
-      <button class="btn-topo">
-        <i class="fa-solid fa-chart-column"></i>
-        Dashboard
+      <button class="btn-topo" onclick="window.location.href='./dashboard.html'">
+        <i class="fa-solid fa-chart-column"></i> Dashboard
       </button>
 
-      <button class="btn-topo">
-        <i class="fa-regular fa-calendar"></i>
-        Relatório mensal
+      <button class="btn-topo" onclick="window.location.href='./relatorio.html'">
+        <i class="fa-regular fa-calendar"></i> Relatório mensal
       </button>
 
-      <button class="btn-topo">
-        <i class="fa-regular fa-clock"></i>
-        Banco de horas
+      <button class="btn-topo" onclick="window.location.href='./banco-horas.html'">
+        <i class="fa-regular fa-clock"></i> Banco de horas
       </button>
 
-      <button class="btn-topo btn-sair">
-        <i class="fa-solid fa-arrow-right-from-bracket"></i>
-        Sair
+      <button class="btn-topo btn-sair" onclick="sair()">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
       </button>
-
     </div>
-
   </div>
 
-  <!-- CARD CADASTRO -->
-
   <div class="card">
-
     <div class="card-header">
-
       <div class="icone-card">
         <i class="fa-solid fa-user-plus"></i>
       </div>
 
       <div>
-        <h2>
-          Cadastrar funcionário
-        </h2>
-
-        <p>
-          Preencha os dados para cadastrar um novo funcionário.
-        </p>
+        <h2>Cadastrar funcionário</h2>
+        <p>Preencha os dados para cadastrar um novo funcionário.</p>
       </div>
-
     </div>
 
     <div class="grid">
 
-      <!-- FOTO -->
-
       <label class="upload-box">
-
         <i class="fa-solid fa-cloud-arrow-up"></i>
-
-        <strong>
-          Clique para enviar
-        </strong>
-
-        <span>
-          PNG, JPG até 5MB
-        </span>
-
-        <input
-          id="foto"
-          type="file"
-          accept="image/*"
-          hidden
-        />
-
+        <strong>Clique para enviar</strong>
+        <span>PNG, JPG até 5MB</span>
+        <input id="foto" type="file" accept="image/*" hidden>
       </label>
 
-      <!-- NOME -->
-
       <div class="campo">
-
-        <label>
-          Nome completo
-        </label>
-
+        <label>Nome completo</label>
         <div class="input-icon">
-
           <i class="fa-regular fa-user"></i>
-
-          <input
-            id="nome"
-            placeholder="Ex: João da Silva"
-          />
-
+          <input id="nome" placeholder="Ex: João da Silva">
         </div>
-
       </div>
 
-      <!-- CPF -->
-
       <div class="campo">
-
-        <label>
-          CPF
-        </label>
-
+        <label>CPF</label>
         <div class="input-icon">
-
           <i class="fa-regular fa-id-card"></i>
-
-          <input
-            id="cpf"
-            placeholder="000.000.000-00"
-          />
-
+          <input id="cpf" placeholder="000.000.000-00">
         </div>
-
       </div>
 
-      <!-- FUNÇÃO -->
-
       <div class="campo">
-
-        <label>
-          Função
-        </label>
-
+        <label>Função</label>
         <div class="input-icon">
-
           <i class="fa-solid fa-briefcase"></i>
-
-          <input
-            id="funcao"
-            placeholder="Ex: Recepcionista"
-          />
-
+          <input id="funcao" placeholder="Ex: Recepcionista">
         </div>
-
       </div>
 
-      <!-- NASCIMENTO -->
-
       <div class="campo">
-
-        <label>
-          Data de nascimento
-        </label>
-
+        <label>Data de nascimento</label>
         <div class="input-icon">
-
           <i class="fa-regular fa-calendar"></i>
-
-          <input
-            id="data_nascimento"
-            type="date"
-          />
-
+          <input id="data_nascimento" type="date">
         </div>
-
       </div>
 
-      <!-- ENTRADA -->
-
       <div class="campo">
-
-        <label>
-          Horário de entrada
-        </label>
-
+        <label>Horário de entrada</label>
         <div class="input-icon">
-
           <i class="fa-regular fa-clock"></i>
-
-          <input
-            id="horario_entrada"
-            type="time"
-          />
-
+          <input id="horario_entrada" type="time">
         </div>
-
       </div>
 
-      <!-- INTERVALO -->
-
       <div class="campo">
-
-        <label>
-          Saída para intervalo
-        </label>
-
+        <label>Saída para intervalo</label>
         <div class="input-icon">
-
           <i class="fa-regular fa-clock"></i>
-
-          <input
-            id="horario_intervalo"
-            type="time"
-          />
-
+          <input id="horario_intervalo" type="time">
         </div>
-
       </div>
 
-      <!-- RETORNO -->
-
       <div class="campo">
-
-        <label>
-          Retorno do intervalo
-        </label>
-
+        <label>Retorno do intervalo</label>
         <div class="input-icon">
-
           <i class="fa-regular fa-clock"></i>
-
-          <input
-            id="horario_retorno"
-            type="time"
-          />
-
+          <input id="horario_retorno" type="time">
         </div>
-
       </div>
 
-      <!-- SAIDA -->
-
       <div class="campo">
-
-        <label>
-          Horário de saída
-        </label>
-
+        <label>Horário de saída</label>
         <div class="input-icon">
-
           <i class="fa-regular fa-clock"></i>
-
-          <input
-            id="horario_saida"
-            type="time"
-          />
-
+          <input id="horario_saida" type="time">
         </div>
-
       </div>
 
     </div>
 
-    <button class="btn-salvar">
+    <button class="btn-salvar" onclick="salvarFuncionario()">
       <i class="fa-regular fa-floppy-disk"></i>
       Salvar funcionário
     </button>
-
   </div>
 
-  <!-- LISTA -->
-
   <div class="card">
-
     <div class="funcionarios-topo">
-
       <div>
-
         <h2>
           Funcionários cadastrados
-
-          <span class="contador">
-            2
-          </span>
+          <span class="contador" id="contadorFuncionarios">0</span>
         </h2>
-
-        <p>
-          Lista de todos os funcionários da empresa.
-        </p>
-
+        <p>Lista de todos os funcionários da empresa.</p>
       </div>
 
       <div class="filtros">
-
         <div class="pesquisa">
-
           <i class="fa-solid fa-magnifying-glass"></i>
-
-          <input
-            placeholder="Buscar funcionário..."
-          />
-
+          <input id="buscaFuncionario" placeholder="Buscar funcionário..." oninput="renderizarFuncionarios()">
         </div>
 
-        <select>
-          <option>
-            Todos
-          </option>
-
-          <option>
-            Ativos
-          </option>
-
-          <option>
-            Inativos
-          </option>
+        <select id="filtroStatus" onchange="renderizarFuncionarios()">
+          <option value="todos">Todos</option>
+          <option value="ativos">Ativos</option>
+          <option value="inativos">Inativos</option>
         </select>
-
       </div>
-
     </div>
 
-    <!-- FUNCIONARIO -->
-
-    <div class="funcionario">
-
-      <div class="dados">
-
-        <div class="foto-placeholder">
-          <i class="fa-solid fa-user"></i>
-        </div>
-
-        <div>
-
-          <strong>
-            Osmar Alves da Silva Junior
-          </strong>
-
-          <small>
-            <i class="fa-regular fa-id-card"></i>
-            CPF: 10875272444
-          </small>
-
-          <small>
-            <i class="fa-solid fa-briefcase"></i>
-            Função: Cozinheiro
-          </small>
-
-          <small>
-            <i class="fa-regular fa-clock"></i>
-            Horários:
-            08:00:00 / 12:00:00 / 13:00:00 / 18:00:00
-          </small>
-
-          <span class="status inativo">
-            ● INATIVO
-          </span>
-
-        </div>
-
-      </div>
-
-      <div class="acoes">
-
-        <button class="btn-acao editar">
-          <i class="fa-solid fa-pen"></i>
-          Editar
-        </button>
-
-        <button class="btn-acao inativar">
-          <i class="fa-solid fa-play"></i>
-          Ativar
-        </button>
-
-        <button class="menu">
-          <i class="fa-solid fa-ellipsis-vertical"></i>
-        </button>
-
-      </div>
-
-    </div>
-
-    <!-- FUNCIONARIO -->
-
-    <div class="funcionario">
-
-      <div class="dados">
-
-        <img
-          class="foto"
-          src="https://i.imgur.com/YK8N4Yq.png"
-        />
-
-        <div>
-
-          <strong>
-            Osmar Alves da Silva Júnior
-          </strong>
-
-          <small>
-            <i class="fa-regular fa-id-card"></i>
-            CPF: 10875272444
-          </small>
-
-          <small>
-            <i class="fa-solid fa-briefcase"></i>
-            Função: Cozinheiro
-          </small>
-
-          <small>
-            <i class="fa-regular fa-clock"></i>
-            Horários:
-            08:00:00 / 12:00:00 / 14:00:00 / 18:00:00
-          </small>
-
-          <span class="status ativo">
-            ● ATIVO
-          </span>
-
-        </div>
-
-      </div>
-
-      <div class="acoes">
-
-        <button class="btn-acao editar">
-          <i class="fa-solid fa-pen"></i>
-          Editar
-        </button>
-
-        <button class="btn-acao inativar">
-          <i class="fa-solid fa-pause"></i>
-          Inativar
-        </button>
-
-        <button class="menu">
-          <i class="fa-solid fa-ellipsis-vertical"></i>
-        </button>
-
-      </div>
-
-    </div>
-
-    <!-- FOOTER -->
+    <div id="listaFuncionarios"></div>
 
     <div class="footer-lista">
-
-      <p>
-        Mostrando 2 de 2 funcionários
-      </p>
-
-      <div class="paginacao">
-
-        <button class="pagina">
-          <i class="fa-solid fa-chevron-left"></i>
-        </button>
-
-        <button class="pagina ativa">
-          1
-        </button>
-
-        <button class="pagina">
-          <i class="fa-solid fa-chevron-right"></i>
-        </button>
-
-      </div>
-
+      <p id="textoQuantidade">Mostrando 0 funcionários</p>
     </div>
-
   </div>
 
 </div>
+
+<script>
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+  const empresaId = localStorage.getItem("pontofacil_empresa_id");
+  const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
+
+  let funcionarios = [];
+
+  if(!empresaId){
+    window.location.href = "./gestao.html";
+  }
+
+  document.getElementById("empresaNome").innerText = empresaNome || "PontoFácil";
+
+  function sair(){
+    localStorage.removeItem("pontofacil_empresa_logada");
+    localStorage.removeItem("pontofacil_empresa_id");
+    localStorage.removeItem("pontofacil_empresa_nome");
+    localStorage.removeItem("pontofacil_empresa_email");
+    window.location.href = "./gestao.html";
+  }
+
+  function normalizarNomeArquivo(texto){
+    return String(texto || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  async function enviarFotoFuncionario(nomeFuncionario){
+    const inputFoto = document.getElementById("foto");
+
+    if(!inputFoto.files || inputFoto.files.length === 0){
+      return "";
+    }
+
+    const arquivo = inputFoto.files[0];
+    const extensao = arquivo.name.split(".").pop().toLowerCase();
+    const nomeArquivo = `${empresaId}/${normalizarNomeArquivo(nomeFuncionario)}-${Date.now()}.${extensao}`;
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("funcionarios")
+      .upload(nomeArquivo, arquivo, {
+        cacheControl: "3600",
+        upsert: false
+      });
+
+    if(uploadError){
+      console.log("Erro ao enviar foto:", uploadError);
+      alert("Erro ao enviar foto do funcionário.");
+      return null;
+    }
+
+    const { data: urlData } = supabaseClient
+      .storage
+      .from("funcionarios")
+      .getPublicUrl(nomeArquivo);
+
+    return urlData.publicUrl;
+  }
+
+  async function salvarFuncionario(){
+    const nome = document.getElementById("nome").value.trim();
+    const cpf = document.getElementById("cpf").value.trim();
+    const funcao = document.getElementById("funcao").value.trim();
+    const data_nascimento = document.getElementById("data_nascimento").value;
+    const horario_entrada = document.getElementById("horario_entrada").value;
+    const horario_intervalo = document.getElementById("horario_intervalo").value;
+    const horario_retorno = document.getElementById("horario_retorno").value;
+    const horario_saida = document.getElementById("horario_saida").value;
+
+    if(!nome){
+      alert("Informe o nome do funcionário.");
+      return;
+    }
+
+    const fotoUrl = await enviarFotoFuncionario(nome);
+
+    if(fotoUrl === null){
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .insert([
+        {
+          empresa_id: empresaId,
+          nome_completo: nome,
+          cpf,
+          funcao,
+          data_nascimento: data_nascimento || null,
+          foto_url: fotoUrl || "",
+          horario_entrada: horario_entrada || null,
+          horario_intervalo: horario_intervalo || null,
+          horario_retorno: horario_retorno || null,
+          horario_saida: horario_saida || null,
+          ativo: true
+        }
+      ]);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao salvar funcionário.");
+      return;
+    }
+
+    alert("Funcionário cadastrado.");
+
+    document.getElementById("foto").value = "";
+    document.getElementById("nome").value = "";
+    document.getElementById("cpf").value = "";
+    document.getElementById("funcao").value = "";
+    document.getElementById("data_nascimento").value = "";
+    document.getElementById("horario_entrada").value = "";
+    document.getElementById("horario_intervalo").value = "";
+    document.getElementById("horario_retorno").value = "";
+    document.getElementById("horario_saida").value = "";
+
+    carregarFuncionarios();
+  }
+
+  async function carregarFuncionarios(){
+    const { data, error } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .order("nome_completo");
+
+    if(error){
+      console.log(error);
+      document.getElementById("listaFuncionarios").innerHTML =
+        `<div class="vazio">Erro ao carregar funcionários.</div>`;
+      return;
+    }
+
+    funcionarios = data || [];
+    renderizarFuncionarios();
+  }
+
+  function renderizarFuncionarios(){
+    const lista = document.getElementById("listaFuncionarios");
+    const busca = document.getElementById("buscaFuncionario").value.toLowerCase().trim();
+    const status = document.getElementById("filtroStatus").value;
+
+    let filtrados = funcionarios;
+
+    if(status === "ativos"){
+      filtrados = filtrados.filter(f => f.ativo === true);
+    }
+
+    if(status === "inativos"){
+      filtrados = filtrados.filter(f => f.ativo === false);
+    }
+
+    if(busca){
+      filtrados = filtrados.filter(f =>
+        String(f.nome_completo || "").toLowerCase().includes(busca) ||
+        String(f.cpf || "").toLowerCase().includes(busca) ||
+        String(f.funcao || "").toLowerCase().includes(busca)
+      );
+    }
+
+    document.getElementById("contadorFuncionarios").textContent = filtrados.length;
+    document.getElementById("textoQuantidade").textContent =
+      `Mostrando ${filtrados.length} de ${funcionarios.length} funcionários`;
+
+    if(filtrados.length === 0){
+      lista.innerHTML = `<div class="vazio">Nenhum funcionário encontrado.</div>`;
+      return;
+    }
+
+    lista.innerHTML = filtrados.map(funcionario => `
+      <div class="funcionario">
+        <div class="dados">
+          ${
+            funcionario.foto_url
+            ? `<img class="foto" src="${funcionario.foto_url}" onerror="this.outerHTML='<div class=&quot;foto-placeholder&quot;><i class=&quot;fa-solid fa-user&quot;></i></div>'">`
+            : `<div class="foto-placeholder"><i class="fa-solid fa-user"></i></div>`
+          }
+
+          <div>
+            <strong>${funcionario.nome_completo}</strong>
+
+            <small><i class="fa-regular fa-id-card"></i> CPF: ${funcionario.cpf || "-"}</small>
+            <small><i class="fa-solid fa-briefcase"></i> Função: ${funcionario.funcao || "-"}</small>
+            <small><i class="fa-regular fa-clock"></i> Horários: ${funcionario.horario_entrada || "--:--"} / ${funcionario.horario_intervalo || "--:--"} / ${funcionario.horario_retorno || "--:--"} / ${funcionario.horario_saida || "--:--"}</small>
+
+            <span class="status ${funcionario.ativo ? "ativo" : "inativo"}">
+              ● ${funcionario.ativo ? "ATIVO" : "INATIVO"}
+            </span>
+          </div>
+        </div>
+
+        <div class="acoes">
+          <button
+            class="btn-acao editar"
+            onclick="editarFuncionario(
+              '${funcionario.id}',
+              '${escapeTexto(funcionario.nome_completo)}',
+              '${escapeTexto(funcionario.cpf)}',
+              '${escapeTexto(funcionario.funcao)}'
+            )"
+          >
+            <i class="fa-solid fa-pen"></i>
+            Editar
+          </button>
+
+          <button
+            class="btn-acao inativar"
+            onclick="alterarStatusFuncionario('${funcionario.id}', ${funcionario.ativo})"
+          >
+            <i class="fa-solid ${funcionario.ativo ? "fa-pause" : "fa-play"}"></i>
+            ${funcionario.ativo ? "Inativar" : "Ativar"}
+          </button>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function escapeTexto(texto){
+    return String(texto || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, "&quot;");
+  }
+
+  async function editarFuncionario(id, nomeAtual, cpfAtual, funcaoAtual){
+    const novoNome = prompt("Nome:", nomeAtual);
+    if(novoNome === null) return;
+
+    const novoCpf = prompt("CPF:", cpfAtual);
+    if(novoCpf === null) return;
+
+    const novaFuncao = prompt("Função:", funcaoAtual);
+    if(novaFuncao === null) return;
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .update({
+        nome_completo: novoNome.trim(),
+        cpf: novoCpf.trim(),
+        funcao: novaFuncao.trim()
+      })
+      .eq("id", id);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao editar funcionário.");
+      return;
+    }
+
+    carregarFuncionarios();
+  }
+
+  async function alterarStatusFuncionario(id, statusAtual){
+    const confirmar = confirm(
+      statusAtual
+        ? "Deseja inativar este funcionário?"
+        : "Deseja ativar este funcionário?"
+    );
+
+    if(!confirmar) return;
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .update({
+        ativo: !statusAtual
+      })
+      .eq("id", id);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao alterar status.");
+      return;
+    }
+
+    carregarFuncionarios();
+  }
+
+  async function gerarQRCode(){
+    const link = `https://osmarjunior14.github.io/pontofacil/ponto.html?empresa=${empresaId}`;
+
+    const dataUrl = await QRCode.toDataURL(link, {
+      width: 320,
+      margin: 2
+    });
+
+    const janela = window.open("");
+
+    janela.document.write(`
+      <html>
+        <head>
+          <title>QR Code do Ponto</title>
+          <style>
+            body{
+              font-family:Arial;
+              display:flex;
+              flex-direction:column;
+              justify-content:center;
+              align-items:center;
+              padding:30px;
+              text-align:center;
+            }
+
+            h1{
+              color:#2563eb;
+              margin-bottom:20px;
+            }
+
+            img{
+              width:320px;
+              height:320px;
+            }
+
+            p{
+              margin-top:16px;
+              color:#475569;
+              max-width:400px;
+            }
+
+            button{
+              margin-top:20px;
+              border:none;
+              background:#2563eb;
+              color:white;
+              padding:12px 18px;
+              border-radius:12px;
+              font-weight:bold;
+              cursor:pointer;
+            }
+          </style>
+        </head>
+
+        <body>
+          <h1>${empresaNome || "PontoFácil"}</h1>
+          <img src="${dataUrl}" alt="QR Code do ponto">
+          <p>Escaneie este QR Code para registrar o ponto.</p>
+          <button onclick="window.print()">Imprimir QR Code</button>
+        </body>
+      </html>
+    `);
+
+    janela.document.close();
+  }
+
+  carregarFuncionarios();
+</script>
 
 </body>
 </html>
