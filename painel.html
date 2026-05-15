@@ -240,41 +240,71 @@
     <div class="form-grid">
 
       <div>
-        <label>Logomarca da empresa</label>
-        <input id="logo" type="file" accept="image/*">
-      </div>
+  <label>Logomarca da empresa</label>
+  <input id="logo" type="file" accept="image/*">
+</div>
 
-      <div>
-        <label>Nome da empresa</label>
-        <input id="nome" placeholder="Nome da empresa">
-      </div>
+<div>
+  <label>Nome da empresa</label>
+  <input id="nome" placeholder="Nome da empresa">
+</div>
 
-      <div>
-        <label>CNPJ</label>
-        <input id="cnpj" placeholder="CNPJ">
-      </div>
+<div>
+  <label>CNPJ</label>
+  <input id="cnpj" placeholder="CNPJ">
+</div>
 
-      <div>
-        <label>E-mail de gestão</label>
-        <input id="email_gestao" placeholder="E-mail de gestão">
-      </div>
+<div>
+  <label>E-mail de gestão</label>
+  <input id="email_gestao" placeholder="E-mail de gestão">
+</div>
 
-      <div>
-        <label>Senha da gestão</label>
-        <input id="senha_gestao" placeholder="Senha da gestão">
-      </div>
+<div>
+  <label>Senha da gestão</label>
+  <input id="senha_gestao" placeholder="Senha da gestão">
+</div>
 
-    </div>
+<div>
+  <label>Latitude da empresa</label>
+  <input
+    id="latitude"
+    type="number"
+    step="any"
+    placeholder="-8.8829"
+  >
+</div>
 
-    <button class="btn-salvar" onclick="salvarEmpresa()">
-      Salvar empresa
-    </button>
-  </div>
+<div>
+  <label>Longitude da empresa</label>
+  <input
+    id="longitude"
+    type="number"
+    step="any"
+    placeholder="-36.4966"
+  >
+</div>
 
-  <div class="card">
-    <h2>Empresas cadastradas</h2>
-    <div id="listaEmpresas"></div>
-  </div>
+<div>
+  <label>Raio permitido (metros)</label>
+  <input
+    id="raio_permitido_metros"
+    type="number"
+    value="50"
+    placeholder="50"
+  >
+</div>
+
+</div>
+
+<button class="btn-salvar" onclick="salvarEmpresa()">
+  Salvar empresa
+</button>
+</div>
+
+<div class="card">
+  <h2>Empresas cadastradas</h2>
+  <div id="listaEmpresas"></div>
+</div>
 
 </div>
 
@@ -379,6 +409,9 @@
     document.getElementById("cnpj").value = "";
     document.getElementById("email_gestao").value = "";
     document.getElementById("senha_gestao").value = "";
+    document.getElementById("latitude").value = "";
+    document.getElementById("longitude").value = "";
+    document.getElementById("raio_permitido_metros").value = "50";
 
     carregarEmpresas();
   }
