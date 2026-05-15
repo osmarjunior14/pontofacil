@@ -1068,7 +1068,7 @@ function toggleIntervalo(){
         <div class="acoes">
           <button
             class="btn-acao editar"
-            onclick="editarFuncionario(
+            onclick="editarFuncionario('${funcionario.id}')"
               '${funcionario.id}',
               '${escapeTexto(funcionario.nome_completo)}',
               '${escapeTexto(funcionario.cpf)}',
@@ -1098,33 +1098,85 @@ function toggleIntervalo(){
       .replace(/"/g, "&quot;");
   }
 
-  async function editarFuncionario(id, nomeAtual, cpfAtual, funcaoAtual){
-    const novoNome = prompt("Nome:", nomeAtual);
-    if(novoNome === null) return;
+  async function editarFuncionario(id){
+  const funcionario = funcionarios.find(f => String(f.id) === String(id));
 
-    const novoCpf = prompt("CPF:", cpfAtual);
-    if(novoCpf === null) return;
-
-    const novaFuncao = prompt("Função:", funcaoAtual);
-    if(novaFuncao === null) return;
-
-    const { error } = await supabaseClient
-      .from("funcionarios")
-      .update({
-        nome_completo: novoNome.trim(),
-        cpf: novoCpf.trim(),
-        funcao: novaFuncao.trim()
-      })
-      .eq("id", id);
-
-    if(error){
-      console.log(error);
-      alert("Erro ao editar funcionário.");
-      return;
-    }
-
-    carregarFuncionarios();
+  if(!funcionario){
+    alert("Funcionário não encontrado.");
+    return;
   }
+
+  const novoNome = prompt("Nome:", funcionario.nome_completo || "");
+  if(novoNome === null) return;
+
+  const novoCpf = prompt("CPF:", funcionario.cpf || "");
+  if(novoCpf === null) return;
+
+  const novaFuncao = prompt("Função:", funcionario.funcao || "");
+  if(novaFuncao === null) return;
+
+  const novaDataNascimento = prompt("Data de nascimento (AAAA-MM-DD):", funcionario.data_nascimento || "");
+  if(novaDataNascimento === null) return;
+
+  const novoHorarioEntrada = prompt("Horário de entrada (HH:MM):", funcionario.horario_entrada || "");
+  if(novoHorarioEntrada === null) return;
+
+  const semIntervaloAtual = funcionario.sem_intervalo === true ? "sim" : "não";
+
+  const novoSemIntervalo = prompt(
+    "Funcionário sem intervalo? Digite sim ou não:",
+    semIntervaloAtual
+  );
+
+  if(novoSemIntervalo === null) return;
+
+  const sem_intervalo =
+    novoSemIntervalo.trim().toLowerCase() === "sim" ||
+    novoSemIntervalo.trim().toLowerCase() === "s" ||
+    novoSemIntervalo.trim().toLowerCase() === "true";
+
+  let novoHorarioIntervalo = "";
+  let novoHorarioRetorno = "";
+
+  if(!sem_intervalo){
+    novoHorarioIntervalo = prompt("Saída para intervalo (HH:MM):", funcionario.horario_intervalo || "");
+    if(novoHorarioIntervalo === null) return;
+
+    novoHorarioRetorno = prompt("Retorno do intervalo (HH:MM):", funcionario.horario_retorno || "");
+    if(novoHorarioRetorno === null) return;
+  }
+
+  const novoHorarioSaida = prompt("Horário de saída (HH:MM):", funcionario.horario_saida || "");
+  if(novoHorarioSaida === null) return;
+
+  if(!novoNome.trim()){
+    alert("O nome não pode ficar vazio.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("funcionarios")
+    .update({
+      nome_completo: novoNome.trim(),
+      cpf: novoCpf.trim(),
+      funcao: novaFuncao.trim(),
+      data_nascimento: novaDataNascimento || null,
+      horario_entrada: novoHorarioEntrada || null,
+      horario_intervalo: sem_intervalo ? null : (novoHorarioIntervalo || null),
+      horario_retorno: sem_intervalo ? null : (novoHorarioRetorno || null),
+      horario_saida: novoHorarioSaida || null,
+      sem_intervalo
+    })
+    .eq("id", id);
+
+  if(error){
+    console.log(error);
+    alert("Erro ao editar funcionário.");
+    return;
+  }
+
+  carregarFuncionarios();
+}
 
   async function alterarStatusFuncionario(id, statusAtual){
     const confirmar = confirm(
