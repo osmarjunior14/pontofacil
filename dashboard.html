@@ -68,19 +68,12 @@
       margin-bottom:18px;
     }
 
-    .brand-mark{
-      width:48px;
-      height:48px;
-      border-radius:14px;
-      background:linear-gradient(135deg,#2563eb,#38bdf8);
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-size:28px;
-      font-weight:900;
-      box-shadow:0 14px 30px rgba(37,99,235,.35);
-    }
-
+    .logo-sidebar{
+  width:54px;
+  height:54px;
+  object-fit:contain;
+  flex-shrink:0;
+}
     .brand-text strong{
       display:block;
       font-size:21px;
@@ -636,7 +629,11 @@
 
   <aside class="sidebar">
     <div class="brand">
-      <div class="brand-mark">P</div>
+  <img
+    src="./pontofacil-logo-login.png"
+    alt="PontoFácil"
+    class="logo-sidebar"
+  >
       <div class="brand-text">
         <strong>PontoFácil</strong>
         <small>Gestão de Ponto</small>
@@ -644,19 +641,24 @@
     </div>
 
     <nav class="menu">
-      <button class="active"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button onclick="window.location.href='./painel-gestao.html'"><i data-lucide="users"></i> Funcionários</button>
-      <button onclick="window.location.href='./relatorio.html'"><i data-lucide="clipboard-list"></i> Registros</button>
-      <button onclick="window.location.href='./relatorio.html'"><i data-lucide="file-text"></i> Relatório mensal</button>
-      <button onclick="window.location.href='./painel.html'"><i data-lucide="building-2"></i> Empresas</button>
-      <button><i data-lucide="settings"></i> Configurações</button>
-    </nav>
+  <button class="active">
+    <i data-lucide="layout-dashboard"></i>
+    Dashboard
+  </button>
+  <button onclick="window.location.href='./painel-gestao.html'">
+    <i data-lucide="users"></i>
+    Funcionários
+  </button>
+  <button onclick="window.location.href='./relatorio.html'">
+    <i data-lucide="clipboard-list"></i>
+    Registros
+  </button>
+</nav>
 
     <div class="sidebar-footer">
       <div class="empresa-card">
         <small>Empresa</small>
         <strong id="empresaNomeSidebar">PontoFácil</strong>
-        <small style="color:#60a5fa;margin-top:8px;">Ver perfil →</small>
       </div>
 
       <div class="admin-card">
