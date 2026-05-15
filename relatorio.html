@@ -6,6 +6,7 @@
   <title>PontoFácil - Relatório Mensal</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -18,7 +19,7 @@
     }
 
     .container{
-      max-width:1300px;
+      max-width:1400px;
       margin:auto;
     }
 
@@ -28,7 +29,19 @@
       align-items:center;
       gap:16px;
       flex-wrap:wrap;
-      margin-bottom:24px;
+      margin-bottom:28px;
+    }
+
+    .topo h1{
+      color:#2563eb;
+      font-size:38px;
+      line-height:1;
+      margin-bottom:8px;
+    }
+
+    .sub{
+      color:#64748b;
+      font-size:17px;
     }
 
     .botoes-topo{
@@ -39,37 +52,44 @@
 
     button{
       border:none;
-      border-radius:12px;
-      padding:12px 16px;
-      font-weight:bold;
+      border-radius:14px;
+      padding:14px 20px;
+      font-weight:800;
       cursor:pointer;
       color:white;
+      font-size:15px;
     }
 
     .btn-voltar{background:#64748b}
     .btn-imprimir{background:#2563eb}
+    .btn-filtrar{
+      background:#2563eb;
+      width:100%;
+      height:54px;
+      margin-top:24px;
+      font-size:16px;
+    }
 
     .card{
       background:white;
-      border-radius:22px;
-      padding:22px;
-      box-shadow:0 12px 35px rgba(15,23,42,.08);
-      margin-bottom:22px;
+      border-radius:26px;
+      padding:24px;
+      box-shadow:0 16px 42px rgba(15,23,42,.08);
+      margin-bottom:24px;
     }
 
     .cabecalho-relatorio{
       display:grid;
-      grid-template-columns:120px 1fr;
-      gap:20px;
+      grid-template-columns:150px 1fr;
+      gap:24px;
       align-items:center;
-      margin-bottom:18px;
       border-bottom:1px solid #e2e8f0;
-      padding-bottom:18px;
+      padding:20px 0 28px;
     }
 
     .logo-box{
-      width:110px;
-      height:110px;
+      width:132px;
+      height:132px;
       border:1px solid #dbe4f0;
       border-radius:18px;
       background:#f8fafc;
@@ -90,74 +110,116 @@
       color:#94a3b8;
       font-size:13px;
       text-align:center;
-      line-height:1.3;
     }
 
-    h1{
+    .empresa-titulo{
       color:#2563eb;
       font-size:34px;
-      margin-bottom:6px;
+      margin-bottom:10px;
     }
 
-    .sub{
+    .descricao{
       color:#64748b;
-      line-height:1.5;
+      font-size:18px;
+      margin-bottom:18px;
     }
 
     .meta{
-      margin-top:10px;
       color:#334155;
-      font-size:14px;
-      line-height:1.6;
+      font-size:16px;
+      line-height:1.55;
+    }
+
+    .meta strong{
+      font-weight:900;
     }
 
     .filtros{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-      gap:14px;
+      grid-template-columns:1fr 1fr 2.2fr 2fr;
+      gap:20px;
       align-items:end;
     }
 
     label{
       display:block;
-      font-weight:bold;
-      font-size:14px;
+      font-weight:900;
+      font-size:15px;
       color:#334155;
-      margin-bottom:6px;
+      margin-bottom:8px;
     }
 
-    input, select{
+    input,select{
       width:100%;
-      padding:14px;
+      height:54px;
+      padding:0 16px;
       border:1px solid #dbe4f0;
       border-radius:12px;
-      font-size:15px;
+      font-size:17px;
+      background:white;
+      color:#0f172a;
     }
 
-    .btn-filtrar{
-      background:#2563eb;
-      width:100%;
-      padding:15px;
+    input:focus,select:focus{
+      outline:none;
+      border-color:#2563eb;
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    h2{
+      font-size:24px;
+      margin-bottom:20px;
     }
 
     .resumo{
       display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-      gap:14px;
+      grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+      gap:18px;
     }
 
     .resumo-card{
-      background:#f8fafc;
+      background:white;
       border:1px solid #e2e8f0;
       border-radius:16px;
       padding:16px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      min-height:92px;
+    }
+
+    .icone-box{
+      width:44px;
+      height:44px;
+      border-radius:12px;
+      background:#dbeafe;
+      color:#2563eb;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      flex-shrink:0;
+    }
+
+    .resumo-card small{
+      color:#334155;
+      font-size:14px;
+      display:block;
+      margin-bottom:4px;
+      font-weight:700;
     }
 
     .resumo-card strong{
       display:block;
-      font-size:30px;
-      margin-top:6px;
-      color:#2563eb;
+      font-size:23px;
+      color:#0f172a;
+    }
+
+    .negativo{
+      color:#dc2626!important;
+    }
+
+    .positivo{
+      color:#166534!important;
     }
 
     .tabela-wrap{
@@ -167,7 +229,7 @@
     table{
       width:100%;
       border-collapse:collapse;
-      min-width:950px;
+      min-width:1000px;
     }
 
     th,td{
@@ -181,7 +243,7 @@
     th{
       background:#f8fafc;
       color:#334155;
-      font-size:13px;
+      font-size:12px;
       text-transform:uppercase;
     }
 
@@ -225,15 +287,20 @@
       display:grid;
       grid-template-columns:1fr 1fr;
       gap:40px;
-      margin-top:42px;
+      margin-top:44px;
+      padding-top:28px;
     }
 
     .assinatura{
       text-align:center;
-      padding-top:44px;
-      border-top:1px solid #0f172a;
       color:#334155;
       font-size:14px;
+    }
+
+    .linha-assinatura{
+      border-top:1px solid #334155;
+      margin-bottom:8px;
+      height:1px;
     }
 
     .modal{
@@ -254,16 +321,21 @@
       background:white;
     }
 
-    @media(max-width:700px){
-      body{padding:16px}
+    @media(max-width:900px){
+      .filtros{
+        grid-template-columns:1fr;
+      }
 
       .cabecalho-relatorio{
         grid-template-columns:1fr;
       }
+    }
 
-      .assinaturas{
-        grid-template-columns:1fr;
-      }
+    @media(max-width:700px){
+      body{padding:16px}
+      .topo h1{font-size:31px}
+      .empresa-titulo{font-size:28px}
+      .assinaturas{grid-template-columns:1fr}
     }
 
     @media print{
@@ -280,7 +352,6 @@
         box-shadow:none;
         border-radius:0;
         margin-bottom:0;
-        page-break-inside:auto;
       }
 
       .botoes-topo,
@@ -288,18 +359,17 @@
         display:none;
       }
 
-      .foto{
-        width:38px;
-        height:38px;
-      }
-
       th,td{
-        font-size:11px;
-        padding:8px;
+        font-size:10px;
+        padding:7px;
       }
 
-      h1{
-        font-size:26px;
+      .resumo-card{
+        min-height:70px;
+      }
+
+      .icone-box{
+        display:none;
       }
     }
   </style>
@@ -328,15 +398,13 @@
 
   <div class="card">
     <div class="cabecalho-relatorio">
-      <div class="logo-box" id="logoEmpresaBox">
-        <div class="logo-placeholder">Logomarca<br>da empresa</div>
+      <div class="logo-box" id="logoBox">
+        <div class="logo-placeholder">Logo da empresa</div>
       </div>
 
       <div>
-        <h1 id="nomeEmpresaCabecalho">Empresa</h1>
-        <div class="sub">
-          Relatório mensal de registros de ponto.
-        </div>
+        <h1 class="empresa-titulo" id="empresaNomeRelatorio">Empresa</h1>
+        <div class="descricao">Relatório mensal de registros de ponto.</div>
 
         <div class="meta">
           <div><strong>Mês de referência:</strong> <span id="mesReferenciaTexto">-</span></div>
@@ -351,25 +419,21 @@
     <div class="filtros">
 
       <div>
-        <label>Mês</label>
-        <input id="mes" type="month">
+        <label>Ano</label>
+        <select id="ano"></select>
       </div>
 
       <div>
-  <label>Status</label>
-  <select id="filtroStatus" onchange="atualizarListaFuncionarios()">
-    <option value="ativos">Somente ativos</option>
-    <option value="todos">Ativos e inativos</option>
-    <option value="inativos">Somente inativos</option>
-  </select>
-</div>
+        <label>Mês</label>
+        <select id="mes"></select>
+      </div>
 
-<div>
-  <label>Funcionário</label>
-  <select id="filtroFuncionario">
-    <option value="todos">Todos os funcionários</option>
-  </select>
-</div>
+      <div>
+        <label>Funcionário</label>
+        <select id="filtroFuncionario">
+          <option value="todos">Todos os funcionários</option>
+        </select>
+      </div>
 
       <div>
         <button class="btn-filtrar" onclick="carregarRelatorio()">
@@ -381,36 +445,73 @@
   </div>
 
   <div class="card">
-    <h2 style="margin-bottom:16px;">Resumo</h2>
+    <h2>Resumo</h2>
 
     <div class="resumo">
+
       <div class="resumo-card">
-        Dias com registro
-        <strong id="totalDias">0</strong>
+        <div class="icone-box"><i data-lucide="calendar-days"></i></div>
+        <div>
+          <small>Dias trabalhados</small>
+          <strong id="totalDias">0</strong>
+        </div>
       </div>
 
       <div class="resumo-card">
-        Pontos registrados
-        <strong id="totalPontos">0</strong>
+        <div class="icone-box"><i data-lucide="clock"></i></div>
+        <div>
+          <small>Pontos registrados</small>
+          <strong id="totalPontos">0</strong>
+        </div>
       </div>
 
       <div class="resumo-card">
-        Atrasos identificados
-        <strong id="totalAtrasos">0</strong>
+        <div class="icone-box"><i data-lucide="briefcase-business"></i></div>
+        <div>
+          <small>Horas previstas</small>
+          <strong id="horasPrevistas">0h00</strong>
+        </div>
       </div>
+
+      <div class="resumo-card">
+        <div class="icone-box"><i data-lucide="scale"></i></div>
+        <div>
+          <small>Saldo do período</small>
+          <strong id="saldoPeriodo">0h00</strong>
+        </div>
+      </div>
+
+      <div class="resumo-card">
+        <div class="icone-box"><i data-lucide="user-round-x"></i></div>
+        <div>
+          <small>Atrasos</small>
+          <strong id="totalAtrasos" class="negativo">0</strong>
+        </div>
+      </div>
+
+      <div class="resumo-card">
+        <div class="icone-box"><i data-lucide="clipboard-list"></i></div>
+        <div>
+          <small>Dias incompletos</small>
+          <strong id="diasIncompletos" class="negativo">0</strong>
+        </div>
+      </div>
+
     </div>
   </div>
 
   <div class="card">
-    <h2 style="margin-bottom:16px;">Registros do mês</h2>
+    <h2>Registros do mês</h2>
     <div id="resultado"></div>
 
     <div class="assinaturas">
       <div class="assinatura">
-        Assinatura do responsável pela empresa
+        <div class="linha-assinatura"></div>
+        Assinatura da empresa
       </div>
 
       <div class="assinatura">
+        <div class="linha-assinatura"></div>
         Assinatura do funcionário
       </div>
     </div>
@@ -430,8 +531,8 @@
   const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   const empresaId = localStorage.getItem("pontofacil_empresa_id");
+  const empresaNomeLocal = localStorage.getItem("pontofacil_empresa_nome");
 
-  let empresa = null;
   let funcionarios = [];
 
   if(!empresaId){
@@ -449,14 +550,47 @@
     document.getElementById("imgModal").src = "";
   }
 
-  function definirMesAtual(){
+  function popularAnoMes(){
     const hoje = new Date();
-    const ano = hoje.getFullYear();
-    const mes = String(hoje.getMonth() + 1).padStart(2, "0");
-    document.getElementById("mes").value = `${ano}-${mes}`;
+    const anoAtual = hoje.getFullYear();
+    const mesAtual = hoje.getMonth() + 1;
+
+    const anoSelect = document.getElementById("ano");
+    const mesSelect = document.getElementById("mes");
+
+    anoSelect.innerHTML = "";
+
+    for(let ano = anoAtual - 2; ano <= anoAtual + 1; ano++){
+      anoSelect.innerHTML += `
+        <option value="${ano}" ${ano === anoAtual ? "selected" : ""}>
+          ${ano}
+        </option>
+      `;
+    }
+
+    const meses = [
+      "Janeiro","Fevereiro","Março","Abril","Maio","Junho",
+      "Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"
+    ];
+
+    mesSelect.innerHTML = meses.map((nome, index) => {
+      const numero = index + 1;
+
+      return `
+        <option value="${numero}" ${numero === mesAtual ? "selected" : ""}>
+          ${numero} (${nome})
+        </option>
+      `;
+    }).join("");
   }
 
-  function atualizarDataEmissao(){
+  function obterMesFormatado(){
+    const ano = document.getElementById("ano").value;
+    const mes = String(document.getElementById("mes").value).padStart(2, "0");
+    return `${ano}-${mes}`;
+  }
+
+  function atualizarTextosDatas(){
     document.getElementById("dataEmissao").textContent =
       new Date().toLocaleDateString("pt-BR", {
         day:"2-digit",
@@ -465,24 +599,37 @@
         hour:"2-digit",
         minute:"2-digit"
       });
-  }
 
-  function atualizarMesReferencia(){
-    const mes = document.getElementById("mes").value;
-
-    if(!mes){
-      document.getElementById("mesReferenciaTexto").textContent = "-";
-      return;
-    }
-
-    const [ano, mesNumero] = mes.split("-");
-    const data = new Date(Number(ano), Number(mesNumero) - 1, 1);
+    const ano = Number(document.getElementById("ano").value);
+    const mes = Number(document.getElementById("mes").value);
+    const data = new Date(ano, mes - 1, 1);
 
     document.getElementById("mesReferenciaTexto").textContent =
       data.toLocaleDateString("pt-BR", {
         month:"long",
         year:"numeric"
       });
+  }
+
+  async function carregarEmpresa(){
+    const { data, error } = await supabaseClient
+      .from("empresas")
+      .select("*")
+      .eq("id", empresaId)
+      .single();
+
+    if(error){
+      document.getElementById("empresaNomeRelatorio").textContent = empresaNomeLocal || "Empresa";
+      return;
+    }
+
+    document.getElementById("empresaNomeRelatorio").textContent = data.nome || "Empresa";
+
+    if(data.logo_url){
+      document.getElementById("logoBox").innerHTML = `
+        <img src="${data.logo_url}" alt="Logomarca da empresa">
+      `;
+    }
   }
 
   function formatarData(dataIso){
@@ -505,95 +652,82 @@
     return Number(partes[0]) * 60 + Number(partes[1]);
   }
 
+  function minutosParaTexto(minutos){
+    const sinal = minutos < 0 ? "-" : "";
+    const abs = Math.abs(minutos);
+    const h = Math.floor(abs / 60);
+    const m = abs % 60;
+    return `${sinal}${h}h${String(m).padStart(2,"0")}`;
+  }
+
+  function minutosEntre(inicio, fim){
+    const minInicio = horaParaMinutos(inicio);
+    const minFim = horaParaMinutos(fim);
+    if(minInicio === null || minFim === null) return 0;
+    return Math.max(0, minFim - minInicio);
+  }
+
+  function calcularPrevistoFuncionario(funcionario){
+    if(!funcionario) return 0;
+
+    let total = 0;
+
+    if(funcionario.horario_entrada && funcionario.horario_intervalo){
+      total += minutosEntre(funcionario.horario_entrada, funcionario.horario_intervalo);
+    }
+
+    if(funcionario.horario_retorno && funcionario.horario_saida){
+      total += minutosEntre(funcionario.horario_retorno, funcionario.horario_saida);
+    }
+
+    return total;
+  }
+
+  function calcularTrabalhadoDia(linha){
+    let total = 0;
+
+    if(linha.entrada && linha.saida_intervalo){
+      total += minutosEntre(formatarHora(linha.entrada.data_hora), formatarHora(linha.saida_intervalo.data_hora));
+    }
+
+    if(linha.retorno_intervalo && linha.saida){
+      total += minutosEntre(formatarHora(linha.retorno_intervalo.data_hora), formatarHora(linha.saida.data_hora));
+    }
+
+    return total;
+  }
+
   function compararAtraso(horaRegistrada, horaPrevista){
     if(!horaPrevista || !horaRegistrada) return false;
-
-    const registrada = horaParaMinutos(horaRegistrada);
-    const prevista = horaParaMinutos(horaPrevista);
-
-    if(registrada === null || prevista === null) return false;
-
-    return registrada > prevista;
-  }
-
-  function fotoHtml(url){
-    if(!url){
-      return `<span class="sem-foto">Sem foto</span>`;
-    }
-
-    return `
-      <img
-        class="foto"
-        src="${url}"
-        onclick="abrirModal('${url}')"
-        onerror="this.style.display='none'"
-      >
-    `;
-  }
-
-  async function carregarEmpresa(){
-    const { data, error } = await supabaseClient
-      .from("empresas")
-      .select("*")
-      .eq("id", empresaId)
-      .single();
-
-    if(error){
-      console.log("Erro ao carregar empresa:", error);
-      return;
-    }
-
-    empresa = data;
-
-    document.getElementById("nomeEmpresaCabecalho").textContent =
-      empresa.nome || "Empresa";
-
-    if(empresa.logo_url){
-      document.getElementById("logoEmpresaBox").innerHTML = `
-        <img src="${empresa.logo_url}" alt="Logomarca da empresa">
-      `;
-    }
+    return horaParaMinutos(horaRegistrada) > horaParaMinutos(horaPrevista);
   }
 
   async function carregarFuncionarios(){
-  const { data, error } = await supabaseClient
-    .from("funcionarios")
-    .select("*")
-    .eq("empresa_id", empresaId)
-    .order("nome_completo");
+    const { data, error } = await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .order("nome_completo");
 
-  if(error){
-    console.log("Erro ao carregar funcionários:", error);
-    return;
+    if(error){
+      console.log(error);
+      return;
+    }
+
+    funcionarios = data || [];
+
+    const ativos = funcionarios.filter(f => f.ativo === true);
+
+    document.getElementById("filtroFuncionario").innerHTML = `
+      <option value="todos">Todos os funcionários</option>
+      ${ativos.map(f => `
+        <option value="${f.id}">${f.nome_completo}</option>
+      `).join("")}
+      ${funcionarios.filter(f => f.ativo === false).map(f => `
+        <option value="${f.id}">${f.nome_completo} — INATIVO</option>
+      `).join("")}
+    `;
   }
-
-  funcionarios = data || [];
-  atualizarListaFuncionarios();
-}
-
-function atualizarListaFuncionarios(){
-  const status = document.getElementById("filtroStatus").value;
-  const select = document.getElementById("filtroFuncionario");
-
-  let lista = funcionarios;
-
-  if(status === "ativos"){
-    lista = funcionarios.filter(f => f.ativo === true);
-  }
-
-  if(status === "inativos"){
-    lista = funcionarios.filter(f => f.ativo === false);
-  }
-
-  select.innerHTML = `
-    <option value="todos">Todos os funcionários</option>
-    ${lista.map(f => `
-      <option value="${f.id}">
-        ${f.nome_completo}${f.ativo ? "" : " — INATIVO"}
-      </option>
-    `).join("")}
-  `;
-}
 
   function organizarRegistros(registros){
     const mapa = {};
@@ -602,7 +736,6 @@ function atualizarListaFuncionarios(){
       const funcionario = funcionarios.find(f => f.id === registro.funcionario_id);
       const funcionarioNome = funcionario?.nome_completo || "Funcionário";
       const data = formatarData(registro.data_hora);
-
       const chave = `${registro.funcionario_id}_${data}`;
 
       if(!mapa[chave]){
@@ -620,17 +753,24 @@ function atualizarListaFuncionarios(){
       mapa[chave][registro.tipo] = registro;
     });
 
-    return Object.values(mapa).sort((a,b) => {
-      const nomeCompare = a.funcionarioNome.localeCompare(b.funcionarioNome, "pt-BR");
-      if(nomeCompare !== 0) return nomeCompare;
-      return a.data.localeCompare(b.data, "pt-BR");
-    });
+    return Object.values(mapa);
+  }
+
+  function fotoHtml(url){
+    if(!url) return `<span class="sem-foto">Sem foto</span>`;
+
+    return `
+      <img
+        class="foto"
+        src="${url}"
+        onclick="abrirModal('${url}')"
+        onerror="this.style.display='none'"
+      >
+    `;
   }
 
   function montarCelula(registro, horarioPrevisto){
-    if(!registro){
-      return `<span class="sem-foto">-</span>`;
-    }
+    if(!registro) return `<span class="sem-foto">-</span>`;
 
     const hora = formatarHora(registro.data_hora);
     const atrasado = compararAtraso(hora, horarioPrevisto);
@@ -639,30 +779,18 @@ function atualizarListaFuncionarios(){
       <div class="${atrasado ? "atraso" : "ok"}">
         ${hora} ${atrasado ? "• Atraso" : ""}
       </div>
-
       <div style="margin-top:6px;">
         ${fotoHtml(registro.foto_url)}
       </div>
-
-      ${
-        registro.observacao
-        ? `<div style="margin-top:6px; color:#64748b; font-size:12px;">${registro.observacao}</div>`
-        : ""
-      }
     `;
   }
 
   async function carregarRelatorio(){
-    atualizarMesReferencia();
+    atualizarTextosDatas();
 
-    const mes = document.getElementById("mes").value;
+    const mes = obterMesFormatado();
     const filtroFuncionario = document.getElementById("filtroFuncionario").value;
     const resultado = document.getElementById("resultado");
-
-    if(!mes){
-      alert("Selecione o mês.");
-      return;
-    }
 
     const inicio = `${mes}-01T00:00:00-03:00`;
 
@@ -687,39 +815,75 @@ function atualizarListaFuncionarios(){
     const { data, error } = await query;
 
     if(error){
-      console.log("Erro ao carregar relatório:", error);
       resultado.innerHTML = `<div class="vazio">Erro ao carregar relatório.</div>`;
       return;
     }
 
     const registros = data || [];
 
-    document.getElementById("totalPontos").textContent = registros.length;
-
     if(registros.length === 0){
-      resultado.innerHTML = `<div class="vazio">Nenhum registro encontrado para este mês.</div>`;
+      resultado.innerHTML = `<div class="vazio">Nenhum registro encontrado para este período.</div>`;
       document.getElementById("totalDias").textContent = 0;
+      document.getElementById("totalPontos").textContent = 0;
+      document.getElementById("horasPrevistas").textContent = "0h00";
+      document.getElementById("saldoPeriodo").textContent = "0h00";
       document.getElementById("totalAtrasos").textContent = 0;
+      document.getElementById("diasIncompletos").textContent = 0;
       return;
     }
 
     const linhas = organizarRegistros(registros);
 
+    let totalPrevisto = 0;
+    let totalTrabalhado = 0;
     let totalAtrasos = 0;
+    let totalIncompletos = 0;
 
-    linhas.forEach(linha => {
+    const linhasHtml = linhas.map(linha => {
       const f = linha.funcionario;
+      const previstoDia = calcularPrevistoFuncionario(f);
+      const trabalhadoDia = calcularTrabalhadoDia(linha);
 
-      if(linha.entrada && compararAtraso(formatarHora(linha.entrada.data_hora), f?.horario_entrada)) totalAtrasos++;
-      if(linha.saida_intervalo && compararAtraso(formatarHora(linha.saida_intervalo.data_hora), f?.horario_intervalo)) totalAtrasos++;
-      if(linha.retorno_intervalo && compararAtraso(formatarHora(linha.retorno_intervalo.data_hora), f?.horario_retorno)) totalAtrasos++;
-      if(linha.saida && compararAtraso(formatarHora(linha.saida.data_hora), f?.horario_saida)) totalAtrasos++;
-    });
+      totalPrevisto += previstoDia;
+      totalTrabalhado += trabalhadoDia;
 
-    const diasUnicos = new Set(linhas.map(l => `${l.funcionarioNome}_${l.data}`));
+      let atrasosDia = 0;
 
-    document.getElementById("totalDias").textContent = diasUnicos.size;
+      if(linha.entrada && compararAtraso(formatarHora(linha.entrada.data_hora), f?.horario_entrada)) atrasosDia++;
+      if(linha.saida_intervalo && compararAtraso(formatarHora(linha.saida_intervalo.data_hora), f?.horario_intervalo)) atrasosDia++;
+      if(linha.retorno_intervalo && compararAtraso(formatarHora(linha.retorno_intervalo.data_hora), f?.horario_retorno)) atrasosDia++;
+      if(linha.saida && compararAtraso(formatarHora(linha.saida.data_hora), f?.horario_saida)) atrasosDia++;
+
+      totalAtrasos += atrasosDia;
+
+      if(!(linha.entrada && linha.saida_intervalo && linha.retorno_intervalo && linha.saida)){
+        totalIncompletos++;
+      }
+
+      return `
+        <tr>
+          <td>
+            <div class="funcionario">${linha.funcionarioNome}</div>
+            <div style="color:#64748b; font-size:12px;">${f?.funcao || ""}</div>
+          </td>
+          <td>${linha.data}</td>
+          <td>${montarCelula(linha.entrada, f?.horario_entrada)}</td>
+          <td>${montarCelula(linha.saida_intervalo, f?.horario_intervalo)}</td>
+          <td>${montarCelula(linha.retorno_intervalo, f?.horario_retorno)}</td>
+          <td>${montarCelula(linha.saida, f?.horario_saida)}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const saldo = totalTrabalhado - totalPrevisto;
+
+    document.getElementById("totalDias").textContent = linhas.length;
+    document.getElementById("totalPontos").textContent = registros.length;
+    document.getElementById("horasPrevistas").textContent = minutosParaTexto(totalPrevisto);
+    document.getElementById("saldoPeriodo").textContent = minutosParaTexto(saldo);
+    document.getElementById("saldoPeriodo").className = saldo < 0 ? "negativo" : "positivo";
     document.getElementById("totalAtrasos").textContent = totalAtrasos;
+    document.getElementById("diasIncompletos").textContent = totalIncompletos;
 
     resultado.innerHTML = `
       <div class="tabela-wrap">
@@ -734,43 +898,19 @@ function atualizarListaFuncionarios(){
               <th>Saída</th>
             </tr>
           </thead>
-
-          <tbody>
-            ${linhas.map(linha => {
-              const f = linha.funcionario;
-
-              return `
-                <tr>
-                  <td>
-                    <div class="funcionario">${linha.funcionarioNome}</div>
-                    <div style="color:#64748b; font-size:12px;">${f?.funcao || ""}</div>
-                  </td>
-
-                  <td>${linha.data}</td>
-
-                  <td>${montarCelula(linha.entrada, f?.horario_entrada)}</td>
-
-                  <td>${montarCelula(linha.saida_intervalo, f?.horario_intervalo)}</td>
-
-                  <td>${montarCelula(linha.retorno_intervalo, f?.horario_retorno)}</td>
-
-                  <td>${montarCelula(linha.saida, f?.horario_saida)}</td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
+          <tbody>${linhasHtml}</tbody>
         </table>
       </div>
     `;
   }
 
   async function iniciar(){
-    definirMesAtual();
-    atualizarDataEmissao();
-    atualizarMesReferencia();
+    popularAnoMes();
     await carregarEmpresa();
     await carregarFuncionarios();
+    atualizarTextosDatas();
     await carregarRelatorio();
+    lucide.createIcons();
   }
 
   iniciar();
