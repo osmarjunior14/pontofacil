@@ -462,6 +462,13 @@
 
   let funcionarios = [];
   let empresaDados = null;
+  const nomesTipos = {
+  entrada: "Entrada",
+  saida_intervalo: "Saída para intervalo",
+  retorno_intervalo: "Retorno do intervalo",
+  saida: "Saída"
+};
+  
   let streamCamera = null;
   let fotoCapturadaBlob = null;
 
@@ -786,6 +793,39 @@ async function obterProximoTipoPermitido(funcionarioId){
       return;
     }
 
+async function atualizarTipoAutomatico(funcionarioId){
+  const selectTipo = document.getElementById("tipo");
+  const botao = document.getElementById("btnRegistrar");
+
+  selectTipo.innerHTML = `<option value="">Verificando próximo registro...</option>`;
+  selectTipo.disabled = true;
+  botao.disabled = true;
+
+  const proximoTipo = await obterProximoTipoPermitido(funcionarioId);
+
+  if(proximoTipo === "finalizado"){
+    selectTipo.innerHTML = `<option value="">Ponto de hoje finalizado</option>`;
+    mostrarMensagem("sucesso", "✅ Todos os registros de ponto de hoje já foram concluídos.");
+    return;
+  }
+
+  if(proximoTipo === null){
+    selectTipo.innerHTML = `<option value="">Erro ao validar sequência</option>`;
+    mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
+    return;
+  }
+
+  selectTipo.innerHTML = `
+    <option value="${proximoTipo}">
+      ${nomesTipos[proximoTipo]}
+    </option>
+  `;
+
+  selectTipo.value = proximoTipo;
+  selectTipo.disabled = true;
+  botao.disabled = false;
+}
+    
     avatarFallback.style.display = "none";
     foto.style.display = "block";
     foto.src = funcionario.foto_url || "";
@@ -793,6 +833,7 @@ async function obterProximoTipoPermitido(funcionarioId){
     if(!funcionario.foto_url){
       foto.style.display = "none";
       avatarFallback.style.display = "flex";
+      atualizarTipoAutomatico(funcionarioId);
     }
 
     document.getElementById("nomeFuncionarioPreview").innerText = funcionario.nome_completo;
@@ -859,14 +900,6 @@ if(proximoTipoPermitido === null){
   mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
   return;
 }
-
-if(tipo !== proximoTipoPermitido){
-  const nomesTipos = {
-    entrada: "Entrada",
-    saida_intervalo: "Saída para intervalo",
-    retorno_intervalo: "Retorno do intervalo",
-    saida: "Saída"
-  };
 
   mostrarMensagem(
     "erro",
