@@ -321,6 +321,54 @@
       background:white;
     }
 
+    .info-auditoria{
+
+  margin-top:8px;
+
+  padding-top:8px;
+
+  border-top:1px solid #e2e8f0;
+
+  font-size:11px;
+
+  color:#475569;
+
+  line-height:1.6;
+
+}
+
+.badge-captura{
+
+  display:inline-block;
+
+  padding:4px 8px;
+
+  border-radius:999px;
+
+  font-size:10px;
+
+  font-weight:900;
+
+  margin-bottom:6px;
+
+}
+
+.badge-ao-vivo{
+
+  background:#dcfce7;
+
+  color:#166534;
+
+}
+
+.badge-arquivo{
+
+  background:#fee2e2;
+
+  color:#991b1b;
+
+}
+  
     @media(max-width:900px){
       .filtros{
         grid-template-columns:1fr;
@@ -770,20 +818,43 @@
   }
 
   function montarCelula(registro, horarioPrevisto){
-    if(!registro) return `<span class="sem-foto">-</span>`;
+  if(!registro) return `<span class="sem-foto">-</span>`;
 
-    const hora = formatarHora(registro.data_hora);
-    const atrasado = compararAtraso(hora, horarioPrevisto);
+  const hora = formatarHora(registro.data_hora);
+  const atrasado = compararAtraso(hora, horarioPrevisto);
 
-    return `
-      <div class="${atrasado ? "atraso" : "ok"}">
-        ${hora} ${atrasado ? "• Atraso" : ""}
-      </div>
-      <div style="margin-top:6px;">
-        ${fotoHtml(registro.foto_url)}
-      </div>
-    `;
-  }
+  const capturaTexto = registro.captura_ao_vivo ? "Ao vivo" : "Arquivo/antigo";
+  const capturaClasse = registro.captura_ao_vivo ? "badge-ao-vivo" : "badge-arquivo";
+
+  const metodo = registro.metodo_captura || "Não informado";
+  const distancia = registro.distancia_metros !== null && registro.distancia_metros !== undefined
+    ? `${registro.distancia_metros}m`
+    : "-";
+
+  const latitude = registro.latitude || "-";
+  const longitude = registro.longitude || "-";
+
+  return `
+    <div class="${atrasado ? "atraso" : "ok"}">
+      ${hora} ${atrasado ? "• Atraso" : ""}
+    </div>
+
+    <div style="margin-top:6px;">
+      ${fotoHtml(registro.foto_url)}
+    </div>
+
+    <div class="info-auditoria">
+      <span class="badge-captura ${capturaClasse}">
+        ${capturaTexto}
+      </span>
+
+      <div><strong>Método:</strong> ${metodo}</div>
+      <div><strong>Distância:</strong> ${distancia}</div>
+      <div><strong>Latitude:</strong> ${latitude}</div>
+      <div><strong>Longitude:</strong> ${longitude}</div>
+    </div>
+  `;
+}
 
   async function carregarRelatorio(){
     atualizarTextosDatas();
