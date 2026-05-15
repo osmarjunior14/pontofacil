@@ -322,6 +322,33 @@
 
     .input-icon input{padding-left:46px!important}
 
+    .checkbox-sem-intervalo{
+  display:flex;
+  align-items:flex-end;
+}
+
+.checkbox-sem-intervalo label{
+  width:100%;
+  height:54px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  background:#eff6ff;
+  border:1px solid #dbeafe;
+  border-radius:16px;
+  padding:0 16px;
+  color:#2563eb;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.checkbox-sem-intervalo input{
+  width:18px;
+  height:18px;
+  accent-color:#2563eb;
+  flex-shrink:0;
+}
+    
     input{
       width:100%;
       height:54px;
@@ -728,16 +755,27 @@
           </div>
         </div>
 
-        <div class="campo">
-          <label>Saída para intervalo</label>
+<div class="campo checkbox-sem-intervalo">
+  <label>
+    <input
+      type="checkbox"
+      id="sem_intervalo"
+      onchange="toggleIntervalo()"
+    >
+    Funcionário sem intervalo
+  </label>
+</div>
+        
+        <div class="campo" id="campo_intervalo_saida">
+  <label>Saída para intervalo</label>
           <div class="input-icon">
             <i class="fa-regular fa-clock"></i>
             <input id="horario_intervalo" type="time">
           </div>
         </div>
 
-        <div class="campo">
-          <label>Retorno do intervalo</label>
+        <div class="campo" id="campo_intervalo_retorno">
+  <label>Retorno do intervalo</label>
           <div class="input-icon">
             <i class="fa-regular fa-clock"></i>
             <input id="horario_retorno" type="time">
@@ -820,6 +858,34 @@
     window.location.href = "./gestao.html";
   }
 
+function toggleIntervalo(){
+
+  const semIntervalo =
+  document.getElementById("sem_intervalo").checked;
+
+  const campoSaida =
+  document.getElementById("campo_intervalo_saida");
+
+  const campoRetorno =
+  document.getElementById("campo_intervalo_retorno");
+
+  if(semIntervalo){
+
+    campoSaida.style.display = "none";
+    campoRetorno.style.display = "none";
+
+    document.getElementById("horario_intervalo").value = "";
+    document.getElementById("horario_retorno").value = "";
+
+  }else{
+
+    campoSaida.style.display = "";
+    campoRetorno.style.display = "";
+
+  }
+
+}
+  
   function normalizarNomeArquivo(texto){
     return String(texto || "")
       .toLowerCase()
@@ -871,6 +937,7 @@
     const horario_intervalo = document.getElementById("horario_intervalo").value;
     const horario_retorno = document.getElementById("horario_retorno").value;
     const horario_saida = document.getElementById("horario_saida").value;
+    const sem_intervalo = document.getElementById("sem_intervalo").checked;
 
     if(!nome){
       alert("Informe o nome do funcionário.");
@@ -897,6 +964,7 @@
           horario_intervalo: horario_intervalo || null,
           horario_retorno: horario_retorno || null,
           horario_saida: horario_saida || null,
+          sem_intervalo,
           ativo: true
         }
       ]);
@@ -918,7 +986,8 @@
     document.getElementById("horario_intervalo").value = "";
     document.getElementById("horario_retorno").value = "";
     document.getElementById("horario_saida").value = "";
-
+    document.getElementById("sem_intervalo").checked = false;
+    toggleIntervalo();
     carregarFuncionarios();
   }
 
