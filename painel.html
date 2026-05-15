@@ -492,43 +492,64 @@
       .replace(/"/g, "&quot;");
   }
 
-  async function editarEmpresa(id, nomeAtual, cnpjAtual, emailAtual, senhaAtual){
-    const novoNome = prompt("Nome da empresa:", nomeAtual);
-    if(novoNome === null) return;
+  async function editarEmpresa(
+  id,
+  nomeAtual,
+  cnpjAtual,
+  emailAtual,
+  senhaAtual,
+  latitudeAtual,
+  longitudeAtual,
+  raioAtual
+){
+  const novoNome = prompt("Nome da empresa:", nomeAtual || "");
+  if(novoNome === null) return;
 
-    const novoCnpj = prompt("CNPJ:", cnpjAtual || "");
-    if(novoCnpj === null) return;
+  const novoCnpj = prompt("CNPJ:", cnpjAtual || "");
+  if(novoCnpj === null) return;
 
-    const novoEmail = prompt("E-mail de gestão:", emailAtual || "");
-    if(novoEmail === null) return;
+  const novoEmail = prompt("E-mail de gestão:", emailAtual || "");
+  if(novoEmail === null) return;
 
-    const novaSenha = prompt("Senha da gestão:", senhaAtual || "");
-    if(novaSenha === null) return;
+  const novaSenha = prompt("Senha da gestão:", senhaAtual || "");
+  if(novaSenha === null) return;
 
-    if(!novoNome.trim() || !novoEmail.trim() || !novaSenha.trim()){
-      alert("Nome, e-mail e senha não podem ficar vazios.");
-      return;
-    }
+  const novaLatitude = prompt("Latitude da empresa:", latitudeAtual || "");
+  if(novaLatitude === null) return;
 
-    const { error } = await supabaseClient
-      .from("empresas")
-      .update({
-        nome: novoNome.trim(),
-        cnpj: novoCnpj.trim(),
-        email_gestao: novoEmail.trim(),
-        senha_gestao: novaSenha.trim()
-      })
-      .eq("id", id);
+  const novaLongitude = prompt("Longitude da empresa:", longitudeAtual || "");
+  if(novaLongitude === null) return;
 
-    if(error){
-      console.log("Erro ao editar empresa:", error);
-      alert("Erro ao editar empresa.");
-      return;
-    }
+  const novoRaio = prompt("Raio permitido em metros:", raioAtual || 50);
+  if(novoRaio === null) return;
 
-    alert("Empresa editada com sucesso.");
-    carregarEmpresas();
+  if(!novoNome.trim() || !novoEmail.trim() || !novaSenha.trim()){
+    alert("Nome, e-mail e senha não podem ficar vazios.");
+    return;
   }
+
+  const { error } = await supabaseClient
+    .from("empresas")
+    .update({
+      nome: novoNome.trim(),
+      cnpj: novoCnpj.trim(),
+      email_gestao: novoEmail.trim(),
+      senha_gestao: novaSenha.trim(),
+      latitude: novaLatitude ? Number(novaLatitude) : null,
+      longitude: novaLongitude ? Number(novaLongitude) : null,
+      raio_permitido_metros: Number(novoRaio || 50)
+    })
+    .eq("id", id);
+
+  if(error){
+    console.log("Erro ao editar empresa:", error);
+    alert("Erro ao editar empresa.");
+    return;
+  }
+
+  alert("Empresa editada com sucesso.");
+  carregarEmpresas();
+}
 
   async function trocarLogoEmpresa(id, nomeEmpresa){
     const input = document.createElement("input");
