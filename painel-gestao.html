@@ -1673,10 +1673,32 @@
       .eq("funcionario_id", id);
 
     // EXCLUI REGISTROS DE PONTO
-    await supabaseClient
-      .from("registros_ponto")
-      .delete()
-      .eq("funcionario_id", id);
+    const { error: erroJornadas } = await supabaseClient
+  .from("funcionario_jornadas")
+  .delete()
+  .eq("funcionario_id", id);
+
+if(erroJornadas){
+  console.log("Erro ao excluir jornadas:", erroJornadas);
+  alert("Erro ao excluir jornadas: " + erroJornadas.message);
+  return;
+}
+
+const { error: erroRegistros } = await supabaseClient
+  .from("registros_ponto")
+  .delete()
+  .eq("funcionario_id", id);
+
+if(erroRegistros){
+  console.log("Erro ao excluir registros:", erroRegistros);
+  alert("Erro ao excluir registros: " + erroRegistros.message);
+  return;
+}
+
+const { error } = await supabaseClient
+  .from("funcionarios")
+  .delete()
+  .eq("id", id);
 
     // EXCLUI FUNCIONÁRIO
     const { error } = await supabaseClient
