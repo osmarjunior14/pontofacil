@@ -929,15 +929,7 @@
             <input id="cpf" placeholder="000.000.000-00">
           </div>
         </div>
-
-        <div class="campo">
-          <label>Função</label>
-          <div class="input-icon">
-            <i class="fa-solid fa-briefcase"></i>
-            <input id="funcao" placeholder="Ex: Recepcionista">
-          </div>
-        </div>
-
+        
         <div class="campo">
           <label>Data de nascimento</label>
           <div class="input-icon">
@@ -946,6 +938,22 @@
           </div>
         </div>
 
+        <div class="campo">
+  <label>E-mail</label>
+  <div class="input-icon">
+    <i class="fa-regular fa-envelope"></i>
+    <input id="email" type="email" placeholder="funcionario@email.com">
+  </div>
+</div>
+
+<div class="campo">
+          <label>Função</label>
+          <div class="input-icon">
+            <i class="fa-solid fa-briefcase"></i>
+            <input id="funcao" placeholder="Ex: Recepcionista">
+          </div>
+        </div>
+        
         <div class="campo jornada-atalho">
           <label>Jornada semanal</label>
           <button type="button" class="btn-jornada" onclick="toggleJornadaSemanal()">
@@ -955,7 +963,7 @@
         </div>
 
         <div id="jornadaSemanal" class="jornada-semanal" style="display:none;"></div>
-
+        
       </div>
 
       <button class="btn-salvar" onclick="salvarFuncionario()">
@@ -1027,6 +1035,11 @@
         <input id="edit_cpf">
       </div>
 
+      <div class="campo">
+        <label>E-mail</label>
+        <input id="edit_email" type="email">
+      </div>
+      
       <div class="campo">
         <label>Função</label>
         <input id="edit_funcao">
@@ -1240,6 +1253,7 @@
     document.getElementById("foto").value = "";
     document.getElementById("nome").value = "";
     document.getElementById("cpf").value = "";
+    document.getElementById("email").value = "";
     document.getElementById("funcao").value = "";
     document.getElementById("data_nascimento").value = "";
 
@@ -1317,6 +1331,7 @@
   async function salvarFuncionario(){
     const nome = document.getElementById("nome").value.trim();
     const cpf = document.getElementById("cpf").value.trim();
+    const email = document.getElementById("email").value.trim();
     const funcao = document.getElementById("funcao").value.trim();
     const data_nascimento = document.getElementById("data_nascimento").value;
 
@@ -1338,6 +1353,7 @@
           empresa_id: empresaId,
           nome_completo: nome,
           cpf,
+          email,
           funcao,
           data_nascimento: data_nascimento || null,
           foto_url: fotoUrl || "",
@@ -1410,7 +1426,7 @@
       filtrados = filtrados.filter(f =>
         String(f.nome_completo || "").toLowerCase().includes(busca) ||
         String(f.cpf || "").toLowerCase().includes(busca) ||
-        String(f.funcao || "").toLowerCase().includes(busca)
+        String(f.funcao || "").toLowerCase().includes(busca) || String(f.email || "").toLowerCase().includes(busca)
       );
     }
 
@@ -1435,6 +1451,7 @@
           <div>
             <strong>${funcionario.nome_completo}</strong>
             <small><i class="fa-regular fa-id-card"></i> CPF: ${funcionario.cpf || "-"}</small>
+            <small><i class="fa-regular fa-envelope"></i> E-mail: ${funcionario.email || "-"}</small>
             <small><i class="fa-solid fa-briefcase"></i> Função: ${funcionario.funcao || "-"}</small>
             <small><i class="fa-regular fa-clock"></i> Jornada semanal configurável</small>
 
@@ -1550,6 +1567,7 @@
 
     document.getElementById("edit_nome").value = funcionario.nome_completo || "";
     document.getElementById("edit_cpf").value = funcionario.cpf || "";
+    document.getElementById("edit_email").value = funcionario.email || "";
     document.getElementById("edit_funcao").value = funcionario.funcao || "";
     document.getElementById("edit_data_nascimento").value = funcionario.data_nascimento || "";
     document.getElementById("edit_foto").value = "";
@@ -1579,6 +1597,7 @@
 
     const nome = document.getElementById("edit_nome").value.trim();
     const cpf = document.getElementById("edit_cpf").value.trim();
+    const email = document.getElementById("edit_email").value.trim();
     const funcao = document.getElementById("edit_funcao").value.trim();
     const data_nascimento = document.getElementById("edit_data_nascimento").value;
 
@@ -1596,6 +1615,7 @@
     const dadosAtualizacao = {
       nome_completo: nome,
       cpf,
+      email,
       funcao,
       data_nascimento: data_nascimento || null
     };
