@@ -507,7 +507,7 @@
 
   const { data: vinculos, error: vinculoError } = await supabaseClient
     .from("usuarios_empresas")
-    .select(
+    select(`
   empresa_id,
   perfil,
   empresas (
@@ -515,7 +515,7 @@
     nome,
     email_gestao
   )
-)
+`)
     .eq("user_id", authData.user.id)
     .eq("ativo", true)
     .limit(1);
