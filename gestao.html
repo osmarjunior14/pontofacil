@@ -498,6 +498,9 @@
       password: senha
     });
 
+  console.log("AUTH DATA:", authData);
+console.log("AUTH ERROR:", authError);
+    
   if(authError){
     console.log("Erro no Auth:", authError);
     erro.innerText = "E-mail ou senha inválidos.";
@@ -506,19 +509,22 @@
   }
 
   const { data: vinculos, error: vinculoError } = await supabaseClient
-    .from("usuarios_empresas")
-    select(`
-  empresa_id,
-  perfil,
-  empresas (
-    id,
-    nome,
-    email_gestao
-  )
-`)
-    .eq("user_id", authData.user.id)
-    .eq("ativo", true)
-    .limit(1);
+  .from("usuarios_empresas")
+  .select(`
+    empresa_id,
+    perfil,
+    empresas (
+      id,
+      nome,
+      email_gestao
+    )
+  `)
+  .eq("user_id", authData.user.id)
+  .eq("ativo", true)
+  .limit(1);
+
+console.log("VINCULOS:", vinculos);
+console.log("VINCULO ERROR:", vinculoError);
 
   if(vinculoError || !vinculos || vinculos.length === 0){
     erro.innerText = "Usuário sem empresa vinculada.";
