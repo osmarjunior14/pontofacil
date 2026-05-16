@@ -670,6 +670,10 @@
         </div>
       </div>
 
+      <button class="btn-top btn-dark" onclick="abrirModalEmpresa()">
+  <i data-lucide="settings"></i> Dados da empresa
+</button>
+      
       <button class="logout-card" onclick="window.location.href='./painel-gestao.html'">
         <i data-lucide="log-out"></i> Voltar
       </button>
@@ -842,6 +846,37 @@
   <img id="imgModal" src="">
 </div>
 
+  <div id="modalEmpresa" class="modal" style="display:none;">
+  <div style="background:white; width:100%; max-width:520px; border-radius:24px; padding:28px;">
+    <h2 style="color:#0f274c; margin-bottom:18px;">Dados da empresa</h2>
+
+    <label style="display:block; font-weight:900; margin-bottom:8px; color:#334155;">
+      E-mail do RH
+    </label>
+
+    <input
+      id="emailRhEmpresa"
+      type="email"
+      placeholder="rh@empresa.com"
+      style="width:100%; height:56px; border:1px solid #dbe4f0; border-radius:16px; padding:0 16px; font-size:16px;"
+    >
+
+    <button
+      onclick="salvarEmailRhEmpresa()"
+      style="margin-top:20px; width:100%; height:56px; border:none; border-radius:16px; background:#2563eb; color:white; font-weight:900; cursor:pointer;"
+    >
+      Salvar e-mail do RH
+    </button>
+
+    <button
+      onclick="fecharModalEmpresa()"
+      style="margin-top:10px; width:100%; height:50px; border:none; border-radius:16px; background:#0f274c; color:white; font-weight:900; cursor:pointer;"
+    >
+      Fechar
+    </button>
+  </div>
+</div>
+  
 <script>
   const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
@@ -849,6 +884,7 @@
 
   let empresaId = null;
   let empresaNome = null;
+  let empresaEmailRh = null; 
 
 async function carregarEmpresaLogada(){
   const { data: userData, error: userError } =
@@ -866,7 +902,8 @@ async function carregarEmpresaLogada(){
       empresas (
         id,
         nome,
-        email_gestao
+        email_gestao,
+        email_rh
       )
     `)
     .eq("user_id", userData.user.id)
@@ -889,6 +926,7 @@ async function carregarEmpresaLogada(){
 
   empresaId = empresa.id;
   empresaNome = empresa.nome;
+  empresaEmailRh = empresa.email_rh || "";
 
   document.getElementById("empresaNomeSidebar").innerText =
     empresaNome || "PontoFácil";
@@ -1173,6 +1211,36 @@ async function carregarEmpresaLogada(){
     lucide.createIcons();
   }
 
+  function abrirModalEmpresa(){
+  document.getElementById("emailRhEmpresa").value = empresaEmailRh || "";
+  document.getElementById("modalEmpresa").style.display = "flex";
+}
+
+function fecharModalEmpresa(){
+  document.getElementById("modalEmpresa").style.display = "none";
+}
+
+async function salvarEmailRhEmpresa(){
+  const emailRh = document.getElementById("emailRhEmpresa").value.trim();
+
+  const { error } = await supabaseClient
+    .from("empresas")
+    .update({
+      email_rh: emailRh || null
+    })
+    .eq("id", empresaId);
+
+  if(error){
+    console.log(error);
+    alert("Erro ao salvar e-mail do RH.");
+    return;
+  }
+
+  empresaEmailRh = emailRh;
+  alert("E-mail do RH salvo com sucesso.");
+  fecharModalEmpresa();
+}
+  
   async function iniciar(){
   atualizarDataTopo();
   lucide.createIcons();
@@ -1187,6 +1255,7 @@ async function carregarEmpresaLogada(){
 }
 
 iniciar();
+  
 </script>
 
 </body>
