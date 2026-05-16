@@ -1524,10 +1524,10 @@
       .order("dia_semana");
 
     if(error){
-      console.log(error);
-      alert("Erro ao carregar jornada do funcionário.");
-      return;
-    }
+  console.log("ERRO AO CARREGAR JORNADA:", error);
+  alert("Erro ao carregar jornada: " + error.message);
+  return;
+}
 
     montarJornadaEdicao(jornadas || []);
     document.getElementById("modalEditar").style.display = "flex";
