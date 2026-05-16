@@ -526,7 +526,15 @@
     return;
   }
 
-  const empresa = vinculos[0].empresas;
+  const empresa = Array.isArray(vinculos[0].empresas)
+  ? vinculos[0].empresas[0]
+  : vinculos[0].empresas;
+
+if(!empresa){
+  erro.innerText = "Empresa vinculada não encontrada.";
+  erro.style.display = "block";
+  return;
+}
 
   localStorage.setItem("pontofacil_empresa_logada", "sim");
   localStorage.setItem("pontofacil_empresa_id", empresa.id);
