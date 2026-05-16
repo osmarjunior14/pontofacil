@@ -762,9 +762,62 @@
         </div>
 
         <div style="margin-top:14px; font-size:12px; color:#475569;">
-          Nome do trabalhador: ___________________________________________<br>
-          CPF: ___________________________________________<br>
-          Data da assinatura: ____/____/________
+
+  <div>
+
+    <strong>Nome do trabalhador:</strong>
+
+    <span id="assinaturaNomeFuncionario">___________________________________</span>
+
+  </div>
+
+<div style="margin-top:22px; padding:22px; border:1px solid #cbd5e1; border-radius:18px;">
+  <h3 style="margin-bottom:12px; color:#0f274c;">Assinatura eletrônica da empresa / RH</h3>
+
+  <p style="font-size:13px; line-height:1.6; color:#334155;">
+    A empresa declara que os registros apresentados neste espelho de ponto correspondem às informações armazenadas no sistema PontoFácil,
+    ressalvadas eventuais correções, justificativas ou ajustes formalmente registrados.
+  </p>
+
+  <div style="height:90px; border:1px dashed #94a3b8; border-radius:14px; margin-top:18px; display:flex; align-items:center; justify-content:center; color:#64748b; font-size:13px;">
+    Espaço reservado para assinatura digital da empresa / RH
+  </div>
+
+  <div style="margin-top:14px; font-size:12px; color:#475569;">
+    <div>
+      <strong>Representante da empresa/RH:</strong>
+      ___________________________________
+    </div>
+
+    <div style="margin-top:4px;">
+      <strong>Cargo:</strong>
+      ___________________________________
+    </div>
+
+    <div style="margin-top:4px;">
+      <strong>Data da assinatura:</strong>
+      ____/____/________
+    </div>
+  </div>
+</div>
+          
+  <div style="margin-top:4px;">
+
+    <strong>CPF:</strong>
+
+    <span id="assinaturaCpfFuncionario">___________________________________</span>
+
+  </div>
+
+  <div style="margin-top:4px;">
+
+    <strong>Data da assinatura:</strong>
+
+    ____/____/________
+
+  </div>
+
+</div>
         </div>
       </div>
     </div>
@@ -1127,6 +1180,15 @@
 
     const mes = obterMesFormatado();
     const filtroFuncionario = document.getElementById("filtroFuncionario").value;
+    const funcionarioSelecionado = funcionarios.find(
+  f => String(f.id) === String(filtroFuncionario)
+);
+
+document.getElementById("assinaturaNomeFuncionario").textContent =
+  funcionarioSelecionado?.nome_completo || "Todos os funcionários";
+
+document.getElementById("assinaturaCpfFuncionario").textContent =
+  funcionarioSelecionado?.cpf || "-";
     const resultado = document.getElementById("resultado");
     const inicio = `${mes}-01T00:00:00-03:00`;
     const [ano, mesNumero] = mes.split("-").map(Number);
