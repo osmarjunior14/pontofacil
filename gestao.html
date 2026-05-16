@@ -480,47 +480,54 @@
   );
 
   async function loginGestao(){
-    const email = document.getElementById("email").value.trim();
-    const senha = document.getElementById("senha").value.trim();
-    const erro = document.getElementById("erro");
+  const email = document.getElementById("email").value.trim();
+  const senha = document.getElementById("senha").value.trim();
+  const erro = document.getElementById("erro");
 
-    erro.style.display = "none";
+  erro.style.display = "none";
 
-    if(!email || !senha){
-      erro.innerText = "Preencha todos os campos.";
-      erro.style.display = "block";
-      return;
-    }
-
-    const { data, error } = await supabaseClient
-      .from("empresas")
-      .select("*")
-      .eq("email_gestao", email)
-      .eq("senha_gestao", senha)
-      .eq("ativa", true);
-
-    if(error){
-      console.log("Erro no login da gestão:", error);
-      erro.innerText = error.message;
-      erro.style.display = "block";
-      return;
-    }
-
-    if(!data || data.length === 0){
-      erro.innerText = "E-mail ou senha inválidos, ou empresa inativa.";
-      erro.style.display = "block";
-      return;
-    }
-
-    const empresa = data[0];
-
-    localStorage.setItem("pontofacil_empresa_logada", "sim");
-    localStorage.setItem("pontofacil_empresa_id", empresa.id);
-    localStorage.setItem("pontofacil_empresa_nome", empresa.nome);
-    localStorage.setItem("pontofacil_empresa_email", empresa.email_gestao);
-
-    window.location.href = "./dashboard.html";
+  if(!email || !senha){
+    erro.innerText = "Preencha todos os campos.";
+    erro.style.display = "block";
+    return;
   }
+
+  const { data: authData, error: authError } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password: senha
+    });
+
+  if(authError){
+    console.log("Erro no Auth:", authError);
+    erro.innerText = "E-mail ou senha inválidos.";
+    erro.style.display = "block";
+    return;
+  }
+
+  const { data: vinculos, error: vinculoError } = await supabaseClient
+    .from("usuarios_empresas")
+    .select("empresa_id, perfil, empresas(id, nome, email_gestao)")
+    .eq("user_id", authData.user.id)
+    .eq("ativo", true)
+    .limit(1);
+
+  if(vinculoError || !vinculos || vinculos.length === 0){
+    erro.innerText = "Usuário sem empresa vinculada.";
+    erro.style.display = "block";
+    return;
+  }
+
+  const empresa = vinculos[0].empresas;
+
+  localStorage.setItem("pontofacil_empresa_logada", "sim");
+  localStorage.setItem("pontofacil_empresa_id", empresa.id);
+  localStorage.setItem("pontofacil_empresa_nome", empresa.nome);
+  localStorage.setItem("pontofacil_empresa_email", empresa.email_gestao || email);
+
+  window.location.href = "./dashboard.html";
+}
+  
 </script>
 
 </body>
