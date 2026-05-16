@@ -660,6 +660,12 @@
       color:white;
     }
 
+    .excluir{
+      background:#fee2e2;
+      color:#991b1b;
+      border:1px solid #fecaca;
+    }
+
     .footer-lista{
       display:flex;
       justify-content:space-between;
@@ -698,6 +704,82 @@
       cursor:pointer;
     }
 
+    .modal-editar{
+      position:fixed;
+      inset:0;
+      background:rgba(2,6,23,.65);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:20px;
+      z-index:9999;
+      backdrop-filter:blur(6px);
+    }
+
+    .modal-conteudo{
+      width:100%;
+      max-width:1100px;
+      max-height:90vh;
+      overflow:auto;
+      background:white;
+      border-radius:24px;
+      padding:28px;
+    }
+
+    .modal-topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:24px;
+    }
+
+    .modal-topo h2{
+      font-size:28px;
+      color:#0f172a;
+    }
+
+    .modal-topo button{
+      width:44px;
+      height:44px;
+      border:none;
+      border-radius:12px;
+      background:#fee2e2;
+      color:#991b1b;
+      cursor:pointer;
+      font-size:18px;
+    }
+
+    .modal-grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      margin-bottom:22px;
+    }
+
+    .foto-atual-box{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:18px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      padding:14px;
+      border-radius:18px;
+    }
+
+    .foto-atual-box img{
+      width:72px;
+      height:72px;
+      object-fit:cover;
+      border-radius:16px;
+      background:#e2e8f0;
+    }
+
+    .foto-atual-box small{
+      color:#64748b;
+      font-weight:700;
+    }
+
     @media(max-width:1280px){
       .grid{grid-template-columns:1fr 1fr}
       .grid-horarios{grid-template-columns:1fr 1fr}
@@ -713,6 +795,7 @@
     @media(max-width:900px){
       .grid{grid-template-columns:1fr}
       .grid-horarios{grid-template-columns:1fr}
+      .modal-grid{grid-template-columns:1fr}
       .funcionario{flex-direction:column;align-items:flex-start}
       .acoes{width:100%}
       .btn-acao{flex:1;justify-content:center}
@@ -914,10 +997,69 @@
   </main>
 </div>
 
+  <div id="modalEditar" class="modal-editar" style="display:none;">
+  <div class="modal-conteudo">
+
+    <div class="modal-topo">
+      <h2>Editar funcionário</h2>
+
+      <button onclick="fecharModalEditar()">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <div class="foto-atual-box">
+      <img id="edit_foto_atual" src="">
+      <div>
+        <strong>Foto atual</strong><br>
+        <small>Escolha uma nova foto abaixo apenas se quiser alterar.</small>
+      </div>
+    </div>
+
+    <div class="modal-grid">
+      <div class="campo">
+        <label>Nome</label>
+        <input id="edit_nome">
+      </div>
+
+      <div class="campo">
+        <label>CPF</label>
+        <input id="edit_cpf">
+      </div>
+
+      <div class="campo">
+        <label>Função</label>
+        <input id="edit_funcao">
+      </div>
+
+      <div class="campo">
+        <label>Data de nascimento</label>
+        <input id="edit_data_nascimento" type="date">
+      </div>
+
+      <div class="campo">
+        <label>Nova foto</label>
+        <input id="edit_foto" type="file" accept="image/*">
+      </div>
+    </div>
+
+    <div class="campo" style="margin-bottom:22px;">
+      <label>Jornada semanal</label>
+      <div id="edit_jornada" class="jornada-semanal"></div>
+    </div>
+
+    <button class="btn-salvar" onclick="salvarEdicaoFuncionario()">
+      <i class="fa-solid fa-floppy-disk"></i>
+      Salvar alterações
+    </button>
+
+  </div>
+</div>
+
 <script>
   const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+  const supabaseKey = "COLE_SUA_CHAVE_SUPABASE_AQUI";
 
   const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
@@ -925,6 +1067,7 @@
   const empresaNome = localStorage.getItem("pontofacil_empresa_nome");
 
   let funcionarios = [];
+  let funcionarioEditandoId = null;
 
   const diasSemana = [
     { numero:0, nome:"Domingo" },
@@ -949,6 +1092,11 @@
     localStorage.removeItem("pontofacil_empresa_nome");
     localStorage.removeItem("pontofacil_empresa_email");
     window.location.href = "./gestao.html";
+  }
+
+  function fecharModalEditar(){
+    document.getElementById("modalEditar").style.display = "none";
+    funcionarioEditandoId = null;
   }
 
   function normalizarNomeArquivo(texto){
@@ -1084,6 +1232,39 @@
     if(uploadError){
       console.log("Erro ao enviar foto:", uploadError);
       alert("Erro ao enviar foto do funcionário.");
+      return null;
+    }
+
+    const { data: urlData } = supabaseClient
+      .storage
+      .from("funcionarios")
+      .getPublicUrl(nomeArquivo);
+
+    return urlData.publicUrl;
+  }
+
+  async function enviarNovaFotoEdicao(nomeFuncionario){
+    const inputFoto = document.getElementById("edit_foto");
+
+    if(!inputFoto.files || inputFoto.files.length === 0){
+      return "";
+    }
+
+    const arquivo = inputFoto.files[0];
+    const extensao = arquivo.name.split(".").pop().toLowerCase();
+    const nomeArquivo = `${empresaId}/${normalizarNomeArquivo(nomeFuncionario)}-${Date.now()}-edit.${extensao}`;
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("funcionarios")
+      .upload(nomeArquivo, arquivo, {
+        cacheControl: "3600",
+        upsert: false
+      });
+
+    if(uploadError){
+      console.log("Erro ao enviar nova foto:", uploadError);
+      alert("Erro ao enviar nova foto do funcionário.");
       return null;
     }
 
@@ -1241,52 +1422,194 @@
             <i class="fa-solid ${funcionario.ativo ? "fa-pause" : "fa-play"}"></i>
             ${funcionario.ativo ? "Inativar" : "Ativar"}
           </button>
+
+          <button
+            class="btn-acao excluir"
+            onclick="excluirFuncionario('${funcionario.id}')"
+          >
+            <i class="fa-solid fa-trash"></i>
+            Excluir
+          </button>
         </div>
       </div>
     `).join("");
   }
 
+  function montarJornadaEdicao(jornadas){
+    const container = document.getElementById("edit_jornada");
+
+    container.innerHTML = diasSemana.map(dia => {
+      const jornada = jornadas.find(j => Number(j.dia_semana) === Number(dia.numero));
+      const semIntervalo = jornada?.sem_intervalo === true;
+
+      return `
+        <div class="card-dia">
+          <h4>${dia.nome}</h4>
+
+          <div class="grid-horarios">
+            <div class="campo-horario">
+              <label>Entrada</label>
+              <input id="edit_entrada_${dia.numero}" type="time" value="${jornada?.horario_entrada || ""}">
+            </div>
+
+            <div class="campo-horario">
+              <label>Saída intervalo</label>
+              <input id="edit_intervalo_${dia.numero}" type="time" value="${jornada?.horario_intervalo || ""}" ${semIntervalo ? "disabled" : ""}>
+            </div>
+
+            <div class="campo-horario">
+              <label>Retorno intervalo</label>
+              <input id="edit_retorno_${dia.numero}" type="time" value="${jornada?.horario_retorno || ""}" ${semIntervalo ? "disabled" : ""}>
+            </div>
+
+            <div class="campo-horario">
+              <label>Saída</label>
+              <input id="edit_saida_${dia.numero}" type="time" value="${jornada?.horario_saida || ""}">
+            </div>
+          </div>
+
+          <div class="checkbox-dia">
+            <label>
+              <input
+                type="checkbox"
+                id="edit_sem_intervalo_${dia.numero}"
+                onchange="toggleIntervaloEdicaoDia(${dia.numero})"
+                ${semIntervalo ? "checked" : ""}
+              >
+              Funcionário sem intervalo neste dia
+            </label>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function toggleIntervaloEdicaoDia(dia){
+    const semIntervalo = document.getElementById(`edit_sem_intervalo_${dia}`).checked;
+    const intervalo = document.getElementById(`edit_intervalo_${dia}`);
+    const retorno = document.getElementById(`edit_retorno_${dia}`);
+
+    intervalo.disabled = semIntervalo;
+    retorno.disabled = semIntervalo;
+
+    if(semIntervalo){
+      intervalo.value = "";
+      retorno.value = "";
+    }
+  }
+
   async function editarFuncionario(id){
-    const funcionario = funcionarios.find(f => String(f.id) === String(id));
+    funcionarioEditandoId = id;
+
+    const funcionario = funcionarios.find(
+      f => String(f.id) === String(id)
+    );
 
     if(!funcionario){
       alert("Funcionário não encontrado.");
       return;
     }
 
-    const novoNome = prompt("Nome:", funcionario.nome_completo || "");
-    if(novoNome === null) return;
+    document.getElementById("edit_nome").value = funcionario.nome_completo || "";
+    document.getElementById("edit_cpf").value = funcionario.cpf || "";
+    document.getElementById("edit_funcao").value = funcionario.funcao || "";
+    document.getElementById("edit_data_nascimento").value = funcionario.data_nascimento || "";
+    document.getElementById("edit_foto").value = "";
+    document.getElementById("edit_foto_atual").src = funcionario.foto_url || "";
 
-    const novoCpf = prompt("CPF:", funcionario.cpf || "");
-    if(novoCpf === null) return;
+    const { data: jornadas, error } = await supabaseClient
+      .from("funcionario_jornadas")
+      .select("*")
+      .eq("funcionario_id", id)
+      .order("dia_semana");
 
-    const novaFuncao = prompt("Função:", funcionario.funcao || "");
-    if(novaFuncao === null) return;
+    if(error){
+      console.log(error);
+      alert("Erro ao carregar jornada do funcionário.");
+      return;
+    }
 
-    const novaDataNascimento = prompt("Data de nascimento (AAAA-MM-DD):", funcionario.data_nascimento || "");
-    if(novaDataNascimento === null) return;
+    montarJornadaEdicao(jornadas || []);
+    document.getElementById("modalEditar").style.display = "flex";
+  }
 
-    if(!novoNome.trim()){
+  async function salvarEdicaoFuncionario(){
+    if(!funcionarioEditandoId){
+      alert("Funcionário não identificado.");
+      return;
+    }
+
+    const nome = document.getElementById("edit_nome").value.trim();
+    const cpf = document.getElementById("edit_cpf").value.trim();
+    const funcao = document.getElementById("edit_funcao").value.trim();
+    const data_nascimento = document.getElementById("edit_data_nascimento").value;
+
+    if(!nome){
       alert("O nome não pode ficar vazio.");
       return;
     }
 
-    const { error } = await supabaseClient
-      .from("funcionarios")
-      .update({
-        nome_completo: novoNome.trim(),
-        cpf: novoCpf.trim(),
-        funcao: novaFuncao.trim(),
-        data_nascimento: novaDataNascimento || null
-      })
-      .eq("id", id);
+    const novaFotoUrl = await enviarNovaFotoEdicao(nome);
 
-    if(error){
-      console.log(error);
-      alert("Erro ao editar funcionário.");
+    if(novaFotoUrl === null){
       return;
     }
 
+    const dadosAtualizacao = {
+      nome_completo: nome,
+      cpf,
+      funcao,
+      data_nascimento: data_nascimento || null
+    };
+
+    if(novaFotoUrl){
+      dadosAtualizacao.foto_url = novaFotoUrl;
+    }
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .update(dadosAtualizacao)
+      .eq("id", funcionarioEditandoId);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao salvar alterações do funcionário.");
+      return;
+    }
+
+    await supabaseClient
+      .from("funcionario_jornadas")
+      .delete()
+      .eq("funcionario_id", funcionarioEditandoId);
+
+    const jornadas = diasSemana.map(dia => {
+      const semIntervalo = document.getElementById(`edit_sem_intervalo_${dia.numero}`).checked;
+
+      return {
+        empresa_id: empresaId,
+        funcionario_id: funcionarioEditandoId,
+        dia_semana: dia.numero,
+        horario_entrada: document.getElementById(`edit_entrada_${dia.numero}`).value || null,
+        horario_intervalo: semIntervalo ? null : (document.getElementById(`edit_intervalo_${dia.numero}`).value || null),
+        horario_retorno: semIntervalo ? null : (document.getElementById(`edit_retorno_${dia.numero}`).value || null),
+        horario_saida: document.getElementById(`edit_saida_${dia.numero}`).value || null,
+        sem_intervalo: semIntervalo,
+        ativo: true
+      };
+    });
+
+    const { error: erroJornada } = await supabaseClient
+      .from("funcionario_jornadas")
+      .insert(jornadas);
+
+    if(erroJornada){
+      console.log(erroJornada);
+      alert("Dados salvos, mas houve erro ao atualizar a jornada.");
+      return;
+    }
+
+    alert("Funcionário atualizado.");
+    fecharModalEditar();
     carregarFuncionarios();
   }
 
@@ -1312,6 +1635,47 @@
       return;
     }
 
+    carregarFuncionarios();
+  }
+
+  async function excluirFuncionario(id){
+    const funcionario = funcionarios.find(f => String(f.id) === String(id));
+
+    if(!funcionario){
+      alert("Funcionário não encontrado.");
+      return;
+    }
+
+    const confirmar = confirm(
+      `Tem certeza que deseja excluir permanentemente ${funcionario.nome_completo}? Esta ação não pode ser desfeita.`
+    );
+
+    if(!confirmar) return;
+
+    const confirmarTexto = prompt('Digite EXCLUIR para confirmar a exclusão permanente:');
+
+    if(confirmarTexto !== "EXCLUIR"){
+      alert("Exclusão cancelada.");
+      return;
+    }
+
+    await supabaseClient
+      .from("funcionario_jornadas")
+      .delete()
+      .eq("funcionario_id", id);
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .delete()
+      .eq("id", id);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao excluir funcionário. Verifique se existem registros de ponto vinculados a ele.");
+      return;
+    }
+
+    alert("Funcionário excluído.");
     carregarFuncionarios();
   }
 
