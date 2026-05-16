@@ -1639,31 +1639,46 @@
   }
 
   async function excluirFuncionario(id){
-    const funcionario = funcionarios.find(f => String(f.id) === String(id));
 
-    if(!funcionario){
-      alert("Funcionário não encontrado.");
-      return;
-    }
+  const funcionario = funcionarios.find(
+    f => String(f.id) === String(id)
+  );
 
-    const confirmar = confirm(
-      `Tem certeza que deseja excluir permanentemente ${funcionario.nome_completo}? Esta ação não pode ser desfeita.`
-    );
+  if(!funcionario){
+    alert("Funcionário não encontrado.");
+    return;
+  }
 
-    if(!confirmar) return;
+  const confirmar = confirm(
+    `Tem certeza que deseja excluir permanentemente ${funcionario.nome_completo}?`
+  );
 
-    const confirmarTexto = prompt('Digite EXCLUIR para confirmar a exclusão permanente:');
+  if(!confirmar) return;
 
-    if(confirmarTexto !== "EXCLUIR"){
-      alert("Exclusão cancelada.");
-      return;
-    }
+  const confirmarTexto = prompt(
+    'Digite EXCLUIR para confirmar:'
+  );
 
+  if(confirmarTexto !== "EXCLUIR"){
+    alert("Exclusão cancelada.");
+    return;
+  }
+
+  try{
+
+    // EXCLUI JORNADAS
     await supabaseClient
       .from("funcionario_jornadas")
       .delete()
       .eq("funcionario_id", id);
 
+    // EXCLUI REGISTROS DE PONTO
+    await supabaseClient
+      .from("registros_ponto")
+      .delete()
+      .eq("funcionario_id", id);
+
+    // EXCLUI FUNCIONÁRIO
     const { error } = await supabaseClient
       .from("funcionarios")
       .delete()
@@ -1671,13 +1686,18 @@
 
     if(error){
       console.log(error);
-      alert("Erro ao excluir funcionário. Verifique se existem registros de ponto vinculados a ele.");
+      alert(error.message);
       return;
     }
 
-    alert("Funcionário excluído.");
+    alert("Funcionário excluído com sucesso.");
     carregarFuncionarios();
+
+  }catch(erro){
+    console.log(erro);
+    alert("Erro ao excluir funcionário.");
   }
+}
 
   async function gerarQRCode(){
     const link = `https://osmarjunior14.github.io/pontofacil/ponto.html?empresa=${empresaId}`;
