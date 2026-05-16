@@ -919,6 +919,9 @@ async function atualizarTipoAutomatico(funcionarioId){
     const tipo = document.getElementById("tipo").value;
     const observacao = document.getElementById("observacao").value.trim();
     const botao = document.getElementById("btnRegistrar");
+    const funcionarioSelecionado = funcionarios.find(
+  f => String(f.id) === String(funcionarioId)
+);
 
     document.getElementById("mensagem").innerHTML = "";
 
@@ -988,22 +991,29 @@ if(!validacaoTempo.permitido){
     }
 
     const { error } = await supabaseClient
-      .from("registros_ponto")
-      .insert([
-        {
-          empresa_id:empresaId,
-          funcionario_id:funcionarioId,
-          tipo,
-          observacao,
-          foto_url:fotoUrl,
-          data_hora:new Date().toISOString(),
-          latitude:localizacaoValidada.latitude,
-          longitude:localizacaoValidada.longitude,
-          distancia_metros:localizacaoValidada.distancia_metros,
-          captura_ao_vivo:true,
-          metodo_captura:"camera"
-        }
-      ]);
+
+  .from("registros_ponto")
+
+  .insert([
+
+    {
+
+      empresa_id:empresaId,
+      funcionario_id:funcionarioId,
+      email_funcionario: funcionarioSelecionado?.email || null,
+      tipo,
+      observacao,
+      foto_url:fotoUrl,
+      data_hora:new Date().toISOString(),
+      latitude:localizacaoValidada.latitude,
+      longitude:localizacaoValidada.longitude,
+      distancia_metros:localizacaoValidada.distancia_metros,
+      captura_ao_vivo:true,
+      metodo_captura:"camera"
+
+    }
+
+  ]);
 
     if(error){
       console.log(error);
