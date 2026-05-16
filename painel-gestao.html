@@ -272,7 +272,11 @@
       letter-spacing:-.5px;
     }
 
-    .card-header p{color:#64748b;font-size:16px;font-weight:700}
+    .card-header p{
+      color:#64748b;
+      font-size:16px;
+      font-weight:700;
+    }
 
     .grid{
       display:grid;
@@ -302,14 +306,39 @@
       background:#eff6ff;
     }
 
-    .upload-box i{font-size:42px;color:#2563eb;margin-bottom:14px}
-    .upload-box strong{font-size:18px;color:#2563eb}
-    .upload-box span{margin-top:6px;color:#64748b;font-size:14px;font-weight:700}
+    .upload-box i{
+      font-size:42px;
+      color:#2563eb;
+      margin-bottom:14px;
+    }
 
-    .campo{display:flex;flex-direction:column;gap:8px}
-    .campo label{font-size:15px;color:#334155;font-weight:900}
+    .upload-box strong{
+      font-size:18px;
+      color:#2563eb;
+    }
 
-    .input-icon{position:relative}
+    .upload-box span{
+      margin-top:6px;
+      color:#64748b;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .campo{
+      display:flex;
+      flex-direction:column;
+      gap:8px;
+    }
+
+    .campo label{
+      font-size:15px;
+      color:#334155;
+      font-weight:900;
+    }
+
+    .input-icon{
+      position:relative;
+    }
 
     .input-icon i{
       position:absolute;
@@ -320,37 +349,10 @@
       font-size:16px;
     }
 
-    .input-icon input{padding-left:46px!important}
+    .input-icon input{
+      padding-left:46px!important;
+    }
 
-    .checkbox-sem-intervalo{
-  display:flex;
-  flex-direction:column;
-  gap:8px;
-  padding-top:23px;
-}
-
-.checkbox-sem-intervalo label{
-  width:100%;
-  height:54px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  background:#eff6ff;
-  border:1px solid #dbeafe;
-  border-radius:16px;
-  padding:0 16px;
-  color:#2563eb;
-  font-weight:900;
-  cursor:pointer;
-}
-
-.checkbox-sem-intervalo input{
-  width:18px;
-  height:18px;
-  accent-color:#2563eb;
-  flex-shrink:0;
-}
-    
     input{
       width:100%;
       height:54px;
@@ -364,10 +366,110 @@
       transition:.2s;
     }
 
-    input:focus, select:focus{
+    input:focus,
+    select:focus{
       outline:none;
       border-color:#2563eb;
       box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    select{
+      height:52px;
+      border-radius:16px;
+      border:1px solid #dbe4f0;
+      padding:0 16px;
+      font-size:15px;
+      background:white;
+      color:#0f172a;
+      min-width:150px;
+      font-family:Inter, Arial, sans-serif;
+    }
+
+    .btn-jornada{
+      width:100%;
+      height:54px;
+      border:none;
+      border-radius:16px;
+      background:#eff6ff;
+      color:#2563eb;
+      font-weight:900;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      font-size:15px;
+      font-family:Inter, Arial, sans-serif;
+    }
+
+    .jornada-semanal{
+      grid-column:1 / -1;
+      display:flex;
+      flex-direction:column;
+      gap:18px;
+      margin-top:6px;
+    }
+
+    .card-dia{
+      border:1px solid #dbeafe;
+      border-radius:18px;
+      padding:16px;
+      background:#f8fbff;
+    }
+
+    .card-dia h4{
+      margin-bottom:14px;
+      color:#0f172a;
+      font-size:16px;
+    }
+
+    .grid-horarios{
+      display:grid;
+      grid-template-columns:repeat(4,1fr);
+      gap:12px;
+    }
+
+    .campo-horario{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+    }
+
+    .campo-horario label{
+      font-size:13px;
+      color:#475569;
+      font-weight:900;
+    }
+
+    .campo-horario input{
+      height:48px;
+      font-size:14px;
+    }
+
+    .checkbox-dia{
+      margin-top:12px;
+    }
+
+    .checkbox-dia label{
+      width:100%;
+      min-height:48px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      background:#eff6ff;
+      border:1px solid #dbeafe;
+      border-radius:14px;
+      padding:0 14px;
+      color:#2563eb;
+      font-weight:900;
+      cursor:pointer;
+    }
+
+    .checkbox-dia input{
+      width:18px;
+      height:18px;
+      accent-color:#2563eb;
+      flex-shrink:0;
     }
 
     .btn-salvar{
@@ -403,7 +505,11 @@
       letter-spacing:-.5px;
     }
 
-    .funcionarios-topo p{color:#64748b;font-size:15px;font-weight:700}
+    .funcionarios-topo p{
+      color:#64748b;
+      font-size:15px;
+      font-weight:700;
+    }
 
     .contador{
       background:#eff6ff;
@@ -415,9 +521,15 @@
       margin-left:8px;
     }
 
-    .filtros{display:flex;gap:12px;flex-wrap:wrap}
+    .filtros{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+    }
 
-    .pesquisa{position:relative}
+    .pesquisa{
+      position:relative;
+    }
 
     .pesquisa i{
       position:absolute;
@@ -432,18 +544,6 @@
       height:52px;
       padding-left:44px;
       font-size:15px;
-    }
-
-    select{
-      height:52px;
-      border-radius:16px;
-      border:1px solid #dbe4f0;
-      padding:0 16px;
-      font-size:15px;
-      background:white;
-      color:#0f172a;
-      min-width:150px;
-      font-family:Inter, Arial, sans-serif;
     }
 
     .funcionario{
@@ -494,7 +594,12 @@
       flex-shrink:0;
     }
 
-    .dados strong{font-size:22px;display:block;margin-bottom:6px;color:#0f172a}
+    .dados strong{
+      font-size:22px;
+      display:block;
+      margin-bottom:6px;
+      color:#0f172a;
+    }
 
     .dados small{
       display:block;
@@ -504,7 +609,10 @@
       font-weight:700;
     }
 
-    .dados small i{width:22px;color:#475569}
+    .dados small i{
+      width:22px;
+      color:#475569;
+    }
 
     .status{
       display:inline-flex;
@@ -561,7 +669,11 @@
       gap:18px;
     }
 
-    .footer-lista p{color:#64748b;font-size:14px;font-weight:700}
+    .footer-lista p{
+      color:#64748b;
+      font-size:14px;
+      font-weight:700;
+    }
 
     .vazio{
       color:#64748b;
@@ -588,6 +700,7 @@
 
     @media(max-width:1280px){
       .grid{grid-template-columns:1fr 1fr}
+      .grid-horarios{grid-template-columns:1fr 1fr}
     }
 
     @media(max-width:1020px){
@@ -599,6 +712,7 @@
 
     @media(max-width:900px){
       .grid{grid-template-columns:1fr}
+      .grid-horarios{grid-template-columns:1fr}
       .funcionario{flex-direction:column;align-items:flex-start}
       .acoes{width:100%}
       .btn-acao{flex:1;justify-content:center}
@@ -749,51 +863,18 @@
           </div>
         </div>
 
-        <div class="campo">
-          <label>Horário de entrada</label>
-          <div class="input-icon">
-            <i class="fa-regular fa-clock"></i>
-            <input id="horario_entrada" type="time">
-          </div>
-        </div>
-    
-        <div class="campo" id="campo_intervalo_saida">
-  <label>Saída para intervalo</label>
-          <div class="input-icon">
-            <i class="fa-regular fa-clock"></i>
-            <input id="horario_intervalo" type="time">
-          </div>
+        <div class="campo jornada-atalho">
+          <label>Jornada semanal</label>
+          <button type="button" class="btn-jornada" onclick="toggleJornadaSemanal()">
+            <i class="fa-regular fa-calendar-days"></i>
+            Configurar jornada semanal
+          </button>
         </div>
 
-        <div class="campo" id="campo_intervalo_retorno">
-  <label>Retorno do intervalo</label>
-          <div class="input-icon">
-            <i class="fa-regular fa-clock"></i>
-            <input id="horario_retorno" type="time">
-          </div>
-        </div>
+        <div id="jornadaSemanal" class="jornada-semanal" style="display:none;"></div>
 
-        <div class="campo">
-          <label>Horário de saída</label>
-          <div class="input-icon">
-            <i class="fa-regular fa-clock"></i>
-            <input id="horario_saida" type="time">
-          </div>
-        </div>
-
-        <div class="campo checkbox-sem-intervalo">
-  <label>
-    <input
-      type="checkbox"
-      id="sem_intervalo"
-      onchange="toggleIntervalo()"
-    >
-    Funcionário sem intervalo
-  </label>
-</div>
-        
       </div>
-      
+
       <button class="btn-salvar" onclick="salvarFuncionario()">
         <i class="fa-regular fa-floppy-disk"></i>
         Salvar funcionário
@@ -845,6 +926,16 @@
 
   let funcionarios = [];
 
+  const diasSemana = [
+    { numero:0, nome:"Domingo" },
+    { numero:1, nome:"Segunda-feira" },
+    { numero:2, nome:"Terça-feira" },
+    { numero:3, nome:"Quarta-feira" },
+    { numero:4, nome:"Quinta-feira" },
+    { numero:5, nome:"Sexta-feira" },
+    { numero:6, nome:"Sábado" }
+  ];
+
   if(!empresaId){
     window.location.href = "./gestao.html";
   }
@@ -860,34 +951,6 @@
     window.location.href = "./gestao.html";
   }
 
-function toggleIntervalo(){
-
-  const semIntervalo =
-  document.getElementById("sem_intervalo").checked;
-
-  const campoSaida =
-  document.getElementById("campo_intervalo_saida");
-
-  const campoRetorno =
-  document.getElementById("campo_intervalo_retorno");
-
-  if(semIntervalo){
-
-    campoSaida.style.display = "none";
-    campoRetorno.style.display = "none";
-
-    document.getElementById("horario_intervalo").value = "";
-    document.getElementById("horario_retorno").value = "";
-
-  }else{
-
-    campoSaida.style.display = "";
-    campoRetorno.style.display = "";
-
-  }
-
-}
-  
   function normalizarNomeArquivo(texto){
     return String(texto || "")
       .toLowerCase()
@@ -895,6 +958,108 @@ function toggleIntervalo(){
       .replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-z0-9]+/g, "-")
       .replace(/^-+|-+$/g, "");
+  }
+
+  function montarJornadaSemanal(){
+    const container = document.getElementById("jornadaSemanal");
+
+    container.innerHTML = diasSemana.map(dia => `
+      <div class="card-dia" data-dia="${dia.numero}">
+        <h4>${dia.nome}</h4>
+
+        <div class="grid-horarios">
+          <div class="campo-horario">
+            <label>Entrada</label>
+            <input id="entrada_${dia.numero}" type="time">
+          </div>
+
+          <div class="campo-horario">
+            <label>Saída intervalo</label>
+            <input id="intervalo_${dia.numero}" type="time">
+          </div>
+
+          <div class="campo-horario">
+            <label>Retorno intervalo</label>
+            <input id="retorno_${dia.numero}" type="time">
+          </div>
+
+          <div class="campo-horario">
+            <label>Saída</label>
+            <input id="saida_${dia.numero}" type="time">
+          </div>
+        </div>
+
+        <div class="checkbox-dia">
+          <label>
+            <input
+              type="checkbox"
+              id="sem_intervalo_${dia.numero}"
+              onchange="toggleIntervaloDia(${dia.numero})"
+            >
+            Funcionário sem intervalo neste dia
+          </label>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  function toggleJornadaSemanal(){
+    const container = document.getElementById("jornadaSemanal");
+
+    if(!container.innerHTML.trim()){
+      montarJornadaSemanal();
+    }
+
+    container.style.display =
+      container.style.display === "none" ? "flex" : "none";
+  }
+
+  function toggleIntervaloDia(dia){
+    const semIntervalo = document.getElementById(`sem_intervalo_${dia}`).checked;
+    const intervalo = document.getElementById(`intervalo_${dia}`);
+    const retorno = document.getElementById(`retorno_${dia}`);
+
+    intervalo.disabled = semIntervalo;
+    retorno.disabled = semIntervalo;
+
+    if(semIntervalo){
+      intervalo.value = "";
+      retorno.value = "";
+    }
+  }
+
+  function coletarJornadas(funcionarioId){
+    return diasSemana.map(dia => {
+      const entrada = document.getElementById(`entrada_${dia.numero}`)?.value || null;
+      const intervalo = document.getElementById(`intervalo_${dia.numero}`)?.value || null;
+      const retorno = document.getElementById(`retorno_${dia.numero}`)?.value || null;
+      const saida = document.getElementById(`saida_${dia.numero}`)?.value || null;
+      const semIntervalo = document.getElementById(`sem_intervalo_${dia.numero}`)?.checked || false;
+
+      return {
+        empresa_id: empresaId,
+        funcionario_id: funcionarioId,
+        dia_semana: dia.numero,
+        horario_entrada: entrada,
+        horario_intervalo: semIntervalo ? null : intervalo,
+        horario_retorno: semIntervalo ? null : retorno,
+        horario_saida: saida,
+        sem_intervalo: semIntervalo,
+        ativo: true
+      };
+    });
+  }
+
+  function limparFormulario(){
+    document.getElementById("foto").value = "";
+    document.getElementById("nome").value = "";
+    document.getElementById("cpf").value = "";
+    document.getElementById("funcao").value = "";
+    document.getElementById("data_nascimento").value = "";
+
+    const jornada = document.getElementById("jornadaSemanal");
+    jornada.innerHTML = "";
+    jornada.style.display = "none";
   }
 
   async function enviarFotoFuncionario(nomeFuncionario){
@@ -935,11 +1100,6 @@ function toggleIntervalo(){
     const cpf = document.getElementById("cpf").value.trim();
     const funcao = document.getElementById("funcao").value.trim();
     const data_nascimento = document.getElementById("data_nascimento").value;
-    const horario_entrada = document.getElementById("horario_entrada").value;
-    const horario_intervalo = document.getElementById("horario_intervalo").value;
-    const horario_retorno = document.getElementById("horario_retorno").value;
-    const horario_saida = document.getElementById("horario_saida").value;
-    const sem_intervalo = document.getElementById("sem_intervalo").checked;
 
     if(!nome){
       alert("Informe o nome do funcionário.");
@@ -952,7 +1112,7 @@ function toggleIntervalo(){
       return;
     }
 
-    const { error } = await supabaseClient
+    const { data: funcionarioCriado, error } = await supabaseClient
       .from("funcionarios")
       .insert([
         {
@@ -962,14 +1122,11 @@ function toggleIntervalo(){
           funcao,
           data_nascimento: data_nascimento || null,
           foto_url: fotoUrl || "",
-          horario_entrada: horario_entrada || null,
-          horario_intervalo: horario_intervalo || null,
-          horario_retorno: horario_retorno || null,
-          horario_saida: horario_saida || null,
-          sem_intervalo,
           ativo: true
         }
-      ]);
+      ])
+      .select()
+      .single();
 
     if(error){
       console.log(error);
@@ -977,19 +1134,23 @@ function toggleIntervalo(){
       return;
     }
 
-    alert("Funcionário cadastrado.");
+    if(document.getElementById("jornadaSemanal").innerHTML.trim()){
+      const jornadas = coletarJornadas(funcionarioCriado.id);
 
-    document.getElementById("foto").value = "";
-    document.getElementById("nome").value = "";
-    document.getElementById("cpf").value = "";
-    document.getElementById("funcao").value = "";
-    document.getElementById("data_nascimento").value = "";
-    document.getElementById("horario_entrada").value = "";
-    document.getElementById("horario_intervalo").value = "";
-    document.getElementById("horario_retorno").value = "";
-    document.getElementById("horario_saida").value = "";
-    document.getElementById("sem_intervalo").checked = false;
-    toggleIntervalo();
+      const { error: erroJornada } = await supabaseClient
+        .from("funcionario_jornadas")
+        .insert(jornadas);
+
+      if(erroJornada){
+        console.log(erroJornada);
+        alert("Funcionário cadastrado, mas houve erro ao salvar a jornada semanal.");
+        carregarFuncionarios();
+        return;
+      }
+    }
+
+    alert("Funcionário cadastrado.");
+    limparFormulario();
     carregarFuncionarios();
   }
 
@@ -1054,10 +1215,9 @@ function toggleIntervalo(){
 
           <div>
             <strong>${funcionario.nome_completo}</strong>
-
             <small><i class="fa-regular fa-id-card"></i> CPF: ${funcionario.cpf || "-"}</small>
             <small><i class="fa-solid fa-briefcase"></i> Função: ${funcionario.funcao || "-"}</small>
-            <small><i class="fa-regular fa-clock"></i> Horários: ${funcionario.horario_entrada || "--:--"} / ${funcionario.horario_intervalo || "--:--"} / ${funcionario.horario_retorno || "--:--"} / ${funcionario.horario_saida || "--:--"}</small>
+            <small><i class="fa-regular fa-clock"></i> Jornada semanal configurável</small>
 
             <span class="status ${funcionario.ativo ? "ativo" : "inativo"}">
               ● ${funcionario.ativo ? "ATIVO" : "INATIVO"}
@@ -1069,11 +1229,6 @@ function toggleIntervalo(){
           <button
             class="btn-acao editar"
             onclick="editarFuncionario('${funcionario.id}')"
-              '${funcionario.id}',
-              '${escapeTexto(funcionario.nome_completo)}',
-              '${escapeTexto(funcionario.cpf)}',
-              '${escapeTexto(funcionario.funcao)}'
-            )"
           >
             <i class="fa-solid fa-pen"></i>
             Editar
@@ -1091,92 +1246,49 @@ function toggleIntervalo(){
     `).join("");
   }
 
-  function escapeTexto(texto){
-    return String(texto || "")
-      .replace(/\\/g, "\\\\")
-      .replace(/'/g, "\\'")
-      .replace(/"/g, "&quot;");
-  }
-
   async function editarFuncionario(id){
-  const funcionario = funcionarios.find(f => String(f.id) === String(id));
+    const funcionario = funcionarios.find(f => String(f.id) === String(id));
 
-  if(!funcionario){
-    alert("Funcionário não encontrado.");
-    return;
+    if(!funcionario){
+      alert("Funcionário não encontrado.");
+      return;
+    }
+
+    const novoNome = prompt("Nome:", funcionario.nome_completo || "");
+    if(novoNome === null) return;
+
+    const novoCpf = prompt("CPF:", funcionario.cpf || "");
+    if(novoCpf === null) return;
+
+    const novaFuncao = prompt("Função:", funcionario.funcao || "");
+    if(novaFuncao === null) return;
+
+    const novaDataNascimento = prompt("Data de nascimento (AAAA-MM-DD):", funcionario.data_nascimento || "");
+    if(novaDataNascimento === null) return;
+
+    if(!novoNome.trim()){
+      alert("O nome não pode ficar vazio.");
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("funcionarios")
+      .update({
+        nome_completo: novoNome.trim(),
+        cpf: novoCpf.trim(),
+        funcao: novaFuncao.trim(),
+        data_nascimento: novaDataNascimento || null
+      })
+      .eq("id", id);
+
+    if(error){
+      console.log(error);
+      alert("Erro ao editar funcionário.");
+      return;
+    }
+
+    carregarFuncionarios();
   }
-
-  const novoNome = prompt("Nome:", funcionario.nome_completo || "");
-  if(novoNome === null) return;
-
-  const novoCpf = prompt("CPF:", funcionario.cpf || "");
-  if(novoCpf === null) return;
-
-  const novaFuncao = prompt("Função:", funcionario.funcao || "");
-  if(novaFuncao === null) return;
-
-  const novaDataNascimento = prompt("Data de nascimento (AAAA-MM-DD):", funcionario.data_nascimento || "");
-  if(novaDataNascimento === null) return;
-
-  const novoHorarioEntrada = prompt("Horário de entrada (HH:MM):", funcionario.horario_entrada || "");
-  if(novoHorarioEntrada === null) return;
-
-  const semIntervaloAtual = funcionario.sem_intervalo === true ? "sim" : "não";
-
-  const novoSemIntervalo = prompt(
-    "Funcionário sem intervalo? Digite sim ou não:",
-    semIntervaloAtual
-  );
-
-  if(novoSemIntervalo === null) return;
-
-  const sem_intervalo =
-    novoSemIntervalo.trim().toLowerCase() === "sim" ||
-    novoSemIntervalo.trim().toLowerCase() === "s" ||
-    novoSemIntervalo.trim().toLowerCase() === "true";
-
-  let novoHorarioIntervalo = "";
-  let novoHorarioRetorno = "";
-
-  if(!sem_intervalo){
-    novoHorarioIntervalo = prompt("Saída para intervalo (HH:MM):", funcionario.horario_intervalo || "");
-    if(novoHorarioIntervalo === null) return;
-
-    novoHorarioRetorno = prompt("Retorno do intervalo (HH:MM):", funcionario.horario_retorno || "");
-    if(novoHorarioRetorno === null) return;
-  }
-
-  const novoHorarioSaida = prompt("Horário de saída (HH:MM):", funcionario.horario_saida || "");
-  if(novoHorarioSaida === null) return;
-
-  if(!novoNome.trim()){
-    alert("O nome não pode ficar vazio.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("funcionarios")
-    .update({
-      nome_completo: novoNome.trim(),
-      cpf: novoCpf.trim(),
-      funcao: novaFuncao.trim(),
-      data_nascimento: novaDataNascimento || null,
-      horario_entrada: novoHorarioEntrada || null,
-      horario_intervalo: sem_intervalo ? null : (novoHorarioIntervalo || null),
-      horario_retorno: sem_intervalo ? null : (novoHorarioRetorno || null),
-      horario_saida: novoHorarioSaida || null,
-      sem_intervalo
-    })
-    .eq("id", id);
-
-  if(error){
-    console.log(error);
-    alert("Erro ao editar funcionário.");
-    return;
-  }
-
-  carregarFuncionarios();
-}
 
   async function alterarStatusFuncionario(id, statusAtual){
     const confirmar = confirm(
