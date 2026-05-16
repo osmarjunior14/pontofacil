@@ -760,16 +760,56 @@
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
   const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  const empresaId = localStorage.getItem("pontofacil_empresa_id");
-  const empresaNomeLocal = localStorage.getItem("pontofacil_empresa_nome");
+  let empresaId = null;
+  let empresaNome = null;
 
   let funcionarios = [];
 
-  if(!empresaId){
+  async function carregarEmpresaLogada(){
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if(userError || !userData.user){
     window.location.href = "./gestao.html";
+    return false;
   }
 
-  document.getElementById("empresaNomeSidebar").innerText = empresaNomeLocal || "PontoFácil";
+  const { data: vinculos, error: vinculoError } = await supabaseClient
+    .from("usuarios_empresas")
+    .select(`
+      empresa_id,
+      empresas (
+        id,
+        nome,
+        email_gestao
+      )
+    `)
+    .eq("user_id", userData.user.id)
+    .eq("ativo", true)
+    .limit(1);
+
+  if(vinculoError || !vinculos || vinculos.length === 0){
+    window.location.href = "./gestao.html";
+    return false;
+  }
+
+  const empresa = Array.isArray(vinculos[0].empresas)
+    ? vinculos[0].empresas[0]
+    : vinculos[0].empresas;
+
+  if(!empresa){
+    window.location.href = "./gestao.html";
+    return false;
+  }
+
+  empresaId = empresa.id;
+  empresaNome = empresa.nome;
+
+  document.getElementById("empresaNomeSidebar").innerText =
+    empresaNome || "PontoFácil";
+
+  return true;
+}
 
   function abrirModal(url){
     if(!url) return;
@@ -847,7 +887,7 @@
       .single();
 
     if(error){
-      document.getElementById("empresaNomeRelatorio").textContent = empresaNomeLocal || "Empresa";
+      document.getElementById("empresaNomeRelatorio").textContent = empresaNome || "Empresa";
       return;
     }
 
@@ -1190,15 +1230,20 @@ if(!diaCompleto){
   }
 
   async function iniciar(){
-    popularAnoMes();
-    await carregarEmpresa();
-    await carregarFuncionarios();
-    atualizarTextosDatas();
-    await carregarRelatorio();
-    lucide.createIcons();
-  }
+  popularAnoMes();
 
-  iniciar();
+  const ok = await carregarEmpresaLogada();
+
+  if(!ok) return;
+
+  await carregarEmpresa();
+  await carregarFuncionarios();
+  atualizarTextosDatas();
+  await carregarRelatorio();
+  lucide.createIcons();
+}
+
+iniciar();
 </script>
 
 </body>
