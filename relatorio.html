@@ -1061,6 +1061,19 @@
     
 }
 
+  function temExpedientePrevisto(funcionario, dataTexto){
+  if(!funcionario) return false;
+
+  const jornada = obterJornadaDoDia(funcionario.id, dataTexto);
+
+  if(!jornada) return false;
+
+  const temEntrada = !!jornada.horario_entrada;
+  const temSaida = !!jornada.horario_saida;
+
+  return temEntrada && temSaida;
+}
+  
   function calcularTrabalhadoDia(linha){
   let total = 0;
 
@@ -1301,17 +1314,29 @@ document.getElementById("assinaturaCpfFuncionario").textContent =
       
       );
 
-if(!diaCompleto){
+const haviaExpedientePrevisto = temExpedientePrevisto(f, linha.data);
+
+if(haviaExpedientePrevisto && !diaCompleto){
   totalIncompletos++;
 
 }
-      const jornadaDiaTabela = obterJornadaDoDia(f?.id, linha.data);
       
+      const jornadaDiaTabela = obterJornadaDoDia(f?.id, linha.data);
+
+      const haviaExpedientePrevistoTabela = temExpedientePrevisto(f, linha.data);
+
+      const avisoSemExpediente = !haviaExpedientePrevistoTabela
+        ? `<div style="margin-top:6px; color:#f97316; font-size:12px; font-weight:900;">
+            Dia sem expediente previsto
+        </div>`
+      : "";
+
       return `
-        <tr>
+      <tr>
           <td>
             <div class="funcionario">${linha.funcionarioNome}</div>
             <div style="color:#64748b; font-size:12px;">${f?.funcao || ""}</div>
+            ${avisoSemExpediente}
           </td>
           <td>${linha.data}</td>
           <td>${montarCelula(linha.entrada, jornadaDiaTabela?.horario_entrada)}</td>
