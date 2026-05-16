@@ -678,7 +678,7 @@ async function obterProximoTipoPermitido(funcionarioId){
 
   const { data, error } = await supabaseClient
     .from("empresas")
-    .select("id, nome, latitude, longitude, raio_permitido_metros, ativa")
+    .select("id, nome, latitude, longitude, raio_permitido_metros, ativa, email_rh")
     .eq("id", empresaId)
     .eq("ativa", true)
     .single();
@@ -1001,6 +1001,7 @@ if(!validacaoTempo.permitido){
       empresa_id:empresaId,
       funcionario_id:funcionarioId,
       email_funcionario: funcionarioSelecionado?.email || null,
+      email_rh: empresaDados?.email_rh || null,
       tipo,
       observacao,
       foto_url:fotoUrl,
@@ -1035,6 +1036,34 @@ if(!validacaoTempo.permitido){
     document.getElementById("cameraStatus").innerText = "Nenhuma foto capturada.";
 
     mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
+    try{
+
+  await supabaseClient.functions.invoke("enviar-comprovante-ponto", {
+    body:{
+      empresa_nome: empresaDados?.nome || "PontoFácil",
+
+      funcionario_nome: funcionarioSelecionado?.nome_completo || "",
+      funcionario_email: funcionarioSelecionado?.email || "", rh_email: empresaDados?.email_rh || "",
+
+      tipo_registro: nomesTipos[tipo] || tipo,
+
+      data_hora: new Date().toLocaleString("pt-BR"),
+
+      observacao: observacao || "Sem observação",
+
+      foto_url: fotoUrl || "",
+
+      latitude: localizacaoValidada.latitude,
+      longitude: localizacaoValidada.longitude,
+      distancia_metros: localizacaoValidada.distancia_metros
+    }
+  });
+
+}catch(erroEmail){
+
+  console.log("Erro ao enviar comprovante:", erroEmail);
+
+}
     await atualizarTipoAutomatico(funcionarioId);
 
     botao.disabled = false;
