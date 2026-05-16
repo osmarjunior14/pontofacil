@@ -1655,70 +1655,48 @@
 
   if(!confirmar) return;
 
-  const confirmarTexto = prompt(
-    'Digite EXCLUIR para confirmar:'
-  );
+  const confirmarTexto = prompt("Digite EXCLUIR para confirmar:");
 
   if(confirmarTexto !== "EXCLUIR"){
     alert("Exclusão cancelada.");
     return;
   }
 
-  try{
+  const { error: erroJornadas } = await supabaseClient
+    .from("funcionario_jornadas")
+    .delete()
+    .eq("funcionario_id", id);
 
-    // EXCLUI JORNADAS
-    await supabaseClient
-      .from("funcionario_jornadas")
-      .delete()
-      .eq("funcionario_id", id);
-
-    // EXCLUI REGISTROS DE PONTO
-    const { error: erroJornadas } = await supabaseClient
-  .from("funcionario_jornadas")
-  .delete()
-  .eq("funcionario_id", id);
-
-if(erroJornadas){
-  console.log("Erro ao excluir jornadas:", erroJornadas);
-  alert("Erro ao excluir jornadas: " + erroJornadas.message);
-  return;
-}
-
-const { error: erroRegistros } = await supabaseClient
-  .from("registros_ponto")
-  .delete()
-  .eq("funcionario_id", id);
-
-if(erroRegistros){
-  console.log("Erro ao excluir registros:", erroRegistros);
-  alert("Erro ao excluir registros: " + erroRegistros.message);
-  return;
-}
-
-const { error } = await supabaseClient
-  .from("funcionarios")
-  .delete()
-  .eq("id", id);
-
-    // EXCLUI FUNCIONÁRIO
-    const { error } = await supabaseClient
-      .from("funcionarios")
-      .delete()
-      .eq("id", id);
-
-    if(error){
-      console.log(error);
-      alert(error.message);
-      return;
-    }
-
-    alert("Funcionário excluído com sucesso.");
-    carregarFuncionarios();
-
-  }catch(erro){
-    console.log(erro);
-    alert("Erro ao excluir funcionário.");
+  if(erroJornadas){
+    console.log("Erro ao excluir jornadas:", erroJornadas);
+    alert("Erro ao excluir jornadas: " + erroJornadas.message);
+    return;
   }
+
+  const { error: erroRegistros } = await supabaseClient
+    .from("registros_ponto")
+    .delete()
+    .eq("funcionario_id", id);
+
+  if(erroRegistros){
+    console.log("Erro ao excluir registros:", erroRegistros);
+    alert("Erro ao excluir registros: " + erroRegistros.message);
+    return;
+  }
+
+  const { error: erroFuncionario } = await supabaseClient
+    .from("funcionarios")
+    .delete()
+    .eq("id", id);
+
+  if(erroFuncionario){
+    console.log("Erro ao excluir funcionário:", erroFuncionario);
+    alert("Erro ao excluir funcionário: " + erroFuncionario.message);
+    return;
+  }
+
+  alert("Funcionário excluído com sucesso.");
+  carregarFuncionarios();
 }
 
   async function gerarQRCode(){
