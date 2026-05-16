@@ -578,57 +578,57 @@
 
   let empresaId = null;
   let empresaNome = null;
-
   let funcionarios = [];
+  let jornadasFuncionarios = [];
 
   async function carregarEmpresaLogada(){
-  const { data: userData, error: userError } =
-    await supabaseClient.auth.getUser();
+    const { data: userData, error: userError } =
+      await supabaseClient.auth.getUser();
 
-  if(userError || !userData.user){
-    window.location.href = "./gestao.html";
-    return false;
+    if(userError || !userData.user){
+      window.location.href = "./gestao.html";
+      return false;
+    }
+
+    const { data: vinculos, error: vinculoError } = await supabaseClient
+      .from("usuarios_empresas")
+      .select(`
+        empresa_id,
+        empresas (
+          id,
+          nome,
+          email_gestao
+        )
+      `)
+      .eq("user_id", userData.user.id)
+      .eq("ativo", true)
+      .limit(1);
+
+    if(vinculoError || !vinculos || vinculos.length === 0){
+      window.location.href = "./gestao.html";
+      return false;
+    }
+
+    const empresa = Array.isArray(vinculos[0].empresas)
+      ? vinculos[0].empresas[0]
+      : vinculos[0].empresas;
+
+    if(!empresa){
+      window.location.href = "./gestao.html";
+      return false;
+    }
+
+    empresaId = empresa.id;
+    empresaNome = empresa.nome;
+
+    document.getElementById("empresaNome").textContent =
+      empresaNome || "PontoFácil";
+
+    document.getElementById("empresaNomeSidebar").textContent =
+      empresaNome || "PontoFácil";
+
+    return true;
   }
-
-  const { data: vinculos, error: vinculoError } = await supabaseClient
-    .from("usuarios_empresas")
-    .select(`
-      empresa_id,
-      empresas (
-        id,
-        nome,
-        email_gestao
-      )
-    `)
-    .eq("user_id", userData.user.id)
-    .eq("ativo", true)
-    .limit(1);
-
-  if(vinculoError || !vinculos || vinculos.length === 0){
-    window.location.href = "./gestao.html";
-    return false;
-  }
-
-  const empresa = Array.isArray(vinculos[0].empresas)
-    ? vinculos[0].empresas[0]
-    : vinculos[0].empresas;
-
-  if(!empresa){
-    window.location.href = "./gestao.html";
-    return false;
-  }
-
-  empresaId = empresa.id;
-  empresaNome = empresa.nome;
-
-  document.getElementById("empresaNome").textContent =
-    empresaNome || "PontoFácil";
-
-  document.getElementById("empresaNomeSidebar").textContent =
-    empresaNome || "PontoFácil";
-
-  return true;
-}
 
   function definirMesAtual(){
     const hoje = new Date();
@@ -639,8 +639,11 @@
 
   function horaParaMinutos(hora){
     if(!hora) return null;
+
     const partes = hora.split(":");
+
     if(partes.length < 2) return null;
+
     return Number(partes[0]) * 60 + Number(partes[1]);
   }
 
@@ -649,6 +652,7 @@
     const abs = Math.abs(minutos);
     const h = Math.floor(abs / 60);
     const m = abs % 60;
+
     return `${sinal}${h}h${String(m).padStart(2, "0")}`;
   }
 
@@ -669,38 +673,71 @@
   function minutosEntre(inicio, fim){
     const minInicio = horaParaMinutos(inicio);
     const minFim = horaParaMinutos(fim);
+
     if(minInicio === null || minFim === null) return 0;
+
     return Math.max(0, minFim - minInicio);
   }
 
-  function calcularPrevistoFuncionario(funcionario){
-  if(!funcionario) return 0;
+  function obterJornadaDoDia(funcionarioId, dataTexto){
+    const partes = dataTexto.split("/");
 
-  const entrada = funcionario.horario_entrada;
-  const intervalo = funcionario.horario_intervalo;
-  const retorno = funcionario.horario_retorno;
-  const saida = funcionario.horario_saida;
+    const data = new Date(
+      Number(partes[2]),
+      Number(partes[1]) - 1,
+      Number(partes[0])
+    );
 
-  let total = 0;
+    const diaSemana = data.getDay();
 
-  if(funcionario.sem_intervalo === true){
-    if(entrada && saida){
-      total += minutosEntre(entrada, saida);
+    return jornadasFuncionarios.find(j =>
+      String(j.funcionario_id) === String(funcionarioId) &&
+      Number(j.dia_semana) === Number(diaSemana)
+    ) || null;
+  }
+
+  function temExpedientePrevisto(funcionario, dataTexto){
+    if(!funcionario) return false;
+
+    const jornada = obterJornadaDoDia(funcionario.id, dataTexto);
+
+    if(!jornada) return false;
+
+    return !!jornada.horario_entrada && !!jornada.horario_saida;
+  }
+
+  function calcularPrevistoFuncionario(funcionario, dataTexto){
+    if(!funcionario) return 0;
+
+    const jornada = obterJornadaDoDia(funcionario.id, dataTexto);
+
+    if(!jornada) return 0;
+
+    const entrada = jornada.horario_entrada;
+    const intervalo = jornada.horario_intervalo;
+    const retorno = jornada.horario_retorno;
+    const saida = jornada.horario_saida;
+
+    let total = 0;
+
+    if(jornada.sem_intervalo === true){
+      if(entrada && saida){
+        total += minutosEntre(entrada, saida);
+      }
+
+      return total;
+    }
+
+    if(entrada && intervalo){
+      total += minutosEntre(entrada, intervalo);
+    }
+
+    if(retorno && saida){
+      total += minutosEntre(retorno, saida);
     }
 
     return total;
   }
-
-  if(entrada && intervalo){
-    total += minutosEntre(entrada, intervalo);
-  }
-
-  if(retorno && saida){
-    total += minutosEntre(retorno, saida);
-  }
-
-  return total;
-}
 
   function organizarRegistros(registros){
     const mapa = {};
@@ -727,38 +764,40 @@
   }
 
   function calcularTrabalhadoDia(linha){
-  let total = 0;
+    let total = 0;
 
-  const funcionario =
-    funcionarios.find(f => f.id === linha.funcionario_id);
+    const jornadaDia = obterJornadaDoDia(
+      linha.funcionario_id,
+      linha.data
+    );
 
-  if(funcionario?.sem_intervalo === true){
-    if(linha.entrada && linha.saida){
+    if(jornadaDia?.sem_intervalo === true){
+      if(linha.entrada && linha.saida){
+        total += minutosEntre(
+          formatarHora(linha.entrada.data_hora),
+          formatarHora(linha.saida.data_hora)
+        );
+      }
+
+      return total;
+    }
+
+    if(linha.entrada && linha.saida_intervalo){
       total += minutosEntre(
         formatarHora(linha.entrada.data_hora),
+        formatarHora(linha.saida_intervalo.data_hora)
+      );
+    }
+
+    if(linha.retorno_intervalo && linha.saida){
+      total += minutosEntre(
+        formatarHora(linha.retorno_intervalo.data_hora),
         formatarHora(linha.saida.data_hora)
       );
     }
 
     return total;
   }
-
-  if(linha.entrada && linha.saida_intervalo){
-    total += minutosEntre(
-      formatarHora(linha.entrada.data_hora),
-      formatarHora(linha.saida_intervalo.data_hora)
-    );
-  }
-
-  if(linha.retorno_intervalo && linha.saida){
-    total += minutosEntre(
-      formatarHora(linha.retorno_intervalo.data_hora),
-      formatarHora(linha.saida.data_hora)
-    );
-  }
-
-  return total;
-}
 
   function badgeSaldo(saldo){
     if(saldo > 0){
@@ -785,6 +824,20 @@
     }
 
     funcionarios = data || [];
+
+    const { data: jornadasData, error: jornadasError } = await supabaseClient
+      .from("funcionario_jornadas")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .eq("ativo", true);
+
+    if(jornadasError){
+      console.log("Erro ao carregar jornadas:", jornadasError);
+      jornadasFuncionarios = [];
+    }else{
+      jornadasFuncionarios = jornadasData || [];
+    }
+
     const select = document.getElementById("filtroFuncionario");
 
     select.innerHTML = `
@@ -806,6 +859,7 @@
     }
 
     const inicio = `${mes}-01T00:00:00-03:00`;
+
     const [ano, mesNumero] = mes.split("-").map(Number);
     const proximoMes = new Date(ano, mesNumero, 1);
     const fimAno = proximoMes.getFullYear();
@@ -836,18 +890,23 @@
 
     if(registros.length === 0){
       resultado.innerHTML = `<div class="vazio">Nenhum registro encontrado para este mês.</div>`;
+
       document.getElementById("horasPrevistas").textContent = "0h00";
       document.getElementById("horasTrabalhadas").textContent = "0h00";
       document.getElementById("saldoPositivo").textContent = "0h00";
       document.getElementById("saldoNegativo").textContent = "0h00";
+
       return;
     }
 
     const linhas = organizarRegistros(registros).sort((a,b) => {
       const fa = funcionarios.find(f => f.id === a.funcionario_id)?.nome_completo || "";
       const fb = funcionarios.find(f => f.id === b.funcionario_id)?.nome_completo || "";
+
       const nomeCompare = fa.localeCompare(fb, "pt-BR");
+
       if(nomeCompare !== 0) return nomeCompare;
+
       return a.data.localeCompare(b.data, "pt-BR");
     });
 
@@ -860,12 +919,23 @@
       const funcionario = funcionarios.find(f => f.id === linha.funcionario_id);
       const nome = funcionario?.nome_completo || "Funcionário";
       const funcao = funcionario?.funcao || "-";
-      const previsto = calcularPrevistoFuncionario(funcionario || {});
+
+      const previsto = calcularPrevistoFuncionario(funcionario || {}, linha.data);
       const trabalhado = calcularTrabalhadoDia(linha);
       const saldo = trabalhado - previsto;
 
+      const jornadaDia = obterJornadaDoDia(linha.funcionario_id, linha.data);
+      const haviaExpediente = temExpedientePrevisto(funcionario, linha.data);
+
+      const avisoSemExpediente = !haviaExpediente
+        ? `<div style="margin-top:6px; color:#f97316; font-size:12px; font-weight:900;">
+            Dia sem expediente previsto
+          </div>`
+        : "";
+
       totalPrevisto += previsto;
       totalTrabalhado += trabalhado;
+
       if(saldo > 0) totalPositivo += saldo;
       if(saldo < 0) totalNegativo += Math.abs(saldo);
 
@@ -874,12 +944,29 @@
           <td>
             <div class="funcionario">${nome}</div>
             <div style="color:#64748b; font-size:12px;">${funcao}</div>
+            ${avisoSemExpediente}
           </td>
+
           <td>${linha.data}</td>
+
           <td>${linha.entrada ? formatarHora(linha.entrada.data_hora) : "-"}</td>
-          <td>${funcionario?.sem_intervalo ? "Sem intervalo" : (linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-")}</td>
-          <td>${funcionario?.sem_intervalo ? "Sem intervalo" : (linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-")}</td>
+
+          <td>
+            ${jornadaDia?.sem_intervalo
+              ? "Sem intervalo"
+              : (linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-")
+            }
+          </td>
+
+          <td>
+            ${jornadaDia?.sem_intervalo
+              ? "Sem intervalo"
+              : (linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-")
+            }
+          </td>
+
           <td>${linha.saida ? formatarHora(linha.saida.data_hora) : "-"}</td>
+
           <td>${minutosParaTexto(previsto)}</td>
           <td>${minutosParaTexto(trabalhado)}</td>
           <td>${badgeSaldo(saldo)}</td>
@@ -887,10 +974,17 @@
       `;
     }).join("");
 
-    document.getElementById("horasPrevistas").textContent = minutosParaTexto(totalPrevisto);
-    document.getElementById("horasTrabalhadas").textContent = minutosParaTexto(totalTrabalhado);
-    document.getElementById("saldoPositivo").textContent = minutosParaTexto(totalPositivo);
-    document.getElementById("saldoNegativo").textContent = "-" + minutosParaTexto(totalNegativo);
+    document.getElementById("horasPrevistas").textContent =
+      minutosParaTexto(totalPrevisto);
+
+    document.getElementById("horasTrabalhadas").textContent =
+      minutosParaTexto(totalTrabalhado);
+
+    document.getElementById("saldoPositivo").textContent =
+      minutosParaTexto(totalPositivo);
+
+    document.getElementById("saldoNegativo").textContent =
+      totalNegativo > 0 ? "-" + minutosParaTexto(totalNegativo) : "0h00";
 
     resultado.innerHTML = `
       <div class="tabela-wrap">
@@ -908,25 +1002,31 @@
               <th>Saldo</th>
             </tr>
           </thead>
-          <tbody>${linhasHtml}</tbody>
+
+          <tbody>
+            ${linhasHtml}
+          </tbody>
         </table>
       </div>
     `;
+
+    lucide.createIcons();
   }
 
   async function iniciar(){
-  definirMesAtual();
+    definirMesAtual();
 
-  const ok = await carregarEmpresaLogada();
+    const ok = await carregarEmpresaLogada();
 
-  if(!ok) return;
+    if(!ok) return;
 
-  await carregarFuncionarios();
-  await carregarBancoHoras();
-  lucide.createIcons();
-}
+    await carregarFuncionarios();
+    await carregarBancoHoras();
 
-iniciar();
+    lucide.createIcons();
+  }
+
+  iniciar();
 </script>
 
 </body>
