@@ -671,22 +671,27 @@ async function obterProximoTipoPermitido(funcionarioId){
   }
 
   async function carregarEmpresa(){
-    if(!empresaId) return;
-
-    const { data, error } = await supabaseClient
-      .from("empresas")
-      .select("id, nome, latitude, longitude, raio_permitido_metros")
-      .eq("id", empresaId)
-      .single();
-
-    if(error){
-      console.log("Erro ao carregar empresa:", error);
-      mostrarMensagem("erro", "Erro ao carregar dados da empresa.");
-      return;
-    }
-
-    empresaDados = data;
+  if(!empresaId){
+    mostrarMensagem("erro", "QR Code inválido. Empresa não identificada.");
+    return false;
   }
+
+  const { data, error } = await supabaseClient
+    .from("empresas")
+    .select("id, nome, latitude, longitude, raio_permitido_metros, ativa")
+    .eq("id", empresaId)
+    .eq("ativa", true)
+    .single();
+
+  if(error || !data){
+    console.log("Erro ao carregar empresa:", error);
+    mostrarMensagem("erro", "Empresa não encontrada ou inativa.");
+    return false;
+  }
+
+  empresaDados = data;
+  return true;
+}
 
   function calcularDistanciaMetros(lat1, lon1, lat2, lon2){
     const R = 6371000;
@@ -1027,11 +1032,12 @@ if(!validacaoTempo.permitido){
   }
 
   async function iniciar(){
-    await carregarEmpresa();
-    await carregarFuncionarios();
-  }
+  const ok = await carregarEmpresa();
+  if(!ok) return;
+  await carregarFuncionarios();
+}
 
-  iniciar();
+iniciar();
 </script>
 
 </body>
