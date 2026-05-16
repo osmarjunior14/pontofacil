@@ -1037,8 +1037,7 @@ if(!validacaoTempo.permitido){
 
     mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
     try{
-
-  const { data: emailData, error: emailError } =
+      const { data: emailData, error: emailError } =
 
   await supabaseClient.functions.invoke("enviar-comprovante-ponto", {
 
@@ -1077,13 +1076,15 @@ console.log("RETORNO EMAIL DATA:", emailData);
 console.log("RETORNO EMAIL ERROR:", emailError);
 
 if(emailError){
-
   mostrarMensagem("erro", "Ponto registrado, mas houve erro ao enviar o e-mail.");
-
 }
 
+}catch(erroEmail){
+  console.log("ERRO GERAL AO ENVIAR EMAIL:", erroEmail);
+  mostrarMensagem("erro", "Ponto registrado, mas houve erro ao enviar o e-mail.");
 }
-    await atualizarTipoAutomatico(funcionarioId);
+
+await atualizarTipoAutomatico(funcionarioId);
 
     botao.disabled = false;
     botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
