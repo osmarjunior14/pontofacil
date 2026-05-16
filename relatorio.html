@@ -837,6 +837,7 @@
   let empresaNome = null;
 
   let funcionarios = [];
+  let jornadasFuncionarios = [];
 
   async function carregarEmpresaLogada(){
   const { data: userData, error: userError } =
@@ -1008,44 +1009,67 @@
     return Math.max(0, minFim - minInicio);
   }
 
-  function calcularPrevistoFuncionario(funcionario){
+  function obterJornadaDoDia(funcionarioId, dataTexto){
+    const partes = dataTexto.split("/");
+    const data = new Date(
+    Number(partes[2]),
+    Number(partes[1]) - 1,
+    Number(partes[0])
+  );
+
+  const diaSemana = data.getDay();
+
+  return jornadasFuncionarios.find(j =>
+    String(j.funcionario_id) === String(funcionarioId) &&
+    Number(j.dia_semana) === Number(diaSemana)
+  ) || null;
+}
+  
+  function calcularPrevistoFuncionario(funcionario, dataTexto){
 
   if(!funcionario) return 0;
-    const entrada = funcionario.horario_entrada;
-    const intervalo = funcionario.horario_intervalo;
-    const retorno = funcionario.horario_retorno;
-    const saida = funcionario.horario_saida;
-    let total = 0;
-    if(funcionario.sem_intervalo === true){
+
+  const jornada = obterJornadaDoDia(funcionario.id, dataTexto);
+
+  if(!jornada) return 0;
+
+  const entrada = jornada.horario_entrada;
+  const intervalo = jornada.horario_intervalo;
+  const retorno = jornada.horario_retorno;
+  const saida = jornada.horario_saida;
+
+  let total = 0;
+
+  if(jornada.sem_intervalo === true){
+
     if(entrada && saida){
       total += minutosEntre(entrada, saida);
-
     }
 
     return total;
-
   }
 
   if(entrada && intervalo){
-
     total += minutosEntre(entrada, intervalo);
-
   }
 
   if(retorno && saida){
-
     total += minutosEntre(retorno, saida);
-
   }
 
   return total;
-
+    
 }
 
   function calcularTrabalhadoDia(linha){
   let total = 0;
 
-  if(linha.funcionario?.sem_intervalo === true){
+  const jornadaDia = obterJornadaDoDia(
+    linha.funcionario?.id,
+    linha.data
+  );
+
+  if(jornadaDia?.sem_intervalo === true){
     if(linha.entrada && linha.saida){
       total += minutosEntre(
         formatarHora(linha.entrada.data_hora),
@@ -1079,30 +1103,44 @@
   }
 
   async function carregarFuncionarios(){
-    const { data, error } = await supabaseClient
-      .from("funcionarios")
-      .select("*")
-      .eq("empresa_id", empresaId)
-      .order("nome_completo");
+  const { data, error } = await supabaseClient
+    .from("funcionarios")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .order("nome_completo");
 
-    if(error){
-      console.log(error);
-      return;
-    }
-
-    funcionarios = data || [];
-    const ativos = funcionarios.filter(f => f.ativo === true);
-
-    document.getElementById("filtroFuncionario").innerHTML = `
-      <option value="todos">Todos os funcionários</option>
-      ${ativos.map(f => `
-        <option value="${f.id}">${f.nome_completo}</option>
-      `).join("")}
-      ${funcionarios.filter(f => f.ativo === false).map(f => `
-        <option value="${f.id}">${f.nome_completo} — INATIVO</option>
-      `).join("")}
-    `;
+  if(error){
+    console.log(error);
+    return;
   }
+
+  funcionarios = data || [];
+
+  const { data: jornadasData, error: jornadasError } = await supabaseClient
+    .from("funcionario_jornadas")
+    .select("*")
+    .eq("empresa_id", empresaId)
+    .eq("ativo", true);
+
+  if(jornadasError){
+    console.log("Erro ao carregar jornadas:", jornadasError);
+    jornadasFuncionarios = [];
+  }else{
+    jornadasFuncionarios = jornadasData || [];
+  }
+
+  const ativos = funcionarios.filter(f => f.ativo === true);
+
+  document.getElementById("filtroFuncionario").innerHTML = `
+    <option value="todos">Todos os funcionários</option>
+    ${ativos.map(f => `
+      <option value="${f.id}">${f.nome_completo}</option>
+    `).join("")}
+    ${funcionarios.filter(f => f.ativo === false).map(f => `
+      <option value="${f.id}">${f.nome_completo} — INATIVO</option>
+    `).join("")}
+  `;
+}
 
   function organizarRegistros(registros){
     const mapa = {};
@@ -1237,36 +1275,38 @@ document.getElementById("assinaturaCpfFuncionario").textContent =
 
     const linhasHtml = linhas.map(linha => {
       const f = linha.funcionario;
-      const previstoDia = calcularPrevistoFuncionario(f);
+      const previstoDia = calcularPrevistoFuncionario(f, linha.data);
       const trabalhadoDia = calcularTrabalhadoDia(linha);
 
       totalPrevisto += previstoDia;
       totalTrabalhado += trabalhadoDia;
 
       let atrasosDia = 0;
-      if(linha.entrada && compararAtraso(formatarHora(linha.entrada.data_hora), f?.horario_entrada)) atrasosDia++;
-      if(linha.saida_intervalo && compararAtraso(formatarHora(linha.saida_intervalo.data_hora), f?.horario_intervalo)) atrasosDia++;
-      if(linha.retorno_intervalo && compararAtraso(formatarHora(linha.retorno_intervalo.data_hora), f?.horario_retorno)) atrasosDia++;
-      if(linha.saida && compararAtraso(formatarHora(linha.saida.data_hora), f?.horario_saida)) atrasosDia++;
+      const jornadaDia = obterJornadaDoDia(f?.id, linha.data);
+      if(linha.entrada && compararAtraso(formatarHora(linha.entrada.data_hora), jornadaDia?.horario_entrada)) atrasosDia++;
+      if(linha.saida_intervalo && compararAtraso(formatarHora(linha.saida_intervalo.data_hora), jornadaDia?.horario_intervalo)) atrasosDia++;
+      if(linha.retorno_intervalo && compararAtraso(formatarHora(linha.retorno_intervalo.data_hora), jornadaDia?.horario_retorno)) atrasosDia++;
+      if(linha.saida && compararAtraso(formatarHora(linha.saida.data_hora), jornadaDia?.horario_saida)) atrasosDia++;
 
       totalAtrasos += atrasosDia;
       const diaCompleto =
 
-  f?.sem_intervalo === true
+  jornadaDia?.sem_intervalo === true
     ? (linha.entrada && linha.saida)
     : (
         linha.entrada &&
         linha.saida_intervalo &&
         linha.retorno_intervalo &&
         linha.saida
-
+      
       );
 
 if(!diaCompleto){
   totalIncompletos++;
 
 }
-
+      const jornadaDiaTabela = obterJornadaDoDia(f?.id, linha.data);
+      
       return `
         <tr>
           <td>
@@ -1274,10 +1314,10 @@ if(!diaCompleto){
             <div style="color:#64748b; font-size:12px;">${f?.funcao || ""}</div>
           </td>
           <td>${linha.data}</td>
-          <td>${montarCelula(linha.entrada, f?.horario_entrada)}</td>
-          <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.saida_intervalo, f?.horario_intervalo)}</td>
+          <td>${montarCelula(linha.entrada, jornadaDiaTabela?.horario_entrada)}</td>
+          <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.saida_intervalo, jornadaDiaTabela?.horario_intervalo)}</td>
           <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.retorno_intervalo, f?.horario_retorno)}</td>
-          <td>${montarCelula(linha.saida, f?.horario_saida)}</td>
+          <td>${montarCelula(linha.saida, jornadaDiaTabela?.horario_saida)}</td>
         </tr>
       `;
     }).join("");
