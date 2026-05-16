@@ -1038,14 +1038,20 @@ if(!validacaoTempo.permitido){
     mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
     try{
 
+  const { data: emailData, error: emailError } =
+
   await supabaseClient.functions.invoke("enviar-comprovante-ponto", {
+
     body:{
+
       empresa_nome: empresaDados?.nome || "PontoFácil",
 
       funcionario_nome: funcionarioSelecionado?.nome_completo || "",
+
       funcionario_email: funcionarioSelecionado?.email || "",
-      
+
       rh_email: empresaDados?.email_rh || "",
+
       email_rh: empresaDados?.email_rh || "",
 
       tipo_registro: nomesTipos[tipo] || tipo,
@@ -1057,14 +1063,24 @@ if(!validacaoTempo.permitido){
       foto_url: fotoUrl || "",
 
       latitude: localizacaoValidada.latitude,
+
       longitude: localizacaoValidada.longitude,
+
       distancia_metros: localizacaoValidada.distancia_metros
+
     }
+
   });
 
-}catch(erroEmail){
+console.log("RETORNO EMAIL DATA:", emailData);
 
-  console.log("Erro ao enviar comprovante:", erroEmail);
+console.log("RETORNO EMAIL ERROR:", emailError);
+
+if(emailError){
+
+  mostrarMensagem("erro", "Ponto registrado, mas houve erro ao enviar o e-mail.");
+
+}
 
 }
     await atualizarTipoAutomatico(funcionarioId);
