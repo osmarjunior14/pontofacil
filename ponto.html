@@ -785,7 +785,7 @@ if(!faceConfere){
   fotoCapturadaBlob = null;
 
   status.innerText =
-    "Validação facial não aprovada.";
+    "Validação facial não aprovada. Face não compatível";
 
   return;
 }
@@ -960,7 +960,7 @@ async function validarFaceComCadastro(canvasSelfie){
 
       mostrarMensagem(
         "erro",
-        "A selfie não corresponde com segurança à foto cadastrada. Tente novamente com o rosto bem iluminado e de frente para a câmera."
+        "Identificação facial não compatível. Tente novamente com o rosto bem iluminado e de frente para a câmera."
       );
 
       return false;
