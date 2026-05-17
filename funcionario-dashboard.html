@@ -10,6 +10,7 @@
   <title>PontoFácil • Funcionário</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -546,17 +547,16 @@
 
 <script>
 
-const supabaseUrl =
-  "https://ixeeperktitbzmnvcaqz.supabase.co";
-
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-
 const supabaseClient =
-  window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
+  window.supabaseClient;
+
+if(!supabaseClient){
+
+  alert("Supabase não carregou.");
+
+  window.location.href =
+    "./funcionario-login.html";
+}
 
 let funcionario = null;
 let empresaFuncionario = null;
@@ -1100,7 +1100,8 @@ function iniciarRealtime(){
         {
           event: "*",
           schema: "public",
-          table: "registros_ponto"
+          table: "registros_ponto",
+          filter: `funcionario_id=eq.${funcionario.id}`
         },
         async payload => {
 
@@ -1147,11 +1148,12 @@ async function logout(){
 
   await supabaseClient.auth.signOut();
 
-  window.location.href =
+localStorage.clear();
 
-    "./funcionario-login.html";
+sessionStorage.clear();
 
-}
+window.location.href =
+  "./funcionario-login.html";
   
   atualizarRelogio();
 
