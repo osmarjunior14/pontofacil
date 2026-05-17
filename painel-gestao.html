@@ -1376,7 +1376,9 @@ const respostaAuth = await fetch(
   {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      "apikey": supabaseKey,
+      "Authorization": `Bearer ${supabaseKey}`
     },
     body: JSON.stringify({
       funcionario_id: funcionarioCriado.id,
