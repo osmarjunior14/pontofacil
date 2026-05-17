@@ -532,7 +532,10 @@ if(!user){
 
   return;
 }
-  const { data: vinculos, error: vinculoError } = await supabaseClient
+    
+  console.log("USER:", user);
+
+const { data: vinculos, error: vinculoError } = await supabaseClient
   .from("usuarios_empresas")
   .select(`
     empresa_id,
@@ -544,7 +547,6 @@ if(!user){
     )
   `)
   .eq("user_id", user.id)
-  console.log("USER:", user);
   .eq("ativo", true)
   .limit(1);
 
