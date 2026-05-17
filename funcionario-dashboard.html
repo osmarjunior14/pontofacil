@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <title>PontoFácil • Funcionário</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    :root{
+      --azul:#2563eb;
+      --azul-escuro:#0f274c;
+      --bg:#f4f7fb;
+      --texto:#0f172a;
+      --muted:#64748b;
+      --verde:#16a34a;
+      --vermelho:#dc2626;
+      --laranja:#f97316;
+      --card:#ffffff;
+      --borda:#dbe4f0;
+    }
+
+    body{
+      font-family:Arial,sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.10), transparent 35%),
+        linear-gradient(135deg,#f8fbff,#eef3fa);
+
+      color:var(--texto);
+
+      min-height:100vh;
+
+      padding-bottom:120px;
+    }
+
+    .topo{
+
+      background:
+        linear-gradient(135deg,#0f274c,#2563eb);
+
+      padding:
+        calc(env(safe-area-inset-top) + 22px)
+        22px
+        26px;
+
+      color:white;
+
+      border-radius:
+        0 0 30px 30px;
+
+      box-shadow:
+        0 16px 42px rgba(15,39,76,.28);
+    }
+
+    .perfil{
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+
+    .foto{
+      width:72px;
+      height:72px;
+
+      border-radius:50%;
+
+      object-fit:cover;
+
+      border:3px solid rgba(255,255,255,.25);
+
+      background:white;
+    }
+
+    .avatar-fallback{
+      width:72px;
+      height:72px;
+
+      border-radius:50%;
+
+      background:rgba(255,255,255,.18);
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      font-size:28px;
+      font-weight:900;
+    }
+
+    .nome{
+      font-size:25px;
+      font-weight:900;
+      line-height:1.1;
+      margin-bottom:6px;
+    }
+
+    .cargo{
+      font-size:14px;
+      color:#dbeafe;
+      font-weight:700;
+      margin-bottom:4px;
+    }
+
+    .empresa{
+      font-size:13px;
+      color:#bfdbfe;
+    }
+
+    .container{
+      padding:20px;
+    }
+
+    .clock-card{
+      margin-top:-24px;
+
+      background:white;
+
+      border-radius:24px;
+
+      padding:22px;
+
+      box-shadow:
+        0 18px 40px rgba(15,23,42,.08);
+
+      border:1px solid rgba(226,232,240,.9);
+    }
+
+    .clock-topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+
+      margin-bottom:16px;
+    }
+
+    .clock-topo strong{
+      font-size:16px;
+      color:#0f274c;
+    }
+
+    .hora-atual{
+      font-size:38px;
+      font-weight:900;
+      color:#2563eb;
+      line-height:1;
+      margin-bottom:8px;
+    }
+
+    .data-atual{
+      color:#64748b;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .btn-ponto{
+      width:100%;
+      height:66px;
+
+      border:none;
+
+      border-radius:20px;
+
+      margin-top:22px;
+
+      background:
+        linear-gradient(90deg,#2563eb,#1d4ed8);
+
+      color:white;
+
+      font-size:18px;
+      font-weight:900;
+
+      cursor:pointer;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+
+      box-shadow:
+        0 18px 35px rgba(37,99,235,.24);
+    }
+
+    .btn-ponto:active{
+      transform:scale(.99);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+
+      margin-top:22px;
+    }
+
+    .card{
+      background:white;
+
+      border-radius:22px;
+
+      padding:18px;
+
+      border:1px solid rgba(226,232,240,.9);
+
+      box-shadow:
+        0 12px 30px rgba(15,23,42,.05);
+    }
+
+    .icone{
+      width:44px;
+      height:44px;
+
+      border-radius:14px;
+
+      background:#dbeafe;
+
+      color:#2563eb;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      margin-bottom:14px;
+    }
+
+    .card small{
+      display:block;
+
+      color:#64748b;
+
+      font-size:13px;
+
+      margin-bottom:6px;
+
+      font-weight:700;
+    }
+
+    .card strong{
+      font-size:22px;
+      color:#0f172a;
+      line-height:1.1;
+    }
+
+    .positivo{
+      color:#16a34a !important;
+    }
+
+    .negativo{
+      color:#dc2626 !important;
+    }
+
+    .titulo-secao{
+      margin:
+        28px 0 16px;
+
+      font-size:20px;
+      font-weight:900;
+      color:#0f274c;
+    }
+
+    .historico{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .registro{
+      background:white;
+
+      border-radius:18px;
+
+      padding:16px;
+
+      border:1px solid rgba(226,232,240,.9);
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      gap:14px;
+    }
+
+    .registro-esquerda{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .registro-icone{
+      width:44px;
+      height:44px;
+
+      border-radius:14px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      background:#dbeafe;
+      color:#2563eb;
+    }
+
+    .registro strong{
+      display:block;
+      font-size:15px;
+      margin-bottom:4px;
+    }
+
+    .registro small{
+      color:#64748b;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .hora{
+      font-size:18px;
+      font-weight:900;
+      color:#0f274c;
+    }
+
+    .logout{
+      width:100%;
+      height:58px;
+
+      border:none;
+
+      border-radius:18px;
+
+      background:#0f172a;
+
+      color:white;
+
+      font-size:15px;
+      font-weight:900;
+
+      margin-top:26px;
+
+      cursor:pointer;
+    }
+
+    .loading{
+      text-align:center;
+      padding:40px 20px;
+      color:#64748b;
+      font-weight:700;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div id="loading" class="loading">
+  Carregando dashboard...
+</div>
+
+<div id="conteudo" style="display:none;">
+
+  <div class="topo">
+
+    <div class="perfil">
+
+      <img
+        id="fotoFuncionario"
+        class="foto"
+        style="display:none;"
+      >
+
+      <div
+        id="avatarFallback"
+        class="avatar-fallback"
+      >
+        F
+      </div>
+
+      <div>
+
+        <div
+          class="nome"
+          id="nomeFuncionario"
+        >
+          Funcionário
+        </div>
+
+        <div
+          class="cargo"
+          id="funcaoFuncionario"
+        >
+          Cargo
+        </div>
+
+        <div
+          class="empresa"
+          id="empresaFuncionario"
+        >
+          Empresa
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="container">
+
+    <div class="clock-card">
+
+      <div class="clock-topo">
+
+        <strong>
+          Registro de ponto
+        </strong>
+
+        <i data-lucide="fingerprint"></i>
+
+      </div>
+
+      <div
+        class="hora-atual"
+        id="horaAtual"
+      >
+        00:00:00
+      </div>
+
+      <div
+        class="data-atual"
+        id="dataAtual"
+      >
+        --
+      </div>
+
+      <button
+        class="btn-ponto"
+        onclick="registrarPonto()"
+      >
+        <i data-lucide="scan-face"></i>
+        Registrar ponto
+      </button>
+
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="clock-3"></i>
+        </div>
+
+        <small>
+          Horas hoje
+        </small>
+
+        <strong id="horasHoje">
+          0h00
+        </strong>
+
+      </div>
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="badge-dollar-sign"></i>
+        </div>
+
+        <small>
+          Banco de horas
+        </small>
+
+        <strong
+          id="saldoBanco"
+          class="positivo"
+        >
+          +0h00
+        </strong>
+
+      </div>
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="calendar-range"></i>
+        </div>
+
+        <small>
+          Jornada prevista
+        </small>
+
+        <strong id="jornadaPrevista">
+          --
+        </strong>
+
+      </div>
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="activity"></i>
+        </div>
+
+        <small>
+          Último registro
+        </small>
+
+        <strong id="ultimoRegistro">
+          --
+        </strong>
+
+      </div>
+
+    </div>
+
+    <div class="titulo-secao">
+      Histórico recente
+    </div>
+
+    <div
+      class="historico"
+      id="historico"
+    ></div>
+
+    <button
+      class="logout"
+      onclick="logout()"
+    >
+      Sair da conta
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+
+const supabaseUrl =
+  "https://ixeeperktitbzmnvcaqz.supabase.co";
+
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+const supabaseClient =
+  window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+let funcionario = null;
+
+function atualizarRelogio(){
+
+  const agora = new Date();
+
+  document.getElementById("horaAtual").innerHTML =
+    agora.toLocaleTimeString("pt-BR");
+
+  document.getElementById("dataAtual").innerHTML =
+    agora.toLocaleDateString("pt-BR",{
+      weekday:"long",
+      day:"2-digit",
+      month:"long",
+      year:"numeric"
+    });
+}
+
+setInterval(atualizarRelogio,1000);
+
+async function carregarFuncionario(){
+
+  const {
+    data:{ session }
+  } = await supabaseClient.auth.getSession();
+
+  if(!session){
+
+    window.location.href =
+      "./funcionario-login.html";
+
+    return;
+  }
+
+  const userId =
+    session.user.id;
+
+  const { data, error } =
+    await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("auth_user_id", userId)
+      .single();
+
+  if(error || !data){
+
+    alert("Funcionário não encontrado.");
+
+    await logout();
+
+    return;
+  }
+
+  funcionario = data;
+
+  preencherTela();
+
+  carregarHistorico();
+
+  document.getElementById("loading").style.display =
+    "none";
+
+  document.getElementById("conteudo").style.display =
+    "block";
+
+  lucide.createIcons();
+}
+
+function preencherTela(){
+
+  document.getElementById("nomeFuncionario")
+    .innerHTML =
+      funcionario.nome_completo || "-";
+
+  document.getElementById("funcaoFuncionario")
+    .innerHTML =
+      funcionario.funcao || "-";
+
+  document.getElementById("empresaFuncionario")
+    .innerHTML =
+      "PontoFácil";
+
+  const avatar =
+    document.getElementById("avatarFallback");
+
+  avatar.innerHTML =
+    (funcionario.nome_completo || "F")
+    .charAt(0)
+    .toUpperCase();
+
+  if(funcionario.foto_url){
+
+    const foto =
+      document.getElementById("fotoFuncionario");
+
+    foto.src =
+      funcionario.foto_url;
+
+    foto.style.display =
+      "block";
+
+    avatar.style.display =
+      "none";
+  }
+}
+
+async function carregarHistorico(){
+
+  const { data } =
+    await supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("funcionario_id", funcionario.id)
+      .order("data_hora",{
+        ascending:false
+      })
+      .limit(10);
+
+  const historico =
+    document.getElementById("historico");
+
+  if(!data || data.length === 0){
+
+    historico.innerHTML = `
+      <div class="registro">
+        Nenhum registro encontrado.
+      </div>
+    `;
+
+    return;
+  }
+
+  historico.innerHTML =
+    data.map(registro => {
+
+      return `
+        <div class="registro">
+
+          <div class="registro-esquerda">
+
+            <div class="registro-icone">
+              <i data-lucide="clock-3"></i>
+            </div>
+
+            <div>
+
+              <strong>
+                ${registro.tipo.replaceAll("_"," ")}
+              </strong>
+
+              <small>
+                ${new Date(registro.data_hora)
+                  .toLocaleDateString("pt-BR")}
+              </small>
+
+            </div>
+
+          </div>
+
+          <div class="hora">
+            ${new Date(registro.data_hora)
+              .toLocaleTimeString("pt-BR",{
+                hour:"2-digit",
+                minute:"2-digit"
+              })}
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+  lucide.createIcons();
+}
+
+async function registrarPonto(){
+
+  alert(
+    "Integraremos agora com o fluxo real de marcação."
+  );
+}
+
+async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  window.location.href =
+    "./funcionario-login.html";
+}
+
+atualizarRelogio();
+
+carregarFuncionario();
+
+</script>
+
+</body>
+</html>
