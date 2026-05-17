@@ -659,6 +659,21 @@ async function capturarFoto(){
   const video =
     document.createElement("video");
 
+  video.setAttribute(
+    "autoplay",
+    true
+  );
+
+  video.setAttribute(
+    "muted",
+    true
+  );
+
+  video.setAttribute(
+    "playsinline",
+    true
+  );
+
   const canvas =
     document.createElement("canvas");
 
@@ -666,22 +681,32 @@ async function capturarFoto(){
     await navigator.mediaDevices.getUserMedia({
       video:{
         facingMode:"user"
-      }
+      },
+      audio:false
     });
 
   video.srcObject = stream;
 
   await new Promise(resolve => {
-    video.onloadedmetadata = resolve;
+
+    video.onloadedmetadata = () => {
+
+      video.play();
+
+      resolve();
+    };
+
   });
 
-  await video.play();
+  await new Promise(resolve =>
+    setTimeout(resolve,1000)
+  );
 
   canvas.width =
-    video.videoWidth;
+    video.videoWidth || 720;
 
   canvas.height =
-    video.videoHeight;
+    video.videoHeight || 1280;
 
   const ctx =
     canvas.getContext("2d");
