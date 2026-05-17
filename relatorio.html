@@ -1341,7 +1341,7 @@ if(haviaExpedientePrevisto && !diaCompleto){
           <td>${linha.data}</td>
           <td>${montarCelula(linha.entrada, jornadaDiaTabela?.horario_entrada)}</td>
           <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.saida_intervalo, jornadaDiaTabela?.horario_intervalo)}</td>
-          <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.retorno_intervalo, f?.horario_retorno)}</td>
+          <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.retorno_intervalo, jornadaDiaTabela?.horario_retorno)}</td>
           <td>${montarCelula(linha.saida, jornadaDiaTabela?.horario_saida)}</td>
         </tr>
       `;
