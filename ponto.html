@@ -834,7 +834,9 @@ if(!faceConfere){
   async function validarRostoHumano(canvas){
 
   const modeloOk =
-    await carregarModeloFace();
+    await atualizarTipoAutomatico(
+  funcionarioLogado.id
+  );
 
   if(!modeloOk){
     return false;
