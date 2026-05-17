@@ -6,6 +6,7 @@
   <title>PontoFácil - Dashboard</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -674,15 +675,15 @@
   <i data-lucide="settings"></i> Dados da empresa
 </button>
       
-      <button class="logout-card" onclick="window.location.href='./painel-gestao.html'">
-        <i data-lucide="log-out"></i> Voltar
-      </button>
+      <button class="logout-card" onclick="logout()">
+  <i data-lucide="log-out"></i> Sair
+</button>
     </div>
   </aside>
 
   <main class="main">
     <div class="mobile-menu">
-      <button onclick="window.location.href='./painel-gestao.html'">Voltar</button>
+      <button onclick="logout()">Sair</button>
       <button onclick="window.location.href='./relatorio.html'">Relatório mensal</button>
     </div>
 
@@ -705,9 +706,9 @@
           <i data-lucide="file-text"></i> Relatório mensal
         </button>
 
-        <button class="btn-top btn-dark" onclick="window.location.href='./painel-gestao.html'">
-          <i data-lucide="arrow-left"></i> Voltar
-        </button>
+        <button class="btn-top btn-dark" onclick="logout()">
+  <i data-lucide="log-out"></i> Sair
+</button>
       </div>
     </div>
 
@@ -878,10 +879,12 @@
 </div>
   
 <script>
-  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
+  const supabaseClient = window.supabaseClient;
+  if(!supabaseClient){
+  alert("Supabase não carregou.");
+  window.location.href = "./gestao.html";
+}
+  
   let empresaId = null;
   let empresaNome = null;
   let empresaEmailRh = null; 
@@ -1252,6 +1255,15 @@ async function salvarEmailRhEmpresa(){
   await carregarDashboard();
 
   setInterval(carregarDashboard, 30000);
+}
+
+  async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  window.location.href = "./gestao.html";
 }
 
 iniciar();
