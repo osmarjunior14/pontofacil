@@ -532,7 +532,6 @@ if(!user){
 
   return;
 }
-
   const { data: vinculos, error: vinculoError } = await supabaseClient
   .from("usuarios_empresas")
   .select(`
