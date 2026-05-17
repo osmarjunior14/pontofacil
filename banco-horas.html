@@ -6,6 +6,7 @@
   <title>PontoFácil - Banco de Horas</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -473,9 +474,9 @@
         </div>
       </div>
 
-      <button class="logout-card" onclick="window.location.href='./painel-gestao.html'">
-        <i data-lucide="arrow-left"></i> Voltar
-      </button>
+      <button class="logout-card" onclick="logout()">
+  <i data-lucide="log-out"></i> Sair
+</button>
     </div>
   </aside>
 
@@ -493,10 +494,9 @@
         <p id="empresaNome">PontoFácil</p>
       </div>
 
-      <div class="top-actions">
-        <button class="btn-top btn-voltar" onclick="window.location.href='./painel-gestao.html'">
-          <i data-lucide="arrow-left"></i> Voltar
-        </button>
+      <button class="btn-top btn-voltar" onclick="logout()">
+  <i data-lucide="log-out"></i> Sair
+</button>
 
         <button class="btn-top btn-pdf" onclick="window.print()">
           <i data-lucide="printer"></i> Imprimir / Salvar PDF
@@ -572,9 +572,7 @@
 </div>
 
 <script>
-  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+  const supabaseClient = window.supabaseClient;
 
   let empresaId = null;
   let empresaNome = null;
@@ -1026,6 +1024,15 @@
     lucide.createIcons();
   }
 
+  async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  window.location.href = "./gestao.html";
+}
+  
   iniciar();
 </script>
 
