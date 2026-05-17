@@ -578,8 +578,14 @@ function atualizarRelogio(){
   
   function abrirRegistro(){
 
+  if(!funcionario || !funcionario.empresa_id){
+
+    alert("Empresa do funcionário não identificada.");
+    return;
+  }
+
   window.location.href =
-    `./ponto.html`
+    `./ponto.html?empresa=${funcionario.empresa_id}`;
 }
   
 setInterval(atualizarRelogio,1000);
