@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PontoFácil - Registrar ponto</title>
 
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
@@ -457,6 +458,36 @@
   
   let streamCamera = null;
   let fotoCapturadaBlob = null;
+  let modeloFaceCarregado = false;
+
+async function carregarModeloFace(){
+
+  if(modeloFaceCarregado){
+    return true;
+  }
+
+  try{
+
+    await faceapi.nets.tinyFaceDetector.loadFromUri(
+      "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/"
+    );
+
+    modeloFaceCarregado = true;
+
+    return true;
+
+  }catch(error){
+
+    console.log("Erro ao carregar modelo facial:", error);
+
+    mostrarMensagem(
+      "erro",
+      "Não foi possível carregar a validação facial. Verifique sua internet e tente novamente."
+    );
+
+    return false;
+  }
+}
 
   function atualizarRelogio(){
     const agora = new Date();
@@ -640,88 +671,173 @@ async function obterProximoTipoPermitido(funcionarioId){
     }
   }
 
-  function capturarFotoAoVivo(){
-    const video = document.getElementById("cameraVideo");
-    const canvas = document.getElementById("canvasFoto");
-    const foto = document.getElementById("fotoCapturada");
-    const status = document.getElementById("cameraStatus");
+  async function capturarFotoAoVivo(){
 
-    if(!streamCamera || !video.videoWidth){
-      mostrarMensagem("erro", "Abra a câmera antes de capturar a foto.");
-      return;
-    }
+  const video = document.getElementById("cameraVideo");
+  const canvas = document.getElementById("canvasFoto");
+  const foto = document.getElementById("fotoCapturada");
+  const status = document.getElementById("cameraStatus");
 
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
+  if(!streamCamera || !video.videoWidth){
+    mostrarMensagem("erro", "Abra a câmera antes de capturar a foto.");
+    return;
+  }
 
-    const ctx = canvas.getContext("2d");
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
 
-    const imageData =
-  ctx.getImageData(
+  const ctx = canvas.getContext("2d");
+
+  ctx.drawImage(
+    video,
     0,
     0,
     canvas.width,
     canvas.height
   );
 
-const pixels =
-  imageData.data;
+  const imageData =
+    ctx.getImageData(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
 
-let brilhoTotal = 0;
+  const pixels =
+    imageData.data;
 
-for(let i = 0; i < pixels.length; i += 4){
+  let brilhoTotal = 0;
 
-  const r = pixels[i];
-  const g = pixels[i + 1];
-  const b = pixels[i + 2];
+  for(let i = 0; i < pixels.length; i += 4){
 
-  const brilho =
-    (r + g + b) / 3;
+    const r = pixels[i];
+    const g = pixels[i + 1];
+    const b = pixels[i + 2];
 
-  brilhoTotal += brilho;
-}
+    const brilho =
+      (r + g + b) / 3;
 
-const brilhoMedio =
-  brilhoTotal /
-  (pixels.length / 4);
-
-if(brilhoMedio < 35){
-  fotoCapturadaBlob = null;
-  status.innerText =
-    "Imagem muito escura.";
-  mostrarMensagem(
-    "erro",
-    "Imagem muito escura. Certifique-se de que seu rosto está visível."
-
-  );
-
-  return;
-
-}
-
-    canvas.toBlob(blob => {
-      if(!blob){
-        mostrarMensagem("erro", "Erro ao capturar a foto.");
-        return;
-      }
-
-      fotoCapturadaBlob = blob;
-
-      const urlPreview = URL.createObjectURL(blob);
-      foto.src = urlPreview;
-      foto.style.display = "block";
-      video.style.display = "none";
-
-      status.innerText = "Foto capturada ao vivo com sucesso.";
-
-      if(streamCamera){
-        streamCamera.getTracks().forEach(track => track.stop());
-        streamCamera = null;
-      }
-    }, "image/jpeg", 0.9);
+    brilhoTotal += brilho;
   }
 
+  const brilhoMedio =
+    brilhoTotal /
+    (pixels.length / 4);
+
+  if(brilhoMedio < 35){
+
+    fotoCapturadaBlob = null;
+
+    status.innerText =
+      "Imagem muito escura.";
+
+    mostrarMensagem(
+      "erro",
+      "Imagem muito escura. Certifique-se de que seu rosto está visível."
+    );
+
+    return;
+  }
+
+  status.innerText =
+    "Validando rosto humano...";
+
+  const rostoValido =
+    await validarRostoHumano(canvas);
+
+  if(!rostoValido){
+
+    fotoCapturadaBlob = null;
+
+    status.innerText =
+      "Rosto não identificado.";
+
+    return;
+  }
+
+  canvas.toBlob(blob => {
+
+    if(!blob){
+
+      mostrarMensagem(
+        "erro",
+        "Erro ao capturar a foto."
+      );
+
+      return;
+    }
+
+    fotoCapturadaBlob = blob;
+
+    const urlPreview =
+      URL.createObjectURL(blob);
+
+    foto.src =
+      urlPreview;
+
+    foto.style.display =
+      "block";
+
+    video.style.display =
+      "none";
+
+    status.innerText =
+      "Foto validada com rosto humano.";
+
+    if(streamCamera){
+
+      streamCamera.getTracks().forEach(
+        track => track.stop()
+      );
+
+      streamCamera = null;
+    }
+
+  }, "image/jpeg", 0.9);
+}
+
+  async function validarRostoHumano(canvas){
+
+  const modeloOk =
+    await carregarModeloFace();
+
+  if(!modeloOk){
+    return false;
+  }
+
+  const detections =
+    await faceapi.detectAllFaces(
+      canvas,
+      new faceapi.TinyFaceDetectorOptions({
+        inputSize:224,
+        scoreThreshold:0.5
+      })
+    );
+
+  if(!detections || detections.length === 0){
+
+    mostrarMensagem(
+      "erro",
+      "Nenhum rosto humano foi identificado. Posicione o rosto de frente para a câmera e capture novamente."
+    );
+
+    return false;
+  }
+
+  if(detections.length > 1){
+
+    mostrarMensagem(
+      "erro",
+      "Mais de um rosto foi identificado. Apenas o funcionário deve aparecer na foto."
+    );
+
+    return false;
+  }
+
+  return true;
+}
+  
   async function carregarFuncionarioLogado(){
 
   const {
@@ -1170,7 +1286,10 @@ if(emailError){
   mostrarMensagem("erro", "Ponto registrado, mas houve erro ao enviar o e-mail.");
 }
 
-await atualizarTipoAutomatico(funcionarioId);
+await carregarModeloFace();
+await atualizarTipoAutomatico(
+  funcionarioLogado.id
+);
 
     botao.disabled = false;
     botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
