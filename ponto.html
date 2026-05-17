@@ -561,8 +561,11 @@ async function obterProximoTipoPermitido(funcionarioId){
 }
   async function validarIntervaloMinimo(funcionarioId){
   const agora = new Date();
-  const cincoMinAtras = new Date(agora.getTime() - (60 * 1000));
-
+  const cincoMinAtras =
+  new Date(
+    agora.getTime() - (5 * 60 * 1000)
+  );
+    
   const { data, error } = await supabaseClient
     .from("registros_ponto")
     .select("*")
@@ -647,6 +650,49 @@ async function obterProximoTipoPermitido(funcionarioId){
 
     const ctx = canvas.getContext("2d");
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData =
+  ctx.getImageData(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+const pixels =
+  imageData.data;
+
+let brilhoTotal = 0;
+
+for(let i = 0; i < pixels.length; i += 4){
+
+  const r = pixels[i];
+  const g = pixels[i + 1];
+  const b = pixels[i + 2];
+
+  const brilho =
+    (r + g + b) / 3;
+
+  brilhoTotal += brilho;
+}
+
+const brilhoMedio =
+  brilhoTotal /
+  (pixels.length / 4);
+
+if(brilhoMedio < 35){
+  fotoCapturadaBlob = null;
+  status.innerText =
+    "Imagem muito escura.";
+  mostrarMensagem(
+    "erro",
+    "Imagem muito escura. Certifique-se de que seu rosto está visível."
+
+  );
+
+  return;
+
+}
 
     canvas.toBlob(blob => {
       if(!blob){
