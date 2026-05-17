@@ -6,6 +6,7 @@
   <title>PontoFácil - Gestão</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
@@ -474,15 +475,6 @@
 </div>
 
 <script>
-  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
-
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-
-  const supabaseClient = window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
-
   async function loginGestao(){
   const email = document.getElementById("email").value.trim();
   const senha = document.getElementById("senha").value.trim();
@@ -504,15 +496,9 @@
   password: senha
 });
 
-console.log("AUTH DATA:", authData);
-console.log("AUTH ERROR:", authError);
-
 if(authError){
 
-  console.log("Erro no Auth:", authError);
-
-  erro.innerText =
-    authError.message || "E-mail ou senha inválidos.";
+  erro.innerText = "E-mail ou senha inválidos.";
 
   erro.style.display = "block";
 
@@ -533,8 +519,6 @@ if(!user){
   return;
 }
     
-  console.log("USER:", user);
-
 const { data: vinculos, error: vinculoError } = await supabaseClient
   .from("usuarios_empresas")
   .select(`
@@ -549,9 +533,6 @@ const { data: vinculos, error: vinculoError } = await supabaseClient
   .eq("user_id", user.id)
   .eq("ativo", true)
   .limit(1);
-
-console.log("VINCULOS:", vinculos);
-console.log("VINCULO ERROR:", vinculoError);
 
   if(vinculoError || !vinculos || vinculos.length === 0){
     erro.innerText = "Usuário sem empresa vinculada.";
@@ -604,8 +585,7 @@ if(!empresa){
       email,
       {
         redirectTo:
-          window.location.origin +
-          "/redefinir-senha.html"
+          new URL("./redefinir-senha.html", window.location.href).href
       }
     );
 
