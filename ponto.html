@@ -785,9 +785,11 @@ if(!faceConfere){
   fotoCapturadaBlob = null;
 
   status.innerText =
-    "Validação facial não aprovada. Face não compatível";
+
+    "Identificação facial não compatível.";
 
   return;
+
 }
     
   canvas.toBlob(blob => {
