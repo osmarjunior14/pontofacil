@@ -1364,10 +1364,39 @@
       .single();
 
     if(error){
-      console.log(error);
-      alert("Erro ao salvar funcionário.");
-      return;
-    }
+  console.log(error);
+  alert("Erro ao salvar funcionário.");
+  return;
+}
+
+const senhaInicial = cpf.replace(/\D/g, "");
+
+const respostaAuth = await fetch(
+  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      funcionario_id: funcionarioCriado.id,
+      email,
+      senha: senhaInicial
+    })
+  }
+);
+
+const authResultado = await respostaAuth.json();
+
+if(!respostaAuth.ok){
+  console.log(authResultado);
+
+  alert(
+    "Funcionário criado, mas houve erro ao criar login/senha."
+  );
+
+  return;
+}
 
     if(document.getElementById("jornadaSemanal").innerHTML.trim()){
       const jornadas = coletarJornadas(funcionarioCriado.id);
