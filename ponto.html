@@ -836,21 +836,29 @@ if(!faceConfere){
   async function validarRostoHumano(canvas){
 
   const modeloOk =
-    await atualizarTipoAutomatico(
-  funcionarioLogado.id
-  );
+
+    await carregarModeloFace();
 
   if(!modeloOk){
+
     return false;
+
   }
 
   const detections =
+
     await faceapi.detectAllFaces(
+
       canvas,
+
       new faceapi.TinyFaceDetectorOptions({
+
         inputSize:224,
+
         scoreThreshold:0.5
+
       })
+
     );
 
   if(!detections || detections.length === 0){
@@ -1279,9 +1287,9 @@ async function atualizarTipoAutomatico(funcionarioId){
     document.getElementById("mensagem").innerHTML = "";
 
     if(!funcionarioId){
-      mostrarMensagem("erro", "Selecione o funcionário.");
-      return;
-    }
+    mostrarMensagem("erro", "Funcionário não identificado. Faça login novamente.");
+    return;
+}
 
     if(!tipo){
       mostrarMensagem("erro", "Selecione o tipo de registro.");
@@ -1428,49 +1436,55 @@ console.log("RETORNO EMAIL DATA:", emailData);
 console.log("RETORNO EMAIL ERROR:", emailError);
 
 if(emailError){
-  mostrarMensagem("erro", "Ponto registrado, mas houve erro ao enviar o e-mail.");
+
+  mostrarMensagem(
+    "sucesso",
+    "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
+  );
+
 }
 
 }catch(erroEmail){
+
   console.log("ERRO GERAL AO ENVIAR EMAIL:", erroEmail);
-  mostrarMensagem("erro", "Ponto registrado, mas houve erro ao enviar o e-mail.");
+
+  mostrarMensagem(
+    "sucesso",
+    "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
+  );
+
 }
 
 await atualizarTipoAutomatico(
-
   funcionarioLogado.id
-
 );
 
-    botao.disabled = false;
-    botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
-  }
+botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
 
-  async function iniciar(){
+}
+
+async function iniciar(){
 
   const empresaOk =
-
     await carregarEmpresa();
 
   if(!empresaOk)
-
     return;
 
   const funcionarioOk =
-
     await carregarFuncionarioLogado();
 
   if(!funcionarioOk)
-
     return;
 
   await carregarModeloFace();
+
   await atualizarTipoAutomatico(
-
     funcionarioLogado.id
-
   );
+
 }
+
 iniciar();
 </script>
 
