@@ -448,9 +448,9 @@
 </a>
     </div>
 
-    <button onclick="loginGestao()">
-      Entrar na plataforma
-      <i class="fa-solid fa-arrow-right"></i>
+    <button type="button" id="btnEntrar" onclick="loginGestao()">
+      <span id="btnEntrarTexto">Entrar na plataforma</span>
+      <i class="fa-solid fa-arrow-right" id="btnEntrarIcon"></i>
     </button>
 
     <a class="admin-link" href="./index.html">
@@ -475,88 +475,153 @@
 </div>
 
 <script>
+  function mostrarErroLogin(mensagem){
+    const erro = document.getElementById("erro");
+    erro.style.background = "rgba(220,38,38,.12)";
+    erro.style.border = "1px solid rgba(248,113,113,.28)";
+    erro.style.color = "#fecaca";
+    erro.innerText = mensagem;
+    erro.style.display = "block";
+  }
+
+  function setLoginCarregando(ativo){
+    const btn = document.getElementById("btnEntrar");
+    const texto = document.getElementById("btnEntrarTexto");
+    const icon = document.getElementById("btnEntrarIcon");
+
+    btn.disabled = ativo;
+    btn.style.opacity = ativo ? "0.75" : "1";
+    btn.style.cursor = ativo ? "wait" : "pointer";
+    texto.innerText = ativo ? "Entrando..." : "Entrar na plataforma";
+    icon.className = ativo
+      ? "fa-solid fa-spinner fa-spin"
+      : "fa-solid fa-arrow-right";
+  }
+
   async function loginGestao(){
-  const email = document.getElementById("email").value.trim();
-  const senha = document.getElementById("senha").value.trim();
-  const erro = document.getElementById("erro");
+    const email = document.getElementById("email").value.trim();
+    const senha = document.getElementById("senha").value;
+    const erro = document.getElementById("erro");
 
-  erro.style.display = "none";
+    erro.style.display = "none";
 
-  if(!email || !senha){
-    erro.innerText = "Preencha todos os campos.";
-    erro.style.display = "block";
-    return;
+    if(!email || !senha){
+      mostrarErroLogin("Preencha todos os campos.");
+      return;
+    }
+
+    if(!window.supabaseClient){
+      mostrarErroLogin(
+        "Supabase não carregou. Abra a página por http:// (Live Server) e verifique js/supabase-client.js."
+      );
+      return;
+    }
+
+    setLoginCarregando(true);
+
+    try {
+      const { data: authData, error: authError } =
+        await supabaseClient.auth.signInWithPassword({ email, password: senha });
+
+      if(authError){
+        console.error("Auth gestão:", authError);
+        const msg = (authError.message || "").toLowerCase();
+
+        if(msg.includes("email not confirmed")){
+          mostrarErroLogin("Confirme o e-mail no Supabase (Authentication) antes de entrar.");
+        } else if(msg.includes("invalid login credentials")){
+          mostrarErroLogin("E-mail ou senha inválidos.");
+        } else {
+          mostrarErroLogin(authError.message || "Não foi possível autenticar.");
+        }
+        return;
+      }
+
+      const user = authData?.user || authData?.session?.user;
+
+      if(!user){
+        mostrarErroLogin("Usuário não encontrado após o login.");
+        return;
+      }
+
+      const { data: vinculos, error: vinculoError } = await supabaseClient
+        .from("usuarios_empresas")
+        .select(`
+          empresa_id,
+          perfil,
+          empresas (
+            id,
+            nome,
+            email_gestao
+          )
+        `)
+        .eq("user_id", user.id)
+        .eq("ativo", true)
+        .limit(1);
+
+      if(vinculoError){
+        console.error("Vínculo gestão:", vinculoError);
+        mostrarErroLogin(
+          "Erro ao buscar empresa: " + (vinculoError.message || "verifique RLS no Supabase.")
+        );
+        return;
+      }
+
+      if(!vinculos || vinculos.length === 0){
+        mostrarErroLogin(
+          "Usuário sem empresa vinculada. No Supabase, crie um registro em usuarios_empresas (user_id = UUID do Auth, ativo = true)."
+        );
+        return;
+      }
+
+      let empresa = Array.isArray(vinculos[0].empresas)
+        ? vinculos[0].empresas[0]
+        : vinculos[0].empresas;
+
+      if(!empresa && vinculos[0].empresa_id){
+        const { data: empresasData, error: empresaError } = await supabaseClient
+          .from("empresas")
+          .select("id, nome, email_gestao")
+          .eq("id", vinculos[0].empresa_id)
+          .limit(1);
+
+        if(empresaError){
+          console.error("Empresa gestão:", empresaError);
+          mostrarErroLogin(
+            "Vínculo encontrado, mas a empresa não pôde ser lida (RLS em empresas?)."
+          );
+          return;
+        }
+
+        empresa = empresasData?.[0] || null;
+      }
+
+      if(!empresa){
+        mostrarErroLogin("Empresa vinculada não encontrada ou sem permissão de leitura.");
+        return;
+      }
+
+      localStorage.setItem("pontofacil_empresa_logada", "sim");
+      localStorage.setItem("pontofacil_empresa_id", empresa.id);
+      localStorage.setItem("pontofacil_empresa_nome", empresa.nome);
+      localStorage.setItem("pontofacil_empresa_email", empresa.email_gestao || email);
+
+      window.location.href = "./dashboard.html";
+    } catch (e) {
+      console.error("Login gestão:", e);
+      mostrarErroLogin(
+        "Falha inesperada: " + (e.message || e) + ". Veja o Console (F12) e use http:// para abrir o site."
+      );
+    } finally {
+      setLoginCarregando(false);
+    }
   }
 
-  const {
-  data: authData,
-  error: authError
-} = await supabaseClient.auth.signInWithPassword({
-  email,
-  password: senha
-});
-
-if(authError){
-
-  erro.innerText = "E-mail ou senha inválidos.";
-
-  erro.style.display = "block";
-
-  return;
-}
-
-const user =
-  authData?.user ||
-  authData?.session?.user;
-
-if(!user){
-
-  erro.innerText =
-    "Usuário não encontrado.";
-
-  erro.style.display = "block";
-
-  return;
-}
-    
-const { data: vinculos, error: vinculoError } = await supabaseClient
-  .from("usuarios_empresas")
-  .select(`
-    empresa_id,
-    perfil,
-    empresas (
-      id,
-      nome,
-      email_gestao
-    )
-  `)
-  .eq("user_id", user.id)
-  .eq("ativo", true)
-  .limit(1);
-
-  if(vinculoError || !vinculos || vinculos.length === 0){
-    erro.innerText = "Usuário sem empresa vinculada.";
-    erro.style.display = "block";
-    return;
-  }
-
-  const empresa = Array.isArray(vinculos[0].empresas)
-  ? vinculos[0].empresas[0]
-  : vinculos[0].empresas;
-
-if(!empresa){
-  erro.innerText = "Empresa vinculada não encontrada.";
-  erro.style.display = "block";
-  return;
-}
-
-  localStorage.setItem("pontofacil_empresa_logada", "sim");
-  localStorage.setItem("pontofacil_empresa_id", empresa.id);
-  localStorage.setItem("pontofacil_empresa_nome", empresa.nome);
-  localStorage.setItem("pontofacil_empresa_email", empresa.email_gestao || email);
-
-  window.location.href = "./dashboard.html";
-}
+  document.addEventListener("keydown", function(event){
+    if(event.key === "Enter"){
+      loginGestao();
+    }
+  });
 
   async function recuperarSenha(){
 
