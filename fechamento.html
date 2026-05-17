@@ -6,6 +6,7 @@
   <title>PontoFácil - Fechamento Mensal</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
 
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -239,9 +240,9 @@
     </div>
 
     <div class="botoes-topo">
-      <button class="btn-voltar" onclick="window.location.href='./painel-gestao.html'">
-        Voltar
-      </button>
+      <button class="btn-voltar" onclick="logout()">
+  Sair
+</button>
 
       <button class="btn-fechar" onclick="fecharMes()">
         Fechar mês
@@ -343,11 +344,12 @@
 </div>
 
 <script>
-  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+  const supabaseClient = window.supabaseClient;
 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+if(!supabaseClient){
+  alert("Supabase não carregou.");
+  window.location.href = "./gestao.html";
+}
 
   const empresaId = localStorage.getItem("pontofacil_empresa_id");
   const empresaNomeLocal = localStorage.getItem("pontofacil_empresa_nome");
@@ -803,6 +805,15 @@
     zerarResumo();
   }
 
+  async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  window.location.href = "./gestao.html";
+}
+  
   iniciar();
 </script>
 
