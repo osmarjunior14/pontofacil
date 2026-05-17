@@ -559,21 +559,41 @@ const supabaseClient =
   );
 
 let funcionario = null;
+let empresaFuncionario = null;
+let timeoutAtualizacao = null;
+let canalRealtime = null;
 
+function atualizarDashboardAutomaticamente(){
+
+  clearTimeout(timeoutAtualizacao);
+
+  timeoutAtualizacao = setTimeout(async ()=>{
+
+    await carregarHistorico();
+
+    await carregarResumo();
+
+    atualizarDashboardAutomaticamente();
+
+  },30000);
+}
+  
 function atualizarRelogio(){
 
   const agora = new Date();
 
-  document.getElementById("horaAtual").innerHTML =
+  document.getElementById("horaAtual").textContent =
     agora.toLocaleTimeString("pt-BR");
 
-  document.getElementById("dataAtual").innerHTML =
+  document.getElementById("dataAtual").textContent =
     agora.toLocaleDateString("pt-BR",{
       weekday:"long",
       day:"2-digit",
       month:"long",
       year:"numeric"
+
     });
+
 }
   
   function abrirRegistro(){
@@ -585,10 +605,14 @@ function atualizarRelogio(){
   }
 
   window.location.href =
-    `./ponto.html?empresa=${funcionario.empresa_id}`;
+  `./ponto.html?empresa=${encodeURIComponent(funcionario.empresa_id)}`;
 }
   
-setInterval(atualizarRelogio,1000);
+const relogioInterval =
+  setInterval(
+    atualizarRelogio,
+    1000
+  );
 
 async function carregarFuncionario(){
 
@@ -623,13 +647,17 @@ async function carregarFuncionario(){
     return;
   }
 
-  funcionario = data;
+    funcionario = data;
+
+  await carregarEmpresaFuncionario();
 
   preencherTela();
 
   await carregarHistorico();
   await carregarResumo();
-  
+  iniciarRealtime();
+  atualizarDashboardAutomaticamente();
+
   document.getElementById("loading").style.display =
     "none";
 
@@ -638,33 +666,61 @@ async function carregarFuncionario(){
 
   lucide.createIcons();
 }
+
+async function carregarEmpresaFuncionario(){
+
+  if(!funcionario?.empresa_id){
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("empresas")
+      .select("id, nome")
+      .eq("id", funcionario.empresa_id)
+      .single();
+
+  if(error || !data){
+
+    console.log(
+      "Erro ao carregar empresa do funcionário:",
+      error
+    );
+
+    empresaFuncionario = null;
+
+    return;
+  }
+
+  empresaFuncionario = data;
+}
   
 function preencherTela(){
 
   document.getElementById("nomeFuncionario")
-    .innerHTML =
+    .textContent =
       funcionario.nome_completo || "-";
 
   document.getElementById("funcaoFuncionario")
-    .innerHTML =
+    .textContent =
       funcionario.funcao || "-";
 
   document.getElementById("empresaFuncionario")
-    .innerHTML =
-      "PontoFácil";
+    .textContent =
+      empresaFuncionario?.nome || "Empresa não identificada";
 
   const avatar =
     document.getElementById("avatarFallback");
 
-  avatar.innerHTML =
+  const foto =
+    document.getElementById("fotoFuncionario");
+
+  avatar.textContent =
     (funcionario.nome_completo || "F")
-    .charAt(0)
-    .toUpperCase();
+      .charAt(0)
+      .toUpperCase();
 
   if(funcionario.foto_url){
-
-    const foto =
-      document.getElementById("fotoFuncionario");
 
     foto.src =
       funcionario.foto_url;
@@ -674,20 +730,36 @@ function preencherTela(){
 
     avatar.style.display =
       "none";
+
+  }else{
+
+    foto.style.display =
+      "none";
+
+    avatar.style.display =
+      "flex";
   }
 }
-
+  
 async function carregarHistorico(){
 
-  const { data } =
+  const { data, error } =
     await supabaseClient
       .from("registros_ponto")
       .select("*")
+      .eq("empresa_id", funcionario.empresa_id)
       .eq("funcionario_id", funcionario.id)
       .order("data_hora",{
         ascending:false
       })
       .limit(10);
+
+  if(error){
+
+    console.log(error);
+
+    return;
+  }
 
   const historico =
     document.getElementById("historico");
@@ -765,45 +837,93 @@ async function carregarHistorico(){
   ).toISOString();
 
   // REGISTROS DE HOJE
-  const { data: registrosHoje } =
-    await supabaseClient
-      .from("registros_ponto")
-      .select("*")
-      .eq("funcionario_id", funcionario.id)
-      .gte("data_hora", inicioDia)
-      .lte("data_hora", fimDia)
-      .order("data_hora",{
-        ascending:true
-      });
+  const {
+  data: registrosHoje,
+  error: resumoError
+} =
+  await supabaseClient
+    .from("registros_ponto")
+    .select("*")
+    .eq("empresa_id", funcionario.empresa_id)
+    .eq("funcionario_id", funcionario.id)
+    .gte("data_hora", inicioDia)
+    .lte("data_hora", fimDia)
+    .order("data_hora",{
+      ascending:true
+    });
+
+if(resumoError){
+
+  console.log(resumoError);
+
+  return;
+}
 
   const registros =
     registrosHoje || [];
 
   let minutosHoje = 0;
 
-  // CALCULAR HORAS TRABALHADAS
-  if(registros.length >= 2){
+function encontrarRegistro(tipo){
 
-    for(let i = 0; i < registros.length; i += 2){
+  return registros.find(
+    registro => registro.tipo === tipo
+  );
+}
 
-      const inicio = registros[i];
-      const fim = registros[i + 1];
+function calcularDiferencaMinutos(inicio, fim){
 
-      if(inicio && fim){
-
-        const inicioData =
-          new Date(inicio.data_hora);
-
-        const fimData =
-          new Date(fim.data_hora);
-
-        minutosHoje +=
-          Math.floor(
-            (fimData - inicioData) / 60000
-          );
-      }
-    }
+  if(!inicio || !fim){
+    return 0;
   }
+
+  const inicioData =
+    new Date(inicio.data_hora);
+
+  const fimData =
+    new Date(fim.data_hora);
+
+  return Math.max(
+    0,
+    Math.floor(
+      (fimData - inicioData) / 60000
+    )
+  );
+}
+
+const entrada =
+  encontrarRegistro("entrada");
+
+const saidaIntervalo =
+  encontrarRegistro("saida_intervalo");
+
+const retornoIntervalo =
+  encontrarRegistro("retorno_intervalo");
+
+const saida =
+  encontrarRegistro("saida");
+
+if(funcionario.sem_intervalo){
+
+  minutosHoje =
+    calcularDiferencaMinutos(
+      entrada,
+      saida
+    );
+
+}else{
+
+  minutosHoje =
+    calcularDiferencaMinutos(
+      entrada,
+      saidaIntervalo
+    )
+    +
+    calcularDiferencaMinutos(
+      retornoIntervalo,
+      saida
+    );
+}
 
   // FORMATAR HORAS
   const horas =
@@ -813,9 +933,9 @@ async function carregarHistorico(){
     minutosHoje % 60;
 
   document.getElementById(
-    "horasHoje"
-  ).innerHTML =
-    `${horas}h${String(minutos).padStart(2,"0")}`;
+  "horasHoje"
+  ).textContent =
+  `${horas}h${String(minutos).padStart(2,"0")}`;
 
   // ÚLTIMO REGISTRO
   if(registros.length > 0){
@@ -823,20 +943,21 @@ async function carregarHistorico(){
     const ultimo =
       registros[registros.length - 1];
 
-    document.getElementById(
-      "ultimoRegistro"
-    ).innerHTML =
-      new Date(ultimo.data_hora)
-        .toLocaleTimeString("pt-BR",{
-          hour:"2-digit",
-          minute:"2-digit"
-        });
+  document.getElementById(
+  "ultimoRegistro"
+  ).textContent =
+  new Date(ultimo.data_hora)
+    .toLocaleTimeString("pt-BR",{
+      hour:"2-digit",
+      minute:"2-digit"
+
+    });
 
   }else{
 
     document.getElementById(
       "ultimoRegistro"
-    ).innerHTML = "--";
+    ).textContent = "--";
   }
 
   // JORNADA PREVISTA
@@ -844,41 +965,37 @@ async function carregarHistorico(){
     hoje.getDay();
 
   const {
-    data:jornada
-  } = await supabaseClient
-    .from("funcionario_jornadas")
-    .select("*")
-    .eq("funcionario_id", funcionario.id)
-    .eq("dia_semana", diaSemana)
-    .eq("ativo", true)
-    .single();
+  data:jornada,
+  error:jornadaError
+} = await supabaseClient
+  .from("funcionario_jornadas")
+  .select("*")
+  .eq("empresa_id", funcionario.empresa_id)
+  .eq("funcionario_id", funcionario.id)
+  .eq("dia_semana", diaSemana)
+  .eq("ativo", true)
+  .maybeSingle();
 
-  if(jornada){
+if(jornadaError){
 
-    if(jornada.sem_intervalo){
+  console.log(
+    "Erro ao carregar jornada prevista:",
+    jornadaError
+  );
+}
 
-      document.getElementById(
-        "jornadaPrevista"
-      ).innerHTML =
-        `${jornada.horario_entrada}
-         às
-         ${jornada.horario_saida}`;
+    if(jornada){
 
-    }else{
-
-      document.getElementById(
-        "jornadaPrevista"
-      ).innerHTML =
-        `${jornada.horario_entrada}
-         às
-         ${jornada.horario_saida}`;
-    }
+    document.getElementById(
+      "jornadaPrevista"
+    ).textContent =
+      `${jornada.horario_entrada} às ${jornada.horario_saida}`;
 
   }else{
 
     document.getElementById(
       "jornadaPrevista"
-    ).innerHTML =
+    ).textContent =
       "Folga";
   }
 
@@ -887,32 +1004,44 @@ async function carregarHistorico(){
 
   if(jornada){
 
-    const entrada =
-      jornada.horario_entrada;
+  function horaParaMinutos(hora){
 
-    const saida =
-      jornada.horario_saida;
+    if(!hora) return 0;
 
-    function horaParaMinutos(hora){
+    const partes =
+      hora.split(":");
 
-      if(!hora) return 0;
-
-      const partes =
-        hora.split(":");
-
-      return (
-        Number(partes[0]) * 60 +
-        Number(partes[1])
-      );
-    }
-
-    const previsto =
-      horaParaMinutos(saida) -
-      horaParaMinutos(entrada);
-
-    saldoMinutos =
-      minutosHoje - previsto;
+    return (
+      Number(partes[0]) * 60 +
+      Number(partes[1])
+    );
   }
+
+  let previsto = 0;
+
+  if(jornada.sem_intervalo){
+
+    previsto =
+      horaParaMinutos(jornada.horario_saida) -
+      horaParaMinutos(jornada.horario_entrada);
+
+  }else{
+
+    previsto =
+      (
+        horaParaMinutos(jornada.horario_intervalo) -
+        horaParaMinutos(jornada.horario_entrada)
+      )
+      +
+      (
+        horaParaMinutos(jornada.horario_saida) -
+        horaParaMinutos(jornada.horario_retorno)
+      );
+  }
+
+  saldoMinutos =
+    minutosHoje - previsto;
+}
 
   const saldoHoras =
     Math.floor(
@@ -923,16 +1052,15 @@ async function carregarHistorico(){
     Math.abs(saldoMinutos) % 60;
 
   const saldoTexto =
-    `${saldoMinutos >= 0 ? "+" : "-"}
-     ${saldoHoras}h${String(saldoRestante).padStart(2,"0")}`;
+  `${saldoMinutos >= 0 ? "+" : "-"}${saldoHoras}h${String(saldoRestante).padStart(2,"0")}`;
 
   const saldoEl =
     document.getElementById(
       "saldoBanco"
     );
 
-  saldoEl.innerHTML =
-    saldoTexto;
+  saldoEl.textContent =
+  saldoTexto;
 
   saldoEl.classList.remove(
     "positivo",
@@ -952,16 +1080,80 @@ async function carregarHistorico(){
     );
   }
 }
+
+function iniciarRealtime(){
+
+  if(canalRealtime){
+
+    supabaseClient.removeChannel(
+      canalRealtime
+    );
+  }
+
+  canalRealtime =
+    supabaseClient
+      .channel(
+        `tempo-real-${Date.now()}`
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "registros_ponto"
+        },
+        async payload => {
+
+          const funcionarioPayload =
+            payload.new?.funcionario_id ||
+            payload.old?.funcionario_id;
+
+          if(
+            funcionarioPayload === funcionario?.id
+          ){
+
+            await carregarHistorico();
+
+            await carregarResumo();
+          }
+        }
+      )
+      .subscribe((status) => {
+
+        console.log(
+          "Realtime:",
+          status
+        );
+      });
+}
   
 async function logout(){
+
+  clearTimeout(
+
+    timeoutAtualizacao
+
+  );
+
+  if(canalRealtime){
+
+    await supabaseClient.removeChannel(
+
+      canalRealtime
+
+    );
+
+  }
 
   await supabaseClient.auth.signOut();
 
   window.location.href =
-    "./funcionario-login.html";
-}
 
-atualizarRelogio();
+    "./funcionario-login.html";
+
+}
+  
+  atualizarRelogio();
 
 carregarFuncionario();
 
