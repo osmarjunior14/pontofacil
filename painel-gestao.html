@@ -1369,7 +1369,10 @@
   return;
 }
 
-const senhaInicial = cpf.replace(/\D/g, "");
+const senhaInicial =
+  Math.random().toString(36).slice(-10);
+
+console.log("SENHA TEMPORÁRIA:", senhaInicial);
 
 const respostaAuth = await fetch(
   "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
