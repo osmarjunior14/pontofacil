@@ -438,9 +438,13 @@
         Lembrar de mim
       </div>
 
-      <a class="forgot" href="javascript:void(0)">
-        Esqueci minha senha
-      </a>
+      <a
+  class="forgot"
+  href="#"
+  onclick="recuperarSenha()"
+>
+  Esqueci minha senha
+</a>
     </div>
 
     <button onclick="loginGestao()">
@@ -492,21 +496,42 @@
     return;
   }
 
-  const { data: authData, error: authError } =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password: senha
-    });
+  const {
+  data: authData,
+  error: authError
+} = await supabaseClient.auth.signInWithPassword({
+  email,
+  password: senha
+});
 
-  console.log("AUTH DATA:", authData);
+console.log("AUTH DATA:", authData);
 console.log("AUTH ERROR:", authError);
-    
-  if(authError){
-    console.log("Erro no Auth:", authError);
-    erro.innerText = "E-mail ou senha inválidos.";
-    erro.style.display = "block";
-    return;
-  }
+
+if(authError){
+
+  console.log("Erro no Auth:", authError);
+
+  erro.innerText =
+    authError.message || "E-mail ou senha inválidos.";
+
+  erro.style.display = "block";
+
+  return;
+}
+
+const user =
+  authData?.user ||
+  authData?.session?.user;
+
+if(!user){
+
+  erro.innerText =
+    "Usuário não encontrado.";
+
+  erro.style.display = "block";
+
+  return;
+}
 
   const { data: vinculos, error: vinculoError } = await supabaseClient
   .from("usuarios_empresas")
@@ -519,7 +544,8 @@ console.log("AUTH ERROR:", authError);
       email_gestao
     )
   `)
-  .eq("user_id", authData.user.id)
+  .eq("user_id", user.id)
+  console.log("USER:", user);
   .eq("ativo", true)
   .limit(1);
 
@@ -548,6 +574,64 @@ if(!empresa){
   localStorage.setItem("pontofacil_empresa_email", empresa.email_gestao || email);
 
   window.location.href = "./dashboard.html";
+}
+
+  async function recuperarSenha(){
+
+  const email =
+    document.getElementById("email")
+      .value
+      .trim();
+
+  const erro =
+    document.getElementById("erro");
+
+  erro.style.display = "none";
+
+  if(!email){
+
+    erro.innerText =
+      "Digite seu e-mail para recuperar a senha.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  const { error } =
+    await supabaseClient.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo:
+          window.location.origin +
+          "/redefinir-senha.html"
+      }
+    );
+
+  if(error){
+
+    erro.innerText =
+      "Erro ao enviar recuperação.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  erro.style.background =
+    "rgba(22,163,74,.12)";
+
+  erro.style.border =
+    "1px solid rgba(74,222,128,.25)";
+
+  erro.style.color =
+    "#bbf7d0";
+
+  erro.innerText =
+    "E-mail de recuperação enviado.";
+
+  erro.style.display =
+    "block";
 }
   
 </script>
