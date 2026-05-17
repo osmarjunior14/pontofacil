@@ -351,17 +351,6 @@
       <div class="data" id="dataAtual">--</div>
     </div>
 
-    <div class="campo">
-      <label>
-        <i class="fa-regular fa-user"></i>
-        Funcionário
-      </label>
-
-      <select id="funcionario" onchange="mostrarFuncionario()">
-        <option value="">Carregando funcionários...</option>
-      </select>
-    </div>
-
     <div id="previewFuncionario" class="preview">
       <img
         id="fotoFuncionario"
@@ -386,11 +375,7 @@
       </label>
 
       <select id="tipo">
-        <option value="">Selecione</option>
-        <option value="entrada">Entrada</option>
-        <option value="saida_intervalo">Saída para intervalo</option>
-        <option value="retorno_intervalo">Retorno do intervalo</option>
-        <option value="saida">Saída</option>
+        <option value="">Verificando...</option>
       </select>
     </div>
 
@@ -460,8 +445,9 @@
   const params = new URLSearchParams(window.location.search);
   const empresaId = params.get("empresa");
 
-  let funcionarios = [];
   let empresaDados = null;
+  let funcionarioLogado = null;
+  
   const nomesTipos = {
   entrada: "Entrada",
   saida_intervalo: "Saída para intervalo",
@@ -494,7 +480,7 @@
   atualizarRelogio();
 
   document.getElementById("observacao").addEventListener("input", function(){
-    document.getElementById("contadorObs").innerText = this.value.length;
+  document.getElementById("contadorObs").innerText = this.value.length;
   });
 
   function normalizarNomeArquivo(texto){
@@ -540,9 +526,8 @@ async function obterProximoTipoPermitido(funcionarioId){
     return null;
   }
 
-  const funcionario = funcionarios.find(
-    f => String(f.id) === String(funcionarioId)
-  );
+  const funcionario =
+  funcionarioLogado;
 
   const tiposHoje = (data || []).map(registro => registro.tipo);
 
@@ -560,23 +545,31 @@ async function obterProximoTipoPermitido(funcionarioId){
   return "finalizado";
 }
   async function validarIntervaloMinimo(funcionarioId){
+
   const agora = new Date();
+
   const cincoMinAtras =
-  new Date(
-    agora.getTime() - (5 * 60 * 1000)
-  );
-    
-  const { data, error } = await supabaseClient
-    .from("registros_ponto")
-    .select("*")
-    .eq("empresa_id", empresaId)
-    .eq("funcionario_id", funcionarioId)
-    .gte("data_hora", cincoMinAtras.toISOString())
-    .order("data_hora", { ascending:false })
-    .limit(1);
+    new Date(
+      agora.getTime() - (5 * 60 * 1000)
+    );
+
+  const { data, error } =
+    await supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("empresa_id", empresaId)
+      .eq("funcionario_id", funcionarioId)
+      .gte("data_hora", cincoMinAtras.toISOString())
+      .order("data_hora", { ascending:false })
+      .limit(1);
 
   if(error){
-    console.log("Erro ao validar intervalo mínimo:", error);
+
+    console.log(
+      "Erro ao validar intervalo mínimo:",
+      error
+    );
+
     return {
       permitido:false,
       motivo:"Erro ao validar intervalo."
@@ -584,14 +577,27 @@ async function obterProximoTipoPermitido(funcionarioId){
   }
 
   if(data && data.length > 0){
-    const ultimoRegistro = new Date(data[0].data_hora);
-    const diferencaSegundos = Math.floor(
-      (agora.getTime() - ultimoRegistro.getTime()) / 1000
-    );
+
+    const ultimoRegistro =
+      new Date(data[0].data_hora);
+
+    const diferencaSegundos =
+      Math.floor(
+        (agora.getTime() - ultimoRegistro.getTime()) / 1000
+      );
+
+    const segundosRestantes =
+    Math.max(0, 300 - diferencaSegundos);
+
+    const minutos =
+      Math.floor(segundosRestantes / 60);
+
+    const segundos =
+      segundosRestantes % 60;
 
     return {
       permitido:false,
-      motivo:`Aguarde ${60 - diferencaSegundos}s para registrar novamente.`
+      motivo:`Aguarde ${minutos}m ${segundos}s para registrar novamente.`
     };
   }
 
@@ -716,6 +722,111 @@ if(brilhoMedio < 35){
     }, "image/jpeg", 0.9);
   }
 
+  async function carregarFuncionarioLogado(){
+
+  const {
+    data:{ session }
+  } = await supabaseClient.auth.getSession();
+
+  if(!session){
+
+    window.location.href =
+      "./funcionario-login.html";
+
+    return false;
+  }
+
+  const authUserId =
+    session.user.id;
+
+  const { data, error } =
+    await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("auth_user_id", authUserId)
+      .single();
+
+  if(error || !data){
+
+    mostrarMensagem(
+      "erro",
+      "Funcionário não encontrado."
+    );
+
+    return false;
+  }
+
+  funcionarioLogado = data;
+  if(
+  String(funcionarioLogado.empresa_id)
+  !==
+  String(empresaId)
+){
+
+  mostrarMensagem(
+    "erro",
+    "Este funcionário não pertence a esta empresa."
+  );
+
+  return false;
+}
+
+  preencherPreviewFuncionario();
+
+  return true;
+}
+
+  function preencherPreviewFuncionario(){
+
+  const preview =
+    document.getElementById(
+      "previewFuncionario"
+    );
+
+  const foto =
+    document.getElementById(
+      "fotoFuncionario"
+    );
+
+  const avatarFallback =
+    document.getElementById(
+      "avatarFallback"
+    );
+
+  document.getElementById(
+    "nomeFuncionarioPreview"
+  ).innerText =
+    funcionarioLogado.nome_completo;
+
+  document.getElementById(
+    "funcaoFuncionarioPreview"
+  ).innerText =
+    funcionarioLogado.funcao || "Funcionário";
+
+  if(funcionarioLogado.foto_url){
+
+    foto.src =
+      funcionarioLogado.foto_url;
+
+    foto.style.display =
+      "block";
+
+    avatarFallback.style.display =
+      "none";
+
+  }else{
+
+    foto.style.display =
+      "none";
+
+    avatarFallback.style.display =
+      "flex";
+  }
+
+  preview.style.display =
+    "flex";
+}
+  
   async function carregarEmpresa(){
   if(!empresaId){
     mostrarMensagem("erro", "QR Code inválido. Empresa não identificada.");
@@ -829,75 +940,6 @@ if(brilhoMedio < 35){
     }
   }
 
-  async function carregarFuncionarios(){
-    const select = document.getElementById("funcionario");
-
-    if(!empresaId){
-      select.innerHTML = `<option value="">Empresa não identificada</option>`;
-      mostrarMensagem("erro", "QR Code inválido. Empresa não identificada.");
-      return;
-    }
-
-    const { data, error } = await supabaseClient
-      .from("funcionarios")
-      .select("*")
-      .eq("empresa_id", empresaId)
-      .eq("ativo", true)
-      .order("nome_completo");
-
-    if(error){
-      console.log(error);
-      select.innerHTML = `<option value="">Erro ao carregar</option>`;
-      mostrarMensagem("erro", "Erro ao carregar funcionários.");
-      return;
-    }
-
-    funcionarios = data || [];
-
-    if(funcionarios.length === 0){
-      select.innerHTML = `<option value="">Nenhum funcionário ativo</option>`;
-      return;
-    }
-
-    select.innerHTML = `
-      <option value="">Selecione seu nome</option>
-      ${funcionarios.map(funcionario => `
-        <option value="${funcionario.id}">
-          ${funcionario.nome_completo}
-        </option>
-      `).join("")}
-    `;
-  }
-
-function mostrarFuncionario(){
-  const funcionarioId = document.getElementById("funcionario").value;
-  const funcionario = funcionarios.find(f => String(f.id) === String(funcionarioId));
-  const preview = document.getElementById("previewFuncionario");
-  const foto = document.getElementById("fotoFuncionario");
-  const avatarFallback = document.getElementById("avatarFallback");
-
-  if(!funcionario){
-    preview.style.display = "none";
-    return;
-  }
-
-  avatarFallback.style.display = "none";
-  foto.style.display = "block";
-  foto.src = funcionario.foto_url || "";
-
-  if(!funcionario.foto_url){
-    foto.style.display = "none";
-    avatarFallback.style.display = "flex";
-  }
-
-  document.getElementById("nomeFuncionarioPreview").innerText = funcionario.nome_completo;
-  document.getElementById("funcaoFuncionarioPreview").innerText = funcionario.funcao || "Funcionário";
-
-  preview.style.display = "flex";
-
-  atualizarTipoAutomatico(funcionarioId);
-}
-
 async function atualizarTipoAutomatico(funcionarioId){
   const selectTipo = document.getElementById("tipo");
   const botao = document.getElementById("btnRegistrar");
@@ -961,13 +1003,12 @@ async function atualizarTipoAutomatico(funcionarioId){
   }
 
   async function registrarPonto(){
-    const funcionarioId = document.getElementById("funcionario").value;
+    const funcionarioId =   funcionarioLogado.id;
     const tipo = document.getElementById("tipo").value;
     const observacao = document.getElementById("observacao").value.trim();
     const botao = document.getElementById("btnRegistrar");
-    const funcionarioSelecionado = funcionarios.find(
-  f => String(f.id) === String(funcionarioId)
-);
+    const funcionarioSelecionado =
+    funcionarioLogado;
 
     document.getElementById("mensagem").innerHTML = "";
 
@@ -1070,7 +1111,6 @@ if(!validacaoTempo.permitido){
       return;
     }
 
-    document.getElementById("tipo").value = "";
     document.getElementById("observacao").value = "";
     document.getElementById("contadorObs").innerText = "0";
 
@@ -1137,11 +1177,30 @@ await atualizarTipoAutomatico(funcionarioId);
   }
 
   async function iniciar(){
-  const ok = await carregarEmpresa();
-  if(!ok) return;
-  await carregarFuncionarios();
-}
 
+  const empresaOk =
+
+    await carregarEmpresa();
+
+  if(!empresaOk)
+
+    return;
+
+  const funcionarioOk =
+
+    await carregarFuncionarioLogado();
+
+  if(!funcionarioOk)
+
+    return;
+
+  await atualizarTipoAutomatico(
+
+    funcionarioLogado.id
+
+  );
+
+}
 iniciar();
 </script>
 
