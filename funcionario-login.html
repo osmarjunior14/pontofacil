@@ -7,6 +7,7 @@
   <title>PontoFácil • Login do Funcionário</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
 
   <style>
 
@@ -246,17 +247,15 @@
 
 <script>
 
-const supabaseUrl =
-  "https://ixeeperktitbzmnvcaqz.supabase.co";
-
-const supabaseKey =
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-
 const supabaseClient =
-  window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
+  window.supabaseClient;
+
+if(!supabaseClient){
+
+  alert("Supabase não carregou.");
+
+  location.reload();
+}
 
 async function fazerLogin(){
 
@@ -282,12 +281,24 @@ async function fazerLogin(){
   }
 
   const { data, error } =
-    await supabaseClient.auth.signInWithPassword({
 
-      email,
-      password: senha
+  await supabaseClient.auth.signInWithPassword({
 
-    });
+    email,
+
+    password: senha
+
+  });
+
+if(data?.session){
+
+  localStorage.setItem(
+
+    "pontofacil_funcionario_logado",
+
+    "sim"
+
+  );
 
   if(error){
 
@@ -301,6 +312,8 @@ async function fazerLogin(){
 
   console.log("LOGIN:", data);
 
+  erro.style.display = "none";
+  
   window.location.href =
     "./funcionario-dashboard.html";
 }
@@ -328,7 +341,7 @@ async function esqueciSenha(){
       email,
       {
         redirectTo:
-          "https://SEU-SITE/resetar-senha.html"
+  "https://osmarjunior14.github.io/pontofacil/resetar-senha.html"
       }
     );
 
@@ -347,6 +360,16 @@ async function esqueciSenha(){
   );
 }
 
+  document.addEventListener("keydown", function(e){
+
+  if(e.key === "Enter"){
+
+    fazerLogin();
+
+  }
+
+});
+  
 </script>
 
 </body>
