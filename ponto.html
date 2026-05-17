@@ -468,17 +468,35 @@ async function carregarModeloFace(){
 
   try{
 
+    const modelUrl =
+      "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
+
     await faceapi.nets.tinyFaceDetector.loadFromUri(
-      "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/"
+      modelUrl
+    );
+
+    await faceapi.nets.faceLandmark68Net.loadFromUri(
+      modelUrl
+    );
+
+    await faceapi.nets.faceRecognitionNet.loadFromUri(
+      modelUrl
     );
 
     modeloFaceCarregado = true;
+
+    console.log(
+      "Modelos faciais carregados com sucesso."
+    );
 
     return true;
 
   }catch(error){
 
-    console.log("Erro ao carregar modelo facial:", error);
+    console.log(
+      "Erro ao carregar modelos faciais:",
+      error
+    );
 
     mostrarMensagem(
       "erro",
@@ -756,6 +774,22 @@ async function obterProximoTipoPermitido(funcionarioId){
     return;
   }
 
+  status.innerText =
+  "Comparando com a foto cadastrada...";
+
+const faceConfere =
+  await validarFaceComCadastro(canvas);
+
+if(!faceConfere){
+
+  fotoCapturadaBlob = null;
+
+  status.innerText =
+    "Validação facial não aprovada.";
+
+  return;
+}
+    
   canvas.toBlob(blob => {
 
     if(!blob){
@@ -783,7 +817,7 @@ async function obterProximoTipoPermitido(funcionarioId){
       "none";
 
     status.innerText =
-      "Foto validada com rosto humano.";
+  "Foto validada com reconhecimento facial.";
 
     if(streamCamera){
 
@@ -836,6 +870,118 @@ async function obterProximoTipoPermitido(funcionarioId){
   }
 
   return true;
+}
+
+async function validarFaceComCadastro(canvasSelfie){
+
+  if(!funcionarioLogado?.foto_url){
+
+    mostrarMensagem(
+      "erro",
+      "Este funcionário não possui foto cadastrada para validação facial."
+    );
+
+    return false;
+  }
+
+  const modeloOk =
+    await carregarModeloFace();
+
+  if(!modeloOk){
+    return false;
+  }
+
+  try{
+
+    const imgCadastro =
+      await faceapi.fetchImage(
+        funcionarioLogado.foto_url
+      );
+
+    const opcoesDetector =
+      new faceapi.TinyFaceDetectorOptions({
+        inputSize:224,
+        scoreThreshold:0.5
+      });
+
+    const deteccaoCadastro =
+      await faceapi
+        .detectSingleFace(
+          imgCadastro,
+          opcoesDetector
+        )
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+    if(!deteccaoCadastro){
+
+      mostrarMensagem(
+        "erro",
+        "Não foi possível identificar um rosto na foto cadastrada do funcionário."
+      );
+
+      return false;
+    }
+
+    const deteccaoSelfie =
+      await faceapi
+        .detectSingleFace(
+          canvasSelfie,
+          opcoesDetector
+        )
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+
+    if(!deteccaoSelfie){
+
+      mostrarMensagem(
+        "erro",
+        "Não foi possível identificar um rosto na selfie capturada."
+      );
+
+      return false;
+    }
+
+    const distancia =
+      faceapi.euclideanDistance(
+        deteccaoCadastro.descriptor,
+        deteccaoSelfie.descriptor
+      );
+
+    console.log(
+      "DISTÂNCIA FACIAL:",
+      distancia
+    );
+
+    const limiteAceitacao =
+      0.62;
+
+    if(distancia > limiteAceitacao){
+
+      mostrarMensagem(
+        "erro",
+        "A selfie não corresponde com segurança à foto cadastrada. Tente novamente com o rosto bem iluminado e de frente para a câmera."
+      );
+
+      return false;
+    }
+
+    return true;
+
+  }catch(error){
+
+    console.log(
+      "Erro na validação facial:",
+      error
+    );
+
+    mostrarMensagem(
+      "erro",
+      "Erro ao comparar a selfie com a foto cadastrada."
+    );
+
+    return false;
+  }
 }
   
   async function carregarFuncionarioLogado(){
@@ -1286,9 +1432,10 @@ if(emailError){
   mostrarMensagem("erro", "Ponto registrado, mas houve erro ao enviar o e-mail.");
 }
 
-await carregarModeloFace();
 await atualizarTipoAutomatico(
+
   funcionarioLogado.id
+
 );
 
     botao.disabled = false;
@@ -1313,12 +1460,12 @@ await atualizarTipoAutomatico(
 
     return;
 
+  await carregarModeloFace();
   await atualizarTipoAutomatico(
 
     funcionarioLogado.id
 
   );
-
 }
 iniciar();
 </script>
