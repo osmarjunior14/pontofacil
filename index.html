@@ -6,6 +6,7 @@
   <title>PontoFácil</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
 
   <style>
 
@@ -105,12 +106,14 @@
     type="email"
     id="email"
     placeholder="E-mail"
+    autocomplete="email"
   >
 
   <input
     type="password"
     id="senha"
     placeholder="Senha"
+    autocomplete="current-password"
   >
 
   <button onclick="login()">
@@ -125,69 +128,125 @@
 
 <script>
 
-const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+const supabaseClient = window.supabaseClient;
 
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+if(!supabaseClient){
 
-const supabaseClient = window.supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
+  alert("Erro ao carregar Supabase.");
+}
 
 async function login(){
 
   try{
 
-    const email = document.getElementById("email").value.trim();
-    const senha = document.getElementById("senha").value.trim();
+    const email =
+      document.getElementById("email")
+      .value
+      .trim();
 
-    const erro = document.getElementById("erro");
+    const senha =
+      document.getElementById("senha")
+      .value;
+
+    const erro =
+      document.getElementById("erro");
 
     erro.style.display = "none";
 
     if(!email || !senha){
-      erro.innerText = "Preencha todos os campos.";
-      erro.style.display = "block";
+
+      erro.innerText =
+        "Preencha todos os campos.";
+
+      erro.style.display =
+        "block";
+
       return;
     }
 
-    const resposta = await supabaseClient
+    // LOGIN AUTH
+    const {
+      data,
+      error
+    } = await supabaseClient.auth.signInWithPassword({
+
+      email,
+      password: senha
+
+    });
+
+    if(error){
+
+      erro.innerText =
+        "E-mail ou senha inválidos.";
+
+      erro.style.display =
+        "block";
+
+      return;
+    }
+
+    if(!data?.user){
+
+      erro.innerText =
+        "Usuário não encontrado.";
+
+      erro.style.display =
+        "block";
+
+      return;
+    }
+
+    // VERIFICA ADMIN
+    const {
+      data: admin,
+      error: adminError
+    } = await supabaseClient
       .from("administradores")
       .select("*")
-      .eq("email", email)
-      .eq("senha", senha)
-      .eq("ativo", true);
+      .eq("auth_user_id", data.user.id)
+      .eq("ativo", true)
+      .single();
 
-    console.log("RESPOSTA:", resposta);
+    if(adminError || !admin){
 
-    if(resposta.error){
-      erro.innerText = resposta.error.message;
-      erro.style.display = "block";
+      await supabaseClient.auth.signOut();
+
+      erro.innerText =
+        "Usuário sem permissão de administrador.";
+
+      erro.style.display =
+        "block";
+
       return;
     }
 
-    if(!resposta.data || resposta.data.length === 0){
-      erro.innerText = "Usuário não encontrado.";
-      erro.style.display = "block";
-      return;
-    }
-
-    localStorage.setItem("pontofacil_logado", "sim");
-
-    window.location.href = "./painel.html";
+    // LOGIN OK
+    window.location.href =
+      "./painel.html";
 
   }catch(e){
 
-    console.log("ERRO GERAL:", e);
+    console.log("ERRO LOGIN:", e);
 
-    const erro = document.getElementById("erro");
+    const erro =
+      document.getElementById("erro");
 
-    erro.innerText = "Erro geral: " + e.message;
-    erro.style.display = "block";
+    erro.innerText =
+      "Erro ao realizar login.";
 
+    erro.style.display =
+      "block";
   }
-
 }
+
+document.addEventListener("keydown", function(e){
+
+  if(e.key === "Enter"){
+
+    login();
+  }
+});
 
 </script>
 
