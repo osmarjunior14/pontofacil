@@ -1415,49 +1415,59 @@ if(!supabaseClient){
  }
 
  const senhaInicial =
+
  Math.random()
+
  .toString(36)
+
  .slice(-10);
 
- const {
+const {
 
   data: { session }
 
-} = await supabaseClient.auth.getSession();
-
-console.log("SESSION:", session);
- 
- const {
-  data: { session }
 } = await supabaseClient.auth.getSession();
 
 console.log("SESSION:", session);
 
 const respostaAuth = await fetch(
+
   "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
+
   {
+
     method: "POST",
 
     headers: {
+
       "Content-Type": "application/json",
+
       "Authorization": `Bearer ${session.access_token}`
+
     },
 
     body: JSON.stringify({
 
       funcionario_id:
+
         funcionarioCriado.id,
 
       empresa_id:
+
         empresaId,
 
       nome,
+
       email,
 
       senha:
+
         senhaInicial
+
     })
+
   }
+
 );
 
  const authResultado =
