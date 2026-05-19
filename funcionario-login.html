@@ -257,6 +257,12 @@ if(!supabaseClient){
   location.reload();
 }
 
+const params =
+  new URLSearchParams(window.location.search);
+
+const empresaQr =
+  params.get("empresa");
+  
 async function fazerLogin(){
 
   const email =
@@ -280,25 +286,16 @@ async function fazerLogin(){
     return;
   }
 
-  const { data, error } =
-
-  await supabaseClient.auth.signInWithPassword({
+  const {
+    data,
+    error
+  } = await supabaseClient.auth.signInWithPassword({
 
     email,
 
     password: senha
 
   });
-
-if(data?.session){
-
-  localStorage.setItem(
-
-    "pontofacil_funcionario_logado",
-
-    "sim"
-
-  );
 
   if(error){
 
@@ -310,10 +307,108 @@ if(data?.session){
     return;
   }
 
+  const user =
+    data?.session?.user;
+
+  if(!user){
+
+    erro.innerHTML =
+      "Usuário não encontrado.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  /*
+  =========================================
+  BUSCA VÍNCULO
+  =========================================
+  */
+
+  const {
+    data: vinculo,
+    error: vinculoError
+  } = await supabaseClient
+    .from("usuarios_empresas")
+    .select(`
+      empresa_id,
+      ativo,
+      perfil
+    `)
+    .eq("user_id", user.id)
+    .eq("perfil", "funcionario")
+    .single();
+
+  if(vinculoError || !vinculo){
+
+    await supabaseClient.auth.signOut();
+
+    erro.innerHTML =
+      "Funcionário não vinculado a empresa.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  /*
+  =========================================
+  FUNCIONÁRIO INATIVO
+  =========================================
+  */
+
+  if(vinculo.ativo !== true){
+
+    await supabaseClient.auth.signOut();
+
+    erro.innerHTML =
+      "Seu acesso está inativo.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  /*
+  =========================================
+  VALIDA EMPRESA DO QR
+  =========================================
+  */
+
+  if(
+    empresaQr &&
+    String(vinculo.empresa_id) !== String(empresaQr)
+  ){
+
+    await supabaseClient.auth.signOut();
+
+    erro.innerHTML =
+      "Este QR Code não pertence à sua empresa.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  /*
+  =========================================
+  LOGIN OK
+  =========================================
+  */
+
+  localStorage.setItem(
+    "pontofacil_funcionario_logado",
+    "sim"
+  );
+
+  localStorage.setItem(
+    "pontofacil_empresa_id",
+    vinculo.empresa_id
+  );
+
   console.log("LOGIN:", data);
 
-  erro.style.display = "none";
-  
   window.location.href =
     "./funcionario-dashboard.html";
 }
