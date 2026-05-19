@@ -1419,7 +1419,15 @@ if(!supabaseClient){
  .toString(36)
  .slice(-10);
 
- const respostaAuth = await fetch(
+ const {
+
+  data: { session }
+
+} = await supabaseClient.auth.getSession();
+
+console.log("SESSION:", session);
+ 
+  const respostaAuth = await fetch(
  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
  {
  method:"POST",
