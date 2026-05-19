@@ -547,7 +547,209 @@
 
 <script>
 
-const supabaseClient =
+/*
+
+=========================================
+
+VALIDA LOGIN
+
+=========================================
+
+*/
+
+async function validarLoginFuncionario(){
+
+  /*
+
+  =========================================
+
+  PEGA SESSÃO
+
+  =========================================
+
+  */
+
+  const {
+
+    data: { session }
+
+  } = await supabaseClient.auth.getSession();
+
+  /*
+
+  =========================================
+
+  SEM LOGIN
+
+  =========================================
+
+  */
+
+  if(!session){
+
+    window.location.href =
+
+      "./funcionario-login.html";
+
+    return null;
+
+  }
+
+  const user =
+
+    session.user;
+
+  /*
+
+  =========================================
+
+  BUSCA VÍNCULO
+
+  =========================================
+
+  */
+
+  const {
+
+    data: vinculo,
+
+    error: vinculoError
+
+  } = await supabaseClient
+
+    .from("usuarios_empresas")
+
+    .select(`
+
+      empresa_id,
+
+      ativo,
+
+      perfil
+
+    `)
+
+    .eq("user_id", user.id)
+
+    .eq("perfil", "funcionario")
+
+    .single();
+
+  /*
+
+  =========================================
+
+  SEM VÍNCULO
+
+  =========================================
+
+  */
+
+  if(vinculoError || !vinculo){
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href =
+
+      "./funcionario-login.html";
+
+    return null;
+
+  }
+
+  /*
+
+  =========================================
+
+  FUNCIONÁRIO INATIVO
+
+  =========================================
+
+  */
+
+  if(vinculo.ativo !== true){
+
+    await supabaseClient.auth.signOut();
+
+    alert(
+
+      "Seu acesso está inativo."
+
+    );
+
+    window.location.href =
+
+      "./funcionario-login.html";
+
+    return null;
+
+  }
+
+  /*
+
+  =========================================
+
+  EMPRESA INVÁLIDA
+
+  =========================================
+
+  */
+
+  const empresaStorage =
+
+    localStorage.getItem(
+
+      "pontofacil_empresa_id"
+
+    );
+
+  if(
+
+    empresaStorage &&
+
+    String(vinculo.empresa_id) !== String(empresaStorage)
+
+  ){
+
+    await supabaseClient.auth.signOut();
+
+    alert(
+
+      "Sessão inválida."
+
+    );
+
+    window.location.href =
+
+      "./funcionario-login.html";
+
+    return null;
+
+  }
+
+  /*
+
+  =========================================
+
+  LOGIN OK
+
+  =========================================
+
+  */
+
+  return {
+
+    session,
+
+    user,
+
+    vinculo
+
+  };
+
+}
+  
+  const supabaseClient =
   window.supabaseClient;
 
 if(!supabaseClient){
@@ -608,12 +810,6 @@ function atualizarRelogio(){
   `./ponto.html?empresa=${encodeURIComponent(funcionario.empresa_id)}`;
 }
   
-const relogioInterval =
-  setInterval(
-    atualizarRelogio,
-    1000
-  );
-
 async function carregarFuncionario(){
 
   const {
@@ -903,7 +1099,7 @@ const retornoIntervalo =
 const saida =
   encontrarRegistro("saida");
 
-if(funcionario.sem_intervalo){
+if(jornada?.sem_intervalo){
 
   minutosHoje =
     calcularDiferencaMinutos(
@@ -1154,10 +1350,69 @@ sessionStorage.clear();
 
 window.location.href =
   "./funcionario-login.html";
-  
+}
+
+/*
+=========================================
+SESSÃO EXPIRADA
+=========================================
+*/
+
+supabaseClient.auth.onAuthStateChange(
+  (event) => {
+
+    if(event === "SIGNED_OUT"){
+
+      window.location.href =
+        "./funcionario-login.html";
+    }
+  }
+);
+
+/*
+=========================================
+INICIAR DASHBOARD
+=========================================
+*/
+
+async function iniciarDashboard(){
+
+  /*
+  =========================================
+  VALIDA LOGIN
+  =========================================
+  */
+
+  const auth =
+    await validarLoginFuncionario();
+
+  if(!auth){
+    return;
+  }
+
+  /*
+  =========================================
+  INICIA SISTEMA
+  =========================================
+  */
+
   atualizarRelogio();
 
-carregarFuncionario();
+  setInterval(
+    atualizarRelogio,
+    1000
+  );
+
+  await carregarFuncionario();
+}
+
+/*
+=========================================
+START
+=========================================
+*/
+
+iniciarDashboard();
 
 </script>
 
