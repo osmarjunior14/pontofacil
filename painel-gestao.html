@@ -1427,31 +1427,38 @@ if(!supabaseClient){
 
 console.log("SESSION:", session);
  
-  const respostaAuth = await fetch(
- "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
- {
- method:"POST",
+ const {
+  data: { session }
+} = await supabaseClient.auth.getSession();
 
- headers:{
- "Content-Type":"application/json"
- },
+console.log("SESSION:", session);
 
- body:JSON.stringify({
+const respostaAuth = await fetch(
+  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
+  {
+    method: "POST",
 
- funcionario_id:
- funcionarioCriado.id,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${session.access_token}`
+    },
 
- empresa_id:
- empresaId,
+    body: JSON.stringify({
 
- nome,
- email,
+      funcionario_id:
+        funcionarioCriado.id,
 
- senha:
- senhaInicial
- })
- }
- );
+      empresa_id:
+        empresaId,
+
+      nome,
+      email,
+
+      senha:
+        senhaInicial
+    })
+  }
+);
 
  const authResultado =
  await respostaAuth.json();
