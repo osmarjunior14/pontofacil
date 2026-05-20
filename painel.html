@@ -478,20 +478,22 @@
 
   async function carregarEmpresas(){
 
-    const lista =
-      document.getElementById("listaEmpresas");
+  const lista = document.getElementById("listaEmpresas");
 
-    lista.innerHTML =
-      `<div class="vazio">Carregando empresas...</div>`;
+  lista.innerHTML =
+    `<div class="vazio">Carregando empresas...</div>`;
+
+  try{
+
+    console.log("1. Iniciando busca de empresas...");
 
     const { data, error } = await supabaseClient
       .from("empresas")
-      .select("*")
-      .order("created_at", { ascending:false });
+      .select("*");
+
+    console.log("2. Resposta empresas:", { data, error });
 
     if(error){
-
-      console.log("Erro ao carregar empresas:", error);
 
       lista.innerHTML =
         `<div class="vazio">Erro ao carregar empresas: ${error.message}</div>`;
@@ -559,4 +561,17 @@
             class="btn-status"
             onclick="alterarStatusEmpresa('${empresa.id}', ${empresa.ativa})"
           >
-            ${empresa
+            ${empresa.ativa ? "Inativar" : "Ativar"}
+          </button>
+        </div>
+      </div>
+    `).join("");
+
+  }catch(error){
+
+    console.log("ERRO GERAL carregarEmpresas:", error);
+
+    lista.innerHTML =
+      `<div class="vazio">Erro geral ao carregar empresas: ${error.message}</div>`;
+  }
+}
