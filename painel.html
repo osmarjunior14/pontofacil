@@ -403,78 +403,100 @@
 
   async function salvarEmpresa(){
 
-    const nome =
-      document.getElementById("nome").value.trim();
+  const nome =
+    document.getElementById("nome").value.trim();
 
-    const cnpj =
-      document.getElementById("cnpj").value.trim();
+  const cnpj =
+    document.getElementById("cnpj").value.trim();
 
-    const email_gestao =
-      document.getElementById("email_gestao").value.trim();
+  const email_gestao =
+    document.getElementById("email_gestao").value.trim();
 
-    const senha_gestao =
-      document.getElementById("senha_gestao").value.trim();
+  const senha_gestao =
+    document.getElementById("senha_gestao").value.trim();
 
-    const latitude =
-      document.getElementById("latitude").value;
+  const latitude =
+    document.getElementById("latitude").value;
 
-    const longitude =
-      document.getElementById("longitude").value;
+  const longitude =
+    document.getElementById("longitude").value;
 
-    const raio =
-      document.getElementById("raio_permitido_metros").value;
+  const raio =
+    document.getElementById("raio_permitido_metros").value;
 
-    if(!nome || !email_gestao || !senha_gestao){
+  if(!nome || !email_gestao || !senha_gestao){
 
-      alert("Preencha nome, e-mail de gestão e senha.");
+    alert("Preencha nome, e-mail de gestão e senha.");
 
-      return;
-    }
-
-    const logoUrl = await enviarLogoEmpresa(nome);
-
-    if(logoUrl === null){
-      return;
-    }
-
-    const { error } = await supabaseClient
-      .from("empresas")
-      .insert([
-        {
-          nome,
-          cnpj,
-          email_gestao,
-          senha_gestao,
-          logo_url: logoUrl || "",
-          latitude: latitude ? Number(latitude) : null,
-          longitude: longitude ? Number(longitude) : null,
-          raio_permitido_metros: Number(raio || 50),
-          ativa:true
-        }
-      ]);
-
-    if(error){
-
-      console.log("Erro ao salvar empresa:", error);
-
-      alert("Erro ao salvar empresa: " + error.message);
-
-      return;
-    }
-
-    alert("Empresa cadastrada com sucesso.");
-
-    document.getElementById("logo").value = "";
-    document.getElementById("nome").value = "";
-    document.getElementById("cnpj").value = "";
-    document.getElementById("email_gestao").value = "";
-    document.getElementById("senha_gestao").value = "";
-    document.getElementById("latitude").value = "";
-    document.getElementById("longitude").value = "";
-    document.getElementById("raio_permitido_metros").value = "50";
-
-    await carregarEmpresas();
+    return;
   }
+
+  const logoUrl =
+    await enviarLogoEmpresa(nome);
+
+  if(logoUrl === null){
+    return;
+  }
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if(!session){
+    alert("Sessão expirada. Faça login novamente.");
+    window.location.href = "./index.html";
+    return;
+  }
+
+  const resposta = await fetch(
+    "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-empresa",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({
+        nome,
+        cnpj,
+        email_gestao,
+        senha_gestao,
+        logo_url: logoUrl || "",
+        latitude: latitude ? Number(latitude) : null,
+        longitude: longitude ? Number(longitude) : null,
+        raio_permitido_metros: Number(raio || 50)
+      })
+    }
+  );
+
+  const resultado =
+    await resposta.json();
+
+  console.log("RESULTADO CRIAR EMPRESA:", resultado);
+
+  if(!resposta.ok || !resultado.success){
+
+    alert(
+      "Erro ao criar empresa: " +
+      (resultado.error || "Erro desconhecido.")
+    );
+
+    return;
+  }
+
+  alert("Empresa cadastrada com sucesso. O gestor já pode acessar o sistema.");
+
+  document.getElementById("logo").value = "";
+  document.getElementById("nome").value = "";
+  document.getElementById("cnpj").value = "";
+  document.getElementById("email_gestao").value = "";
+  document.getElementById("senha_gestao").value = "";
+  document.getElementById("latitude").value = "";
+  document.getElementById("longitude").value = "";
+  document.getElementById("raio_permitido_metros").value = "50";
+
+  await carregarEmpresas();
+}
 
   async function carregarEmpresas(){
 
