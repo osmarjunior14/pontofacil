@@ -1143,7 +1143,7 @@ if(!supabaseClient){
  }
 
  const user = userData.user;
- console.log("ADMIN LOGADO:", user.email);
+ console.log("ADMIN DO SISTEMA LOGADO:", user.email);
 
  const { data: vinculos, error: vinculoError } = await supabaseClient
  .from("usuarios_empresas")
@@ -1157,6 +1157,7 @@ if(!supabaseClient){
  `)
  .eq("user_id", userData.user.id)
  .eq("ativo", true)
+ .eq("perfil", "admin")
  .limit(1);
 
  if(vinculoError || !vinculos || vinculos.length === 0){
