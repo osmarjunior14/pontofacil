@@ -1351,39 +1351,62 @@ if(!validacaoTempo.permitido){
       return;
     }
 
-    const { error } = await supabaseClient
+    const {
+  data: { session }
+} = await supabaseClient.auth.getSession();
 
-  .from("registros_ponto")
+const resposta = await fetch(
+  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
+  {
 
-  .insert([
+    method:"POST",
 
-    {
+    headers:{
 
-      empresa_id:empresaId,
-      funcionario_id:funcionarioId,
-      email_funcionario: funcionarioSelecionado?.email || null,
-      email_rh: empresaDados?.email_rh || null,
+      "Content-Type":"application/json",
+
+      "Authorization":
+        `Bearer ${session.access_token}`
+    },
+
+    body:JSON.stringify({
+
       tipo,
       observacao,
+
       foto_url:fotoUrl,
-      data_hora:new Date().toISOString(),
-      latitude:localizacaoValidada.latitude,
-      longitude:localizacaoValidada.longitude,
-      distancia_metros:localizacaoValidada.distancia_metros,
-      captura_ao_vivo:true,
-      metodo_captura:"camera"
 
-    }
+      latitude:
+        localizacaoValidada.latitude,
 
-  ]);
+      longitude:
+        localizacaoValidada.longitude,
 
-    if(error){
-      console.log(error);
-      mostrarMensagem("erro", "Erro ao registrar ponto.");
-      botao.disabled = false;
-      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
-      return;
-    }
+      distancia_metros:
+        localizacaoValidada.distancia_metros
+    })
+  }
+);
+
+const resultado =
+  await resposta.json();
+
+if(!resposta.ok){
+
+  console.log(resultado);
+
+  mostrarMensagem(
+    "erro",
+    resultado.error || "Erro ao registrar ponto."
+  );
+
+  botao.disabled = false;
+
+  botao.innerHTML =
+    `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+
+  return;
+}
 
     document.getElementById("observacao").value = "";
     document.getElementById("contadorObs").innerText = "0";
