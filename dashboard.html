@@ -911,6 +911,7 @@ async function carregarEmpresaLogada(){
     `)
     .eq("user_id", userData.user.id)
     .eq("ativo", true)
+    .eq("perfil", "gestor")
     .limit(1);
 
   if(vinculoError || !vinculos || vinculos.length === 0){
