@@ -417,17 +417,47 @@ VALIDA FUNCIONÁRIO ATIVO
 =========================================
 */
 
+/*
+=========================================
+VALIDA FUNCIONÁRIO ATIVO NA TABELA FUNCIONARIOS
+=========================================
+*/
+
+console.log("VALIDANDO FUNCIONÁRIO:", {
+  empresa_id: vinculo.empresa_id,
+  user_email: user.email
+});
+
 const {
-  data: funcionario,
+  data: funcionariosEncontrados,
   error: funcionarioError
 } = await supabaseClient
   .from("funcionarios")
-  .select("id, nome_completo, email, ativo")
+  .select("id, nome_completo, email, ativo, empresa_id")
   .eq("empresa_id", vinculo.empresa_id)
-  .eq("email", user.email)
-  .single();
+  .ilike("email", user.email.trim());
 
-if(funcionarioError || !funcionario){
+console.log("FUNCIONÁRIOS ENCONTRADOS:", {
+  funcionariosEncontrados,
+  funcionarioError
+});
+
+if(funcionarioError){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Erro ao validar funcionário: " + funcionarioError.message;
+
+  erro.style.display = "block";
+
+  return;
+}
+
+if(!funcionariosEncontrados || funcionariosEncontrados.length === 0){
 
   await supabaseClient.auth.signOut();
 
@@ -442,7 +472,11 @@ if(funcionarioError || !funcionario){
   return;
 }
 
-if(funcionario.ativo !== true){
+const funcionarioAtivo = funcionariosEncontrados.find(f =>
+  f.ativo === true
+);
+
+if(!funcionarioAtivo){
 
   await supabaseClient.auth.signOut();
 
