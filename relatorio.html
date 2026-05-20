@@ -841,11 +841,15 @@
   let jornadasFuncionarios = [];
 
   async function carregarEmpresaLogada(){
+
   const { data: userData, error: userError } =
     await supabaseClient.auth.getUser();
 
   if(userError || !userData.user){
-    window.location.href = "./gestao.html";
+
+    window.location.href =
+      "./gestao.html";
+
     return false;
   }
 
@@ -856,7 +860,8 @@
       empresas (
         id,
         nome,
-        email_gestao
+        email_gestao,
+        ativa
       )
     `)
     .eq("user_id", userData.user.id)
@@ -865,21 +870,48 @@
     .limit(1);
 
   if(vinculoError || !vinculos || vinculos.length === 0){
-    window.location.href = "./gestao.html";
+
+    window.location.href =
+      "./gestao.html";
+
     return false;
   }
 
-  const empresa = Array.isArray(vinculos[0].empresas)
-    ? vinculos[0].empresas[0]
-    : vinculos[0].empresas;
+  const empresa =
+    Array.isArray(vinculos[0].empresas)
+      ? vinculos[0].empresas[0]
+      : vinculos[0].empresas;
 
   if(!empresa){
-    window.location.href = "./gestao.html";
+
+    window.location.href =
+      "./gestao.html";
+
     return false;
   }
 
-  empresaId = empresa.id;
-  empresaNome = empresa.nome;
+  if(empresa.ativa !== true){
+
+    await supabaseClient.auth.signOut();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    alert(
+      "Empresa inativa. Entre em contato com o administrador do sistema."
+    );
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+  }
+
+  empresaId =
+    empresa.id;
+
+  empresaNome =
+    empresa.nome;
 
   document.getElementById("empresaNomeSidebar").innerText =
     empresaNome || "PontoFácil";
