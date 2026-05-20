@@ -601,89 +601,99 @@ async function validarLoginFuncionario(){
 
   /*
 
-  =========================================
+=========================================
 
-  BUSCA VÍNCULO
+BUSCA VÍNCULO
 
-  =========================================
+=========================================
 
-  */
+*/
 
-  const {
+const {
 
-    data: vinculo,
+  data: vinculo,
 
-    error: vinculoError
+  error: vinculoError
 
-  } = await supabaseClient
+} = await supabaseClient
 
-    .from("usuarios_empresas")
+  .from("usuarios_empresas")
 
-    .select(`
+  .select(`
 
-      empresa_id,
+    empresa_id,
 
-      ativo,
+    ativo,
 
-      perfil
+    perfil,
 
-    `)
+    empresas (
 
-    .eq("user_id", user.id)
+      id,
 
-    .eq("perfil", "funcionario")
+      nome,
 
-    .single();
+      ativa
 
-  /*
+    )
 
-  =========================================
+  `)
 
-  SEM VÍNCULO
+  .eq("user_id", user.id)
 
-  =========================================
+  .eq("perfil", "funcionario")
 
-  */
+  .single();
 
-  if(vinculoError || !vinculo){
+/*
 
-    await supabaseClient.auth.signOut();
+=========================================
 
-    window.location.href =
+SEM VÍNCULO
 
-      "./funcionario-login.html";
+=========================================
 
-    return null;
+*/
 
-  }
+if(vinculoError || !vinculo){
 
-  /*
+  await supabaseClient.auth.signOut();
 
-  =========================================
+  window.location.href =
 
-  FUNCIONÁRIO INATIVO
+    "./funcionario-login.html";
 
-  =========================================
+  return null;
 
-  */
+}
 
-  if(vinculo.ativo !== true){
+/*
 
-    await supabaseClient.auth.signOut();
+=========================================
 
-    alert(
+FUNCIONÁRIO INATIVO
 
-      "Seu acesso está inativo."
+=========================================
 
-    );
+*/
 
-    window.location.href =
+if(vinculo.ativo !== true){
 
-      "./funcionario-login.html";
+  await supabaseClient.auth.signOut();
 
-    return null;
+  alert(
 
-  }
+    "Seu acesso está inativo."
+
+  );
+
+  window.location.href =
+
+    "./funcionario-login.html";
+
+  return null;
+
+}
 
   /*
 
@@ -726,7 +736,44 @@ async function validarLoginFuncionario(){
     return null;
 
   }
+  
+  /*
 
+=========================================
+
+EMPRESA INATIVA
+
+=========================================
+
+*/
+
+const empresa = Array.isArray(vinculo.empresas)
+
+  ? vinculo.empresas[0]
+
+  : vinculo.empresas;
+
+if(!empresa || empresa.ativa !== true){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+
+    "Empresa inativa. Entre em contato com o responsável."
+
+  );
+
+  window.location.href =
+
+    "./funcionario-login.html";
+
+  return null;
+
+}
   /*
 
   =========================================
