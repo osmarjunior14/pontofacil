@@ -552,7 +552,8 @@
           empresas (
             id,
             nome,
-            email_gestao
+            email_gestao,
+            ativa
           )
         `)
         .eq("user_id", user.id)
@@ -582,10 +583,10 @@
       if(!empresa && vinculos[0].empresa_id){
         const { data: empresasData, error: empresaError } = await supabaseClient
           .from("empresas")
-          .select("id, nome, email_gestao")
+          .select("id, nome, email_gestao, ativa")
           .eq("id", vinculos[0].empresa_id)
           .limit(1);
-
+        
         if(empresaError){
           console.error("Empresa gestão:", empresaError);
           mostrarErroLogin(
@@ -601,6 +602,23 @@
         mostrarErroLogin("Empresa vinculada não encontrada ou sem permissão de leitura.");
         return;
       }
+      if(empresa.ativa !== true){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  mostrarErroLogin(
+
+    "Empresa inativa. Entre em contato com o administrador do sistema."
+
+  );
+
+  return;
+
+}
 
       localStorage.setItem("pontofacil_empresa_logada", "sim");
       localStorage.setItem("pontofacil_empresa_id", empresa.id);
