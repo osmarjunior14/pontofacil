@@ -1078,6 +1078,51 @@ if(!supabaseClient){
  let funcionarios = [];
  let funcionarioEditandoId = null;
 
+ async function registrarLogAdmin({
+  acao,
+  tabela_afetada = null,
+  registro_id = null,
+  funcionario_id = null,
+  dados_anteriores = null,
+  dados_novos = null,
+  detalhes = null
+}){
+
+  try{
+
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    if(!user || !empresaId){
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("logs_admin")
+      .insert({
+        empresa_id: empresaId,
+        admin_user_id: user.id,
+        funcionario_id,
+        acao,
+        tabela_afetada,
+        registro_id,
+        dados_anteriores,
+        dados_novos,
+        detalhes
+      });
+
+    if(error){
+      console.log("Erro ao registrar log admin:", error);
+    }
+
+  }catch(error){
+
+    console.log("Erro geral ao registrar log:", error);
+
+  }
+}
+ 
  const diasSemana = [
  { numero:0, nome:"Domingo" },
  { numero:1, nome:"Segunda-feira" },
@@ -1479,22 +1524,29 @@ const respostaAuth = await fetch(
  return;
  }
 
- alert(
-`Funcionário cadastrado com sucesso.
+ await registrarLogAdmin({
+  acao: "criou_funcionario",
+  tabela_afetada: "funcionarios",
+  registro_id: funcionarioCriado.id,
+  funcionario_id: funcionarioCriado.id,
+  dados_novos: funcionarioCriado,
+  detalhes: {
+    nome,
+    email,
+    funcao
+  }
+});
 
-Login:
-${email}
+alert(
+  "Funcionário cadastrado com sucesso. O acesso foi enviado por e-mail."
+);
 
-Senha temporária:
-${senhaInicial}`
- );
+limparFormulario();
 
- limparFormulario();
+await carregarFuncionarios();
 
- await carregarFuncionarios();
 }
-
-
+  
  async function carregarFuncionarios(){
  const { data, error } = await supabaseClient
  .from("funcionarios")
