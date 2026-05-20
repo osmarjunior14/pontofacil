@@ -327,18 +327,40 @@ async function fazerLogin(){
   */
 
   const {
-    data: vinculo,
-    error: vinculoError
-  } = await supabaseClient
-    .from("usuarios_empresas")
-    .select(`
-      empresa_id,
-      ativo,
-      perfil
-    `)
-    .eq("user_id", user.id)
-    .eq("perfil", "funcionario")
-    .single();
+
+  data: vinculo,
+
+  error: vinculoError
+
+} = await supabaseClient
+
+  .from("usuarios_empresas")
+
+  .select(`
+
+    empresa_id,
+
+    ativo,
+
+    perfil,
+
+    empresas (
+
+      id,
+
+      nome,
+
+      ativa
+
+    )
+
+  `)
+
+  .eq("user_id", user.id)
+
+  .eq("perfil", "funcionario")
+
+  .single();
 
   if(vinculoError || !vinculo){
 
@@ -369,6 +391,25 @@ async function fazerLogin(){
 
     return;
   }
+
+  const empresa = Array.isArray(vinculo.empresas)
+  ? vinculo.empresas[0]
+  : vinculo.empresas;
+
+if(!empresa || empresa.ativa !== true){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Empresa inativa. Entre em contato com o responsável.";
+
+  erro.style.display = "block";
+
+  return;
+}
 
   /*
   =========================================
