@@ -598,55 +598,87 @@
   let jornadasFuncionarios = [];
 
   async function carregarEmpresaLogada(){
-    const { data: userData, error: userError } =
-      await supabaseClient.auth.getUser();
 
-    if(userError || !userData.user){
-      window.location.href = "./gestao.html";
-      return false;
-    }
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
 
-    const { data: vinculos, error: vinculoError } = await supabaseClient
-      .from("usuarios_empresas")
-      .select(`
-        empresa_id,
-        perfil,
-        empresas (
-          id,
-          nome,
-          email_gestao
-        )
-      `)
-      .eq("user_id", userData.user.id)
-      .eq("ativo", true)
-      .eq("perfil", "gestor")
-      .limit(1);
+  if(userError || !userData.user){
 
-    if(vinculoError || !vinculos || vinculos.length === 0){
-      window.location.href = "./gestao.html";
-      return false;
-    }
+    window.location.href =
+      "./gestao.html";
 
-    const empresa = Array.isArray(vinculos[0].empresas)
+    return false;
+  }
+
+  const { data: vinculos, error: vinculoError } = await supabaseClient
+    .from("usuarios_empresas")
+    .select(`
+      empresa_id,
+      perfil,
+      empresas (
+        id,
+        nome,
+        email_gestao,
+        ativa
+      )
+    `)
+    .eq("user_id", userData.user.id)
+    .eq("ativo", true)
+    .eq("perfil", "gestor")
+    .limit(1);
+
+  if(vinculoError || !vinculos || vinculos.length === 0){
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+  }
+
+  const empresa =
+    Array.isArray(vinculos[0].empresas)
       ? vinculos[0].empresas[0]
       : vinculos[0].empresas;
 
-    if(!empresa){
-      window.location.href = "./gestao.html";
-      return false;
-    }
+  if(!empresa){
 
-    empresaId = empresa.id;
-    empresaNome = empresa.nome;
+    window.location.href =
+      "./gestao.html";
 
-    document.getElementById("empresaNome").textContent =
-      empresaNome || "PontoFácil";
-
-    document.getElementById("empresaNomeSidebar").textContent =
-      empresaNome || "PontoFácil";
-
-    return true;
+    return false;
   }
+
+  if(empresa.ativa !== true){
+
+    await supabaseClient.auth.signOut();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    alert(
+      "Empresa inativa. Entre em contato com o administrador do sistema."
+    );
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+  }
+
+  empresaId =
+    empresa.id;
+
+  empresaNome =
+    empresa.nome;
+
+  document.getElementById("empresaNome").textContent =
+    empresaNome || "PontoFácil";
+
+  document.getElementById("empresaNomeSidebar").textContent =
+    empresaNome || "PontoFácil";
+
+  return true;
+}
 
   function definirMesAtual(){
     const hoje = new Date();
