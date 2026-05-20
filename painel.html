@@ -636,6 +636,106 @@ async function editarEmpresa(
   alert("Empresa editada com sucesso.");
   await carregarEmpresas();
 }
+  async function trocarLogoEmpresa(id, nomeEmpresa){
+
+  const input =
+    document.createElement("input");
+
+  input.type =
+    "file";
+
+  input.accept =
+    "image/*";
+
+  input.onchange = async function(){
+
+    if(!input.files || input.files.length === 0){
+      return;
+    }
+
+    const arquivo =
+      input.files[0];
+
+    const extensao =
+      arquivo.name.split(".").pop().toLowerCase();
+
+    const nomeArquivo =
+      `${normalizarNomeArquivo(nomeEmpresa)}-${Date.now()}.${extensao}`;
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("logos")
+      .upload(nomeArquivo, arquivo, {
+        cacheControl:"3600",
+        upsert:false
+      });
+
+    if(uploadError){
+      console.log("Erro ao trocar logo:", uploadError);
+      alert("Erro ao enviar nova logomarca: " + uploadError.message);
+      return;
+    }
+
+    const { data: urlData } = supabaseClient
+      .storage
+      .from("logos")
+      .getPublicUrl(nomeArquivo);
+
+    const { error } = await supabaseClient
+      .from("empresas")
+      .update({
+        logo_url: urlData.publicUrl
+      })
+      .eq("id", id);
+
+    if(error){
+      console.log("Erro ao salvar logo:", error);
+      alert("Erro ao salvar nova logomarca: " + error.message);
+      return;
+    }
+
+    alert("Logomarca atualizada com sucesso.");
+
+    await carregarEmpresas();
+  };
+
+  input.click();
+}
+
+async function alterarStatusEmpresa(id, statusAtual){
+
+  const confirmar =
+    confirm(
+      statusAtual
+        ? "Deseja inativar esta empresa?"
+        : "Deseja ativar esta empresa?"
+    );
+
+  if(!confirmar){
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("empresas")
+    .update({
+      ativa: !statusAtual
+    })
+    .eq("id", id);
+
+  if(error){
+    console.log("Erro ao alterar status:", error);
+    alert("Erro ao alterar status da empresa: " + error.message);
+    return;
+  }
+
+  alert(
+    statusAtual
+      ? "Empresa inativada com sucesso."
+      : "Empresa ativada com sucesso."
+  );
+
+  await carregarEmpresas();
+}
   
 async function iniciar(){
 
