@@ -583,7 +583,7 @@
 
     <nav class="menu">
       <button onclick="window.location.href='./dashboard.html'"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button onclick="window.location.href='./painel-gestao.html'"><i data-lucide="users"></i> Funcionários</button>
+      <button onclick="window.location.href='./funcionarios.html'"><i data-lucide="users"></i> Funcionários</button>
       <button class="active"><i data-lucide="clipboard-list"></i> Registros</button>
     </nav>
 
@@ -596,13 +596,13 @@
       <div class="admin-card">
         <div class="avatar">A</div>
         <div>
-          <strong>Administrador</strong>
-          <small>Gestor</small>
+          <strong>Gestor</strong>
+          <small>Empresa</small>
           <small class="online">● Online</small>
         </div>
       </div>
 
-      <button class="logout-card" onclick="window.location.href='./painel-gestao.html'">
+      <button class="logout-card" onclick="window.location.href='./dashboard.html'">   <i data-lucide="arrow-left"></i> Voltar </button>
         <i data-lucide="arrow-left"></i> Voltar
       </button>
     </div>
@@ -611,7 +611,7 @@
   <main class="main">
     <div class="mobile-menu">
       <button onclick="window.location.href='./dashboard.html'">Dashboard</button>
-      <button onclick="window.location.href='./painel-gestao.html'">Funcionários</button>
+      <button onclick="window.location.href='./funcionarios.html'">Funcionários</button>
       <button onclick="window.print()">Salvar PDF</button>
     </div>
 
@@ -622,7 +622,7 @@
       </div>
 
       <div class="top-actions">
-        <button class="btn-top btn-voltar" onclick="window.location.href='./painel-gestao.html'">
+        <button class="btn-top btn-voltar" onclick="window.location.href='./dashboard.html'">
           <i data-lucide="arrow-left"></i> Voltar
         </button>
 
@@ -860,6 +860,7 @@
     `)
     .eq("user_id", userData.user.id)
     .eq("ativo", true)
+    .eq("perfil", "gestor")
     .limit(1);
 
   if(vinculoError || !vinculos || vinculos.length === 0){
