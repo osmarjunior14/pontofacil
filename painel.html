@@ -6,6 +6,7 @@
   <title>PontoFácil - Painel Admin</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
 
   <style>
     *{ box-sizing:border-box; margin:0; padding:0; }
@@ -198,25 +199,11 @@
     }
 
     @media(max-width:700px){
-      body{
-        padding:16px;
-      }
-
-      h1{
-        font-size:28px;
-      }
-
-      .empresa{
-        align-items:flex-start;
-      }
-
-      .acoes{
-        width:100%;
-      }
-
-      .acoes button{
-        flex:1;
-      }
+      body{ padding:16px; }
+      h1{ font-size:28px; }
+      .empresa{ align-items:flex-start; }
+      .acoes{ width:100%; }
+      .acoes button{ flex:1; }
     }
   </style>
 </head>
@@ -240,96 +227,121 @@
     <div class="form-grid">
 
       <div>
-  <label>Logomarca da empresa</label>
-  <input id="logo" type="file" accept="image/*">
-</div>
+        <label>Logomarca da empresa</label>
+        <input id="logo" type="file" accept="image/*">
+      </div>
 
-<div>
-  <label>Nome da empresa</label>
-  <input id="nome" placeholder="Nome da empresa">
-</div>
+      <div>
+        <label>Nome da empresa</label>
+        <input id="nome" placeholder="Nome da empresa">
+      </div>
 
-<div>
-  <label>CNPJ</label>
-  <input id="cnpj" placeholder="CNPJ">
-</div>
+      <div>
+        <label>CNPJ</label>
+        <input id="cnpj" placeholder="CNPJ">
+      </div>
 
-<div>
-  <label>E-mail de gestão</label>
-  <input id="email_gestao" placeholder="E-mail de gestão">
-</div>
+      <div>
+        <label>E-mail de gestão</label>
+        <input id="email_gestao" type="email" placeholder="E-mail de gestão">
+      </div>
 
-<div>
-  <label>Senha da gestão</label>
-  <input id="senha_gestao" placeholder="Senha da gestão">
-</div>
+      <div>
+        <label>Senha da gestão</label>
+        <input id="senha_gestao" type="password" placeholder="Senha da gestão">
+      </div>
 
-<div>
-  <label>Latitude da empresa</label>
-  <input
-    id="latitude"
-    type="number"
-    step="any"
-    placeholder="-8.8829"
-  >
-</div>
+      <div>
+        <label>Latitude da empresa</label>
+        <input id="latitude" type="number" step="any" placeholder="-8.8829">
+      </div>
 
-<div>
-  <label>Longitude da empresa</label>
-  <input
-    id="longitude"
-    type="number"
-    step="any"
-    placeholder="-36.4966"
-  >
-</div>
+      <div>
+        <label>Longitude da empresa</label>
+        <input id="longitude" type="number" step="any" placeholder="-36.4966">
+      </div>
 
-<div>
-  <label>Raio permitido (metros)</label>
-  <input
-    id="raio_permitido_metros"
-    type="number"
-    value="50"
-    placeholder="50"
-  >
-</div>
+      <div>
+        <label>Raio permitido (metros)</label>
+        <input id="raio_permitido_metros" type="number" value="50" placeholder="50">
+      </div>
 
-</div>
+    </div>
 
-<button class="btn-salvar" onclick="salvarEmpresa()">
-  Salvar empresa
-</button>
-</div>
+    <button class="btn-salvar" onclick="salvarEmpresa()">
+      Salvar empresa
+    </button>
+  </div>
 
-<div class="card">
-  <h2>Empresas cadastradas</h2>
-  <div id="listaEmpresas"></div>
-</div>
+  <div class="card">
+    <h2>Empresas cadastradas</h2>
+    <div id="listaEmpresas">
+      <div class="vazio">Carregando empresas...</div>
+    </div>
+  </div>
 
 </div>
 
 <script>
-  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+  const supabaseClient = window.supabaseClient;
 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+  if(!supabaseClient){
+    alert("Erro ao carregar Supabase.");
+    throw new Error("Supabase não carregado.");
+  }
 
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+  let adminLogado = null;
 
-  if(localStorage.getItem("pontofacil_logado") !== "sim"){
-    window.location.href = "./index.html";
+  async function verificarAdminLogado(){
+
+    const {
+      data:{ user },
+      error:userError
+    } = await supabaseClient.auth.getUser();
+
+    if(userError || !user){
+
+      window.location.href = "./index.html";
+
+      return false;
+    }
+
+    const {
+      data: admin,
+      error: adminError
+    } = await supabaseClient
+      .from("administradores")
+      .select("*")
+      .eq("auth_user_id", user.id)
+      .eq("ativo", true)
+      .single();
+
+    if(adminError || !admin){
+
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      window.location.href = "./index.html";
+
+      return false;
+    }
+
+    adminLogado = admin;
+
+    return true;
   }
 
   async function sair(){
 
-  await supabaseClient.auth.signOut();
+    await supabaseClient.auth.signOut();
 
-  localStorage.clear();
+    localStorage.clear();
+    sessionStorage.clear();
 
-  sessionStorage.clear();
-
-  window.location.href = "./index.html";
-
-}
+    window.location.href = "./index.html";
+  }
 
   function normalizarNomeArquivo(texto){
     return String(texto || "")
@@ -340,7 +352,16 @@
       .replace(/^-+|-+$/g, "");
   }
 
+  function escapeTexto(texto){
+    return String(texto || "")
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, "&quot;")
+      .replace(/\n/g, " ");
+  }
+
   async function enviarLogoEmpresa(nomeEmpresa){
+
     const inputLogo = document.getElementById("logo");
 
     if(!inputLogo.files || inputLogo.files.length === 0){
@@ -348,8 +369,12 @@
     }
 
     const arquivo = inputLogo.files[0];
-    const extensao = arquivo.name.split(".").pop().toLowerCase();
-    const nomeArquivo = `${normalizarNomeArquivo(nomeEmpresa)}-${Date.now()}.${extensao}`;
+
+    const extensao =
+      arquivo.name.split(".").pop().toLowerCase();
+
+    const nomeArquivo =
+      `${normalizarNomeArquivo(nomeEmpresa)}-${Date.now()}.${extensao}`;
 
     const { error: uploadError } = await supabaseClient
       .storage
@@ -360,8 +385,11 @@
       });
 
     if(uploadError){
+
       console.log("Erro ao enviar logo:", uploadError);
+
       alert("Erro ao enviar logomarca.");
+
       return null;
     }
 
@@ -374,13 +402,32 @@
   }
 
   async function salvarEmpresa(){
-    const nome = document.getElementById("nome").value.trim();
-    const cnpj = document.getElementById("cnpj").value.trim();
-    const email_gestao = document.getElementById("email_gestao").value.trim();
-    const senha_gestao = document.getElementById("senha_gestao").value.trim();
+
+    const nome =
+      document.getElementById("nome").value.trim();
+
+    const cnpj =
+      document.getElementById("cnpj").value.trim();
+
+    const email_gestao =
+      document.getElementById("email_gestao").value.trim();
+
+    const senha_gestao =
+      document.getElementById("senha_gestao").value.trim();
+
+    const latitude =
+      document.getElementById("latitude").value;
+
+    const longitude =
+      document.getElementById("longitude").value;
+
+    const raio =
+      document.getElementById("raio_permitido_metros").value;
 
     if(!nome || !email_gestao || !senha_gestao){
+
       alert("Preencha nome, e-mail de gestão e senha.");
+
       return;
     }
 
@@ -399,13 +446,19 @@
           email_gestao,
           senha_gestao,
           logo_url: logoUrl || "",
+          latitude: latitude ? Number(latitude) : null,
+          longitude: longitude ? Number(longitude) : null,
+          raio_permitido_metros: Number(raio || 50),
           ativa:true
         }
       ]);
 
     if(error){
+
       console.log("Erro ao salvar empresa:", error);
-      alert("Erro ao salvar empresa.");
+
+      alert("Erro ao salvar empresa: " + error.message);
+
       return;
     }
 
@@ -420,25 +473,37 @@
     document.getElementById("longitude").value = "";
     document.getElementById("raio_permitido_metros").value = "50";
 
-    carregarEmpresas();
+    await carregarEmpresas();
   }
 
   async function carregarEmpresas(){
+
+    const lista =
+      document.getElementById("listaEmpresas");
+
+    lista.innerHTML =
+      `<div class="vazio">Carregando empresas...</div>`;
+
     const { data, error } = await supabaseClient
       .from("empresas")
       .select("*")
       .order("created_at", { ascending:false });
 
-    const lista = document.getElementById("listaEmpresas");
-
     if(error){
+
       console.log("Erro ao carregar empresas:", error);
-      lista.innerHTML = `<div class="vazio">Erro ao carregar empresas.</div>`;
+
+      lista.innerHTML =
+        `<div class="vazio">Erro ao carregar empresas: ${error.message}</div>`;
+
       return;
     }
 
     if(!data || data.length === 0){
-      lista.innerHTML = `<div class="vazio">Nenhuma empresa cadastrada.</div>`;
+
+      lista.innerHTML =
+        `<div class="vazio">Nenhuma empresa cadastrada.</div>`;
+
       return;
     }
 
@@ -453,9 +518,12 @@
           >
 
           <div>
-            <strong>${empresa.nome}</strong>
+            <strong>${empresa.nome || "-"}</strong>
             <small><b>CNPJ:</b> ${empresa.cnpj || "-"}</small>
             <small><b>E-mail gestão:</b> ${empresa.email_gestao || "-"}</small>
+            <small><b>Latitude:</b> ${empresa.latitude ?? "-"}</small>
+            <small><b>Longitude:</b> ${empresa.longitude ?? "-"}</small>
+            <small><b>Raio:</b> ${empresa.raio_permitido_metros || 50}m</small>
 
             <span class="status ${empresa.ativa ? "ativa" : "inativa"}">
               ${empresa.ativa ? "ATIVA" : "INATIVA"}
@@ -471,7 +539,10 @@
               '${escapeTexto(empresa.nome)}',
               '${escapeTexto(empresa.cnpj)}',
               '${escapeTexto(empresa.email_gestao)}',
-              '${escapeTexto(empresa.senha_gestao)}'
+              '${escapeTexto(empresa.senha_gestao)}',
+              '${empresa.latitude ?? ""}',
+              '${empresa.longitude ?? ""}',
+              '${empresa.raio_permitido_metros ?? 50}'
             )"
           >
             Editar
@@ -484,158 +555,8 @@
             Trocar logo
           </button>
 
-          <button class="btn-status" onclick="alterarStatusEmpresa('${empresa.id}', ${empresa.ativa})">
-            ${empresa.ativa ? "Inativar" : "Ativar"}
-          </button>
-        </div>
-      </div>
-    `).join("");
-  }
-
-  function escapeTexto(texto){
-    return String(texto || "")
-      .replace(/\\/g, "\\\\")
-      .replace(/'/g, "\\'")
-      .replace(/"/g, "&quot;");
-  }
-
-  async function editarEmpresa(
-  id,
-  nomeAtual,
-  cnpjAtual,
-  emailAtual,
-  senhaAtual,
-  latitudeAtual,
-  longitudeAtual,
-  raioAtual
-){
-  const novoNome = prompt("Nome da empresa:", nomeAtual || "");
-  if(novoNome === null) return;
-
-  const novoCnpj = prompt("CNPJ:", cnpjAtual || "");
-  if(novoCnpj === null) return;
-
-  const novoEmail = prompt("E-mail de gestão:", emailAtual || "");
-  if(novoEmail === null) return;
-
-  const novaSenha = prompt("Senha da gestão:", senhaAtual || "");
-  if(novaSenha === null) return;
-
-  const novaLatitude = prompt("Latitude da empresa:", latitudeAtual || "");
-  if(novaLatitude === null) return;
-
-  const novaLongitude = prompt("Longitude da empresa:", longitudeAtual || "");
-  if(novaLongitude === null) return;
-
-  const novoRaio = prompt("Raio permitido em metros:", raioAtual || 50);
-  if(novoRaio === null) return;
-
-  if(!novoNome.trim() || !novoEmail.trim() || !novaSenha.trim()){
-    alert("Nome, e-mail e senha não podem ficar vazios.");
-    return;
-  }
-
-  const { error } = await supabaseClient
-    .from("empresas")
-    .update({
-      nome: novoNome.trim(),
-      cnpj: novoCnpj.trim(),
-      email_gestao: novoEmail.trim(),
-      senha_gestao: novaSenha.trim(),
-      latitude: novaLatitude ? Number(novaLatitude) : null,
-      longitude: novaLongitude ? Number(novaLongitude) : null,
-      raio_permitido_metros: Number(novoRaio || 50)
-    })
-    .eq("id", id);
-
-  if(error){
-    console.log("Erro ao editar empresa:", error);
-    alert("Erro ao editar empresa.");
-    return;
-  }
-
-  alert("Empresa editada com sucesso.");
-  carregarEmpresas();
-}
-
-  async function trocarLogoEmpresa(id, nomeEmpresa){
-    const input = document.createElement("input");
-    input.type = "file";
-    input.accept = "image/*";
-
-    input.onchange = async function(){
-      if(!input.files || input.files.length === 0) return;
-
-      const arquivo = input.files[0];
-      const extensao = arquivo.name.split(".").pop().toLowerCase();
-      const nomeArquivo = `${normalizarNomeArquivo(nomeEmpresa)}-${Date.now()}.${extensao}`;
-
-      const { error: uploadError } = await supabaseClient
-        .storage
-        .from("logos")
-        .upload(nomeArquivo, arquivo, {
-          cacheControl:"3600",
-          upsert:false
-        });
-
-      if(uploadError){
-        console.log("Erro ao trocar logo:", uploadError);
-        alert("Erro ao enviar nova logomarca.");
-        return;
-      }
-
-      const { data: urlData } = supabaseClient
-        .storage
-        .from("logos")
-        .getPublicUrl(nomeArquivo);
-
-      const { error } = await supabaseClient
-        .from("empresas")
-        .update({
-          logo_url: urlData.publicUrl
-        })
-        .eq("id", id);
-
-      if(error){
-        console.log("Erro ao salvar logo:", error);
-        alert("Erro ao salvar nova logomarca.");
-        return;
-      }
-
-      alert("Logomarca atualizada com sucesso.");
-      carregarEmpresas();
-    };
-
-    input.click();
-  }
-
-  async function alterarStatusEmpresa(id, statusAtual){
-    const confirmar = confirm(
-      statusAtual
-        ? "Deseja inativar esta empresa?"
-        : "Deseja ativar esta empresa?"
-    );
-
-    if(!confirmar) return;
-
-    const { error } = await supabaseClient
-      .from("empresas")
-      .update({
-        ativa: !statusAtual
-      })
-      .eq("id", id);
-
-    if(error){
-      console.log("Erro ao alterar status:", error);
-      alert("Erro ao alterar status da empresa.");
-      return;
-    }
-
-    carregarEmpresas();
-  }
-
-  carregarEmpresas();
-</script>
-
-</body>
-</html>
+          <button
+            class="btn-status"
+            onclick="alterarStatusEmpresa('${empresa.id}', ${empresa.ativa})"
+          >
+            ${empresa
