@@ -507,14 +507,10 @@
 
   try{
 
-    console.log("1. Iniciando busca de empresas...");
-
     const { data, error } = await supabaseClient
       .from("empresas")
       .select("*")
       .order("created_at", { ascending:false });
-
-    console.log("2. Resposta empresas:", { data, error });
 
     if(error){
 
@@ -564,7 +560,6 @@
               '${escapeTexto(empresa.nome)}',
               '${escapeTexto(empresa.cnpj)}',
               '${escapeTexto(empresa.email_gestao)}',
-              '${escapeTexto(empresa.senha_gestao)}',
               '${empresa.latitude ?? ""}',
               '${empresa.longitude ?? ""}',
               '${empresa.raio_permitido_metros ?? 50}'
@@ -604,35 +599,45 @@ async function editarEmpresa(
   nomeAtual,
   cnpjAtual,
   emailAtual,
-  senhaAtual,
   latitudeAtual,
   longitudeAtual,
   raioAtual
 ){
 
-  const novoNome = prompt("Nome da empresa:", nomeAtual || "");
+  const novoNome =
+    prompt("Nome da empresa:", nomeAtual || "");
+
   if(novoNome === null) return;
 
-  const novoCnpj = prompt("CNPJ:", cnpjAtual || "");
+  const novoCnpj =
+    prompt("CNPJ:", cnpjAtual || "");
+
   if(novoCnpj === null) return;
 
-  const novoEmail = prompt("E-mail de gestão:", emailAtual || "");
+  const novoEmail =
+    prompt("E-mail de gestão:", emailAtual || "");
+
   if(novoEmail === null) return;
 
-  const novaSenha = prompt("Senha da gestão:", senhaAtual || "");
-  if(novaSenha === null) return;
+  const novaLatitude =
+    prompt("Latitude da empresa:", latitudeAtual || "");
 
-  const novaLatitude = prompt("Latitude da empresa:", latitudeAtual || "");
   if(novaLatitude === null) return;
 
-  const novaLongitude = prompt("Longitude da empresa:", longitudeAtual || "");
+  const novaLongitude =
+    prompt("Longitude da empresa:", longitudeAtual || "");
+
   if(novaLongitude === null) return;
 
-  const novoRaio = prompt("Raio permitido em metros:", raioAtual || 50);
+  const novoRaio =
+    prompt("Raio permitido em metros:", raioAtual || 50);
+
   if(novoRaio === null) return;
 
-  if(!novoNome.trim() || !novoEmail.trim() || !novaSenha.trim()){
-    alert("Nome, e-mail e senha não podem ficar vazios.");
+  if(!novoNome.trim() || !novoEmail.trim()){
+
+    alert("Nome e e-mail de gestão não podem ficar vazios.");
+
     return;
   }
 
@@ -642,7 +647,6 @@ async function editarEmpresa(
       nome: novoNome.trim(),
       cnpj: novoCnpj.trim(),
       email_gestao: novoEmail.trim(),
-      senha_gestao: novaSenha.trim(),
       latitude: novaLatitude ? Number(novaLatitude) : null,
       longitude: novaLongitude ? Number(novaLongitude) : null,
       raio_permitido_metros: Number(novoRaio || 50)
@@ -650,12 +654,16 @@ async function editarEmpresa(
     .eq("id", id);
 
   if(error){
+
     console.log("Erro ao editar empresa:", error);
+
     alert("Erro ao editar empresa: " + error.message);
+
     return;
   }
 
   alert("Empresa editada com sucesso.");
+
   await carregarEmpresas();
 }
   async function trocarLogoEmpresa(id, nomeEmpresa){
