@@ -455,7 +455,7 @@
 
     <nav class="menu">
       <button onclick="window.location.href='./dashboard.html'"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-      <button onclick="window.location.href='./painel-gestao.html'"><i data-lucide="users"></i> Funcionários</button>
+      <button onclick="window.location.href='./funcionarios.html'"><i data-lucide="users"></i> Funcionários</button>
       <button onclick="window.location.href='./relatorio.html'"><i data-lucide="clipboard-list"></i> Registros</button>
     </nav>
 
@@ -466,10 +466,10 @@
       </div>
 
       <div class="admin-card">
-        <div class="avatar">A</div>
+        <div class="avatar">G</div>
         <div>
-          <strong>Administrador</strong>
-          <small>Gestor</small>
+          <strong>Gestor</strong>
+          <small>Empresa</small>
           <small class="online">● Online</small>
         </div>
       </div>
@@ -483,26 +483,44 @@
   <main class="main">
     <div class="mobile-menu">
       <button onclick="window.location.href='./dashboard.html'">Dashboard</button>
-      <button onclick="window.location.href='./painel-gestao.html'">Funcionários</button>
+      <button onclick="window.location.href='./funcionarios.html'">Funcionários</button>
       <button onclick="window.location.href='./relatorio.html'">Registros</button>
       <button onclick="window.print()">Salvar PDF</button>
     </div>
 
-    <div class="topo">
-      <div class="titulo">
-        <h1>Banco de Horas</h1>
-        <p id="empresaNome">PontoFácil</p>
-      </div>
+   <div class="topo">
 
-      <button class="btn-top btn-voltar" onclick="logout()">
-  <i data-lucide="log-out"></i> Sair
-</button>
+  <div class="titulo">
 
-        <button class="btn-top btn-pdf" onclick="window.print()">
-          <i data-lucide="printer"></i> Imprimir / Salvar PDF
-        </button>
-      </div>
-    </div>
+    <h1>Banco de Horas</h1>
+
+    <p id="empresaNome">PontoFácil</p>
+
+  </div>
+
+  <div class="top-actions">
+
+    <button class="btn-top btn-voltar" onclick="window.location.href='./dashboard.html'">
+
+      <i data-lucide="arrow-left"></i> Voltar
+
+    </button>
+
+    <button class="btn-top btn-pdf" onclick="window.print()">
+
+      <i data-lucide="printer"></i> Imprimir / Salvar PDF
+
+    </button>
+
+    <button class="btn-top btn-voltar" onclick="logout()">
+
+      <i data-lucide="log-out"></i> Sair
+
+    </button>
+
+  </div>
+
+</div>
 
     <div class="card filtros-card">
       <div class="filtros">
@@ -592,6 +610,7 @@
       .from("usuarios_empresas")
       .select(`
         empresa_id,
+        perfil,
         empresas (
           id,
           nome,
@@ -600,6 +619,7 @@
       `)
       .eq("user_id", userData.user.id)
       .eq("ativo", true)
+      .eq("perfil", "gestor")
       .limit(1);
 
     if(vinculoError || !vinculos || vinculos.length === 0){
