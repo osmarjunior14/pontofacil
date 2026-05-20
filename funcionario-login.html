@@ -412,6 +412,52 @@ if(!empresa || empresa.ativa !== true){
 }
 
   /*
+=========================================
+VALIDA FUNCIONÁRIO ATIVO
+=========================================
+*/
+
+const {
+  data: funcionario,
+  error: funcionarioError
+} = await supabaseClient
+  .from("funcionarios")
+  .select("id, nome_completo, email, ativo")
+  .eq("empresa_id", vinculo.empresa_id)
+  .eq("email", user.email)
+  .single();
+
+if(funcionarioError || !funcionario){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Funcionário não encontrado nesta empresa.";
+
+  erro.style.display = "block";
+
+  return;
+}
+
+if(funcionario.ativo !== true){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Seu acesso está inativo.";
+
+  erro.style.display = "block";
+
+  return;
+}
+  
+  /*
   =========================================
   VALIDA EMPRESA DO QR
   =========================================
