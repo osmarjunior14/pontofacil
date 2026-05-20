@@ -1113,8 +1113,9 @@ if(!supabaseClient){
       });
 
     if(error){
-      console.log("Erro ao registrar log admin:", error);
-    }
+  alert("Erro ao registrar log admin: " + error.message);
+  console.log("Erro ao registrar log admin:", error);
+}
 
   }catch(error){
 
