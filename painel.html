@@ -489,7 +489,8 @@
 
     const { data, error } = await supabaseClient
       .from("empresas")
-      .select("*");
+      .select("*")
+      .order("created_at", { ascending:false });
 
     console.log("2. Resposta empresas:", { data, error });
 
@@ -575,3 +576,17 @@
       `<div class="vazio">Erro geral ao carregar empresas: ${error.message}</div>`;
   }
 }
+
+async function iniciar(){
+
+  const adminOk =
+    await verificarAdminLogado();
+
+  if(!adminOk){
+    return;
+  }
+
+  await carregarEmpresas();
+}
+
+iniciar();
