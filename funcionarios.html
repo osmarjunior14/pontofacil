@@ -837,10 +837,10 @@
  </div>
 
  <div class="admin-card">
- <div class="avatar">A</div>
+ <div class="avatar">G</div>
  <div>
- <strong>Administrador</strong>
- <small>Gestor</small>
+ <strong>Gestor</strong>
+ <small>Empresa</small>
  <small class="online">● Online</small>
  </div>
  </div>
@@ -862,7 +862,7 @@
  <div class="topo">
  <div class="titulo">
  <h1 id="empresaNome">PontoFácil</h1>
- <p>Painel da gestão da empresa</p>
+ <p>Painel de funcionários da empresa</p>
  </div>
 
  <div class="top-actions">
@@ -1070,7 +1070,7 @@
 
 if(!supabaseClient){
  alert("Erro ao carregar Supabase.");
- throw new Error("Supabase não carregado");
+ window.location.href = "./gestao.html";
 }
 
  let empresaId = null;
@@ -1087,9 +1087,7 @@ if(!supabaseClient){
   dados_novos = null,
   detalhes = null
 }){
-
   try{
-
     const {
       data: { user }
     } = await supabaseClient.auth.getUser();
@@ -1113,14 +1111,10 @@ if(!supabaseClient){
       });
 
     if(error){
-  alert("Erro ao registrar log admin: " + error.message);
-  console.log("Erro ao registrar log admin:", error);
-}
-
+      console.log("Erro ao registrar log admin:", error);
+    }
   }catch(error){
-
     console.log("Erro geral ao registrar log:", error);
-
   }
 }
  
@@ -1138,17 +1132,18 @@ if(!supabaseClient){
  const { data: userData, error: userError } =
  await supabaseClient.auth.getUser();
  if(userError || !userData.user){
- window.location.href = "./index.html";
+ window.location.href = "./gestao.html";
  return false;
  }
 
  const user = userData.user;
- console.log("ADMIN DO SISTEMA LOGADO:", user.email);
+ console.log("GESTOR LOGADO:", user.email);
 
  const { data: vinculos, error: vinculoError } = await supabaseClient
  .from("usuarios_empresas")
  .select(`
  empresa_id,
+ perfil,
  empresas (
  id,
  nome,
@@ -1157,11 +1152,11 @@ if(!supabaseClient){
  `)
  .eq("user_id", userData.user.id)
  .eq("ativo", true)
- .eq("perfil", "admin")
+ .eq("perfil", "gestor")
  .limit(1);
 
  if(vinculoError || !vinculos || vinculos.length === 0){
- window.location.href = "./index.html";
+ window.location.href = "./gestao.html";
  return false;
  }
 
@@ -1170,7 +1165,7 @@ if(!supabaseClient){
  : vinculos[0].empresas;
 
  if(!empresa){
- window.location.href = "./index.html";
+ window.location.href = "./gestao.html";
  return false;
  }
 
@@ -1184,12 +1179,10 @@ if(!supabaseClient){
 }
  
  async function sair(){
-
  await supabaseClient.auth.signOut();
-
  localStorage.clear();
-
- window.location.href = "./index.html";
+ sessionStorage.clear();
+ window.location.href = "./gestao.html";
 }
 
  function fecharModalEditar(){
@@ -1376,45 +1369,29 @@ if(!supabaseClient){
  }
 
  async function salvarFuncionario(){
-
- const nome =
- document.getElementById("nome").value.trim();
-
- const cpf =
- document.getElementById("cpf").value.trim();
-
- const email =
- document.getElementById("email").value.trim();
-
- const funcao =
- document.getElementById("funcao").value.trim();
-
- const data_nascimento =
- document.getElementById("data_nascimento").value;
+ const nome = document.getElementById("nome").value.trim();
+ const cpf = document.getElementById("cpf").value.trim();
+ const email = document.getElementById("email").value.trim();
+ const funcao = document.getElementById("funcao").value.trim();
+ const data_nascimento = document.getElementById("data_nascimento").value;
 
  if(!nome){
-
  alert("Informe o nome do funcionário.");
  return;
  }
 
  if(!email){
-
  alert("Informe o e-mail do funcionário.");
  return;
  }
 
- const fotoUrl =
- await enviarFotoFuncionario(nome);
+ const fotoUrl = await enviarFotoFuncionario(nome);
 
  if(fotoUrl === null){
  return;
  }
 
- const {
- data: funcionarioCriado,
- error
- } = await supabaseClient
+ const { data: funcionarioCriado, error } = await supabaseClient
  .from("funcionarios")
  .insert([
  {
@@ -1423,10 +1400,8 @@ if(!supabaseClient){
  cpf,
  email,
  funcao,
- data_nascimento:
- data_nascimento || null,
- foto_url:
- fotoUrl || "",
+ data_nascimento: data_nascimento || null,
+ foto_url: fotoUrl || "",
  ativo: true
  }
  ])
@@ -1434,11 +1409,8 @@ if(!supabaseClient){
  .single();
 
  if(error){
-
  console.log(error);
-
  alert("Erro ao salvar funcionário.");
-
  return;
  }
 
@@ -1455,100 +1427,52 @@ if(!supabaseClient){
  }
  }
 
- const senhaInicial =
+ const senhaInicial = Math.random().toString(36).slice(-10);
 
- Math.random()
+ const { data: { session } } = await supabaseClient.auth.getSession();
 
- .toString(36)
+ const respostaAuth = await fetch(
+ "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
+ {
+ method: "POST",
+ headers: {
+ "Content-Type": "application/json",
+ "Authorization": `Bearer ${session.access_token}`
+ },
+ body: JSON.stringify({
+ funcionario_id: funcionarioCriado.id,
+ empresa_id: empresaId,
+ nome,
+ email,
+ senha: senhaInicial
+ })
+ }
+ );
 
- .slice(-10);
-
-const {
-
-  data: { session }
-
-} = await supabaseClient.auth.getSession();
-
-console.log("SESSION:", session);
-
-const respostaAuth = await fetch(
-
-  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
-
-  {
-
-    method: "POST",
-
-    headers: {
-
-      "Content-Type": "application/json",
-
-      "Authorization": `Bearer ${session.access_token}`
-
-    },
-
-    body: JSON.stringify({
-
-      funcionario_id:
-
-        funcionarioCriado.id,
-
-      empresa_id:
-
-        empresaId,
-
-      nome,
-
-      email,
-
-      senha:
-
-        senhaInicial
-
-    })
-
-  }
-
-);
-
- const authResultado =
- await respostaAuth.json();
-
+ const authResultado = await respostaAuth.json();
  console.log(authResultado);
 
  if(!respostaAuth.ok){
-
- alert(
- "Funcionário criado, mas houve erro ao criar login/senha."
- );
-
+ alert("Funcionário criado, mas houve erro ao criar login/senha.");
  await carregarFuncionarios();
  return;
  }
 
  await registrarLogAdmin({
-  acao: "criou_funcionario",
-  tabela_afetada: "funcionarios",
-  registro_id: funcionarioCriado.id,
-  funcionario_id: funcionarioCriado.id,
-  dados_novos: funcionarioCriado,
-  detalhes: {
-    nome,
-    email,
-    funcao
-  }
-});
+ acao: "criou_funcionario",
+ tabela_afetada: "funcionarios",
+ registro_id: funcionarioCriado.id,
+ funcionario_id: funcionarioCriado.id,
+ dados_novos: funcionarioCriado,
+ detalhes: { nome, email, funcao }
+ });
 
-alert(
-  "Funcionário cadastrado com sucesso. O acesso foi enviado por e-mail."
-);
+ alert("Funcionário cadastrado com sucesso. O acesso foi enviado por e-mail.");
 
-limparFormulario();
-
-await carregarFuncionarios();
-
+ limparFormulario();
+ await carregarFuncionarios();
 }
-  
+
  async function carregarFuncionarios(){
  const { data, error } = await supabaseClient
  .from("funcionarios")
@@ -1586,7 +1510,8 @@ await carregarFuncionarios();
  filtrados = filtrados.filter(f =>
  String(f.nome_completo || "").toLowerCase().includes(busca) ||
  String(f.cpf || "").toLowerCase().includes(busca) ||
- String(f.funcao || "").toLowerCase().includes(busca) || String(f.email || "").toLowerCase().includes(busca)
+ String(f.funcao || "").toLowerCase().includes(busca) ||
+ String(f.email || "").toLowerCase().includes(busca)
  );
  }
 
@@ -1622,22 +1547,14 @@ await carregarFuncionarios();
  </div>
 
  <div class="acoes">
- <button
- class="btn-acao editar"
- onclick="editarFuncionario('${funcionario.id}')"
- >
- <i class="fa-solid fa-pen"></i>
- Editar
+ <button class="btn-acao editar" onclick="editarFuncionario('${funcionario.id}')">
+ <i class="fa-solid fa-pen"></i> Editar
  </button>
 
- <button
- class="btn-acao inativar"
- onclick="alterarStatusFuncionario('${funcionario.id}', ${funcionario.ativo})"
- >
+ <button class="btn-acao inativar" onclick="alterarStatusFuncionario('${funcionario.id}', ${funcionario.ativo})">
  <i class="fa-solid ${funcionario.ativo ? "fa-pause" : "fa-play"}"></i>
  ${funcionario.ativo ? "Inativar" : "Ativar"}
  </button>
- 
  </div>
  </div>
  `).join("");
@@ -1679,12 +1596,7 @@ await carregarFuncionarios();
 
  <div class="checkbox-dia">
  <label>
- <input
- type="checkbox"
- id="edit_sem_intervalo_${dia.numero}"
- onchange="toggleIntervaloEdicaoDia(${dia.numero})"
- ${semIntervalo ? "checked" : ""}
- >
+ <input type="checkbox" id="edit_sem_intervalo_${dia.numero}" onchange="toggleIntervaloEdicaoDia(${dia.numero})" ${semIntervalo ? "checked" : ""}>
  Funcionário sem intervalo neste dia
  </label>
  </div>
@@ -1710,9 +1622,7 @@ await carregarFuncionarios();
  async function editarFuncionario(id){
  funcionarioEditandoId = id;
 
- const funcionario = funcionarios.find(
- f => String(f.id) === String(id)
- );
+ const funcionario = funcionarios.find(f => String(f.id) === String(id));
 
  if(!funcionario){
  alert("Funcionário não encontrado.");
@@ -1737,7 +1647,7 @@ await carregarFuncionarios();
  console.log("ERRO AO CARREGAR JORNADA:", error);
  alert("Erro ao carregar jornada: " + error.message);
  return;
-}
+ }
 
  montarJornadaEdicao(jornadas || []);
  document.getElementById("modalEditar").style.display = "flex";
@@ -1748,6 +1658,8 @@ await carregarFuncionarios();
  alert("Funcionário não identificado.");
  return;
  }
+
+ const funcionarioAnterior = funcionarios.find(f => String(f.id) === String(funcionarioEditandoId)) || null;
 
  const nome = document.getElementById("edit_nome").value.trim();
  const cpf = document.getElementById("edit_cpf").value.trim();
@@ -1820,6 +1732,16 @@ await carregarFuncionarios();
  return;
  }
 
+ await registrarLogAdmin({
+ acao: "editou_funcionario",
+ tabela_afetada: "funcionarios",
+ registro_id: funcionarioEditandoId,
+ funcionario_id: funcionarioEditandoId,
+ dados_anteriores: funcionarioAnterior,
+ dados_novos: dadosAtualizacao,
+ detalhes: { jornadas }
+ });
+
  alert("Funcionário atualizado.");
  fecharModalEditar();
  carregarFuncionarios();
@@ -1834,11 +1756,11 @@ await carregarFuncionarios();
 
  if(!confirmar) return;
 
+ const funcionarioAnterior = funcionarios.find(f => String(f.id) === String(id)) || null;
+
  const { error } = await supabaseClient
  .from("funcionarios")
- .update({
- ativo: !statusAtual
- })
+ .update({ ativo: !statusAtual })
  .eq("id", id);
 
  if(error){
@@ -1846,6 +1768,15 @@ await carregarFuncionarios();
  alert("Erro ao alterar status.");
  return;
  }
+
+ await registrarLogAdmin({
+ acao: statusAtual ? "inativou_funcionario" : "ativou_funcionario",
+ tabela_afetada: "funcionarios",
+ registro_id: id,
+ funcionario_id: id,
+ dados_anteriores: funcionarioAnterior,
+ dados_novos: { ativo: !statusAtual }
+ });
 
  carregarFuncionarios();
  }
@@ -1879,40 +1810,16 @@ await carregarFuncionarios();
  padding:30px;
  text-align:center;
  }
-
- h1{
- color:#2563eb;
- margin-bottom:20px;
- }
-
- img{
- width:320px;
- height:320px;
- }
-
- p{
- margin-top:16px;
- color:#475569;
- max-width:400px;
- }
-
- button{
- margin-top:20px;
- border:none;
- background:#2563eb;
- color:white;
- padding:12px 18px;
- border-radius:12px;
- font-weight:bold;
- cursor:pointer;
- }
+ h1{color:#2563eb;margin-bottom:20px;}
+ img{width:320px;height:320px;}
+ p{margin-top:16px;color:#475569;max-width:400px;}
+ button{margin-top:20px;border:none;background:#2563eb;color:white;padding:12px 18px;border-radius:12px;font-weight:bold;cursor:pointer;}
  </style>
  </head>
-
  <body>
  <h1>${empresaNome || "PontoFácil"}</h1>
  <img src="${dataUrl}" alt="QR Code do ponto">
- <p>Escaneie este QR Code para registrar o ponto.</p>
+ <p>Escaneie este QR Code para acessar o painel do funcionário.</p>
  <button onclick="window.print()">Imprimir QR Code</button>
  </body>
  </html>
@@ -1926,9 +1833,7 @@ await carregarFuncionarios();
  const ok = await carregarEmpresaLogada();
  if(!ok) return;
  await carregarFuncionarios();
-
  console.log("EMPRESA ID:", empresaId);
- 
 }
 
 iniciar();
