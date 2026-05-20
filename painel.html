@@ -577,6 +577,66 @@
   }
 }
 
+async function editarEmpresa(
+  id,
+  nomeAtual,
+  cnpjAtual,
+  emailAtual,
+  senhaAtual,
+  latitudeAtual,
+  longitudeAtual,
+  raioAtual
+){
+
+  const novoNome = prompt("Nome da empresa:", nomeAtual || "");
+  if(novoNome === null) return;
+
+  const novoCnpj = prompt("CNPJ:", cnpjAtual || "");
+  if(novoCnpj === null) return;
+
+  const novoEmail = prompt("E-mail de gestão:", emailAtual || "");
+  if(novoEmail === null) return;
+
+  const novaSenha = prompt("Senha da gestão:", senhaAtual || "");
+  if(novaSenha === null) return;
+
+  const novaLatitude = prompt("Latitude da empresa:", latitudeAtual || "");
+  if(novaLatitude === null) return;
+
+  const novaLongitude = prompt("Longitude da empresa:", longitudeAtual || "");
+  if(novaLongitude === null) return;
+
+  const novoRaio = prompt("Raio permitido em metros:", raioAtual || 50);
+  if(novoRaio === null) return;
+
+  if(!novoNome.trim() || !novoEmail.trim() || !novaSenha.trim()){
+    alert("Nome, e-mail e senha não podem ficar vazios.");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("empresas")
+    .update({
+      nome: novoNome.trim(),
+      cnpj: novoCnpj.trim(),
+      email_gestao: novoEmail.trim(),
+      senha_gestao: novaSenha.trim(),
+      latitude: novaLatitude ? Number(novaLatitude) : null,
+      longitude: novaLongitude ? Number(novaLongitude) : null,
+      raio_permitido_metros: Number(novoRaio || 50)
+    })
+    .eq("id", id);
+
+  if(error){
+    console.log("Erro ao editar empresa:", error);
+    alert("Erro ao editar empresa: " + error.message);
+    return;
+  }
+
+  alert("Empresa editada com sucesso.");
+  await carregarEmpresas();
+}
+  
 async function iniciar(){
 
   const adminOk =
