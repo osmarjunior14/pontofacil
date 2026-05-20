@@ -906,7 +906,8 @@ async function carregarEmpresaLogada(){
         id,
         nome,
         email_gestao,
-        email_rh
+        email_rh,
+        ativa
       )
     `)
     .eq("user_id", userData.user.id)
@@ -925,6 +926,20 @@ async function carregarEmpresaLogada(){
 
   if(!empresa){
     window.location.href = "./gestao.html";
+    return false;
+  }
+
+  if(empresa.ativa !== true){
+
+    await supabaseClient.auth.signOut();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    alert("Empresa inativa. Entre em contato com o administrador do sistema.");
+
+    window.location.href = "./gestao.html";
+
     return false;
   }
 
