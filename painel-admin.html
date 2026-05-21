@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
 <meta charset="UTF-8"/>
@@ -9,8 +10,10 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+/>
 
 <style>
 
@@ -24,13 +27,18 @@ body{
   font-family:Arial,sans-serif;
   background:#020617;
   color:white;
-  overflow:hidden;
+  overflow-x:hidden;
+}
+
+body.loading{
+  opacity:.6;
+  pointer-events:none;
 }
 
 .layout{
   display:flex;
   width:100%;
-  height:100vh;
+  min-height:100vh;
 }
 
 .sidebar{
@@ -109,7 +117,7 @@ body{
   width:100%;
   height:58px;
 
-  border:none;
+    border:none;
 
   border-radius:18px;
 
@@ -161,6 +169,7 @@ body{
 .main{
   flex:1;
   overflow:auto;
+
   background:
     radial-gradient(circle at top right, rgba(37,99,235,.25), transparent 30%),
     radial-gradient(circle at bottom left, rgba(14,165,233,.15), transparent 30%),
@@ -209,7 +218,7 @@ body{
   gap:14px;
 }
 
-.user-avatar{
+  .user-avatar{
 
   width:52px;
   height:52px;
@@ -306,7 +315,7 @@ body{
   color:#f59e0b;
 }
 
-.card-value{
+  .card-value{
   font-size:44px;
   font-weight:900;
 }
@@ -391,7 +400,7 @@ body{
   color:white;
 }
 
-.table-area{
+  .table-area{
   overflow:auto;
 }
 
@@ -469,7 +478,11 @@ tbody tr:hover{
   background:#1e293b;
 }
 
-.grid-duplo{
+.action-btn:hover{
+  background:#334155;
+}
+
+  .grid-duplo{
 
   display:grid;
 
@@ -570,7 +583,7 @@ tbody tr:hover{
 
 }
 
-</style>
+  </style>
 </head>
 
 <body>
@@ -586,11 +599,8 @@ tbody tr:hover{
       </div>
 
       <div>
-
         <h1>PontoFácil</h1>
-
         <p>Painel Administrativo</p>
-
       </div>
 
     </div>
@@ -602,17 +612,17 @@ tbody tr:hover{
         <span>Dashboard</span>
       </button>
 
-      <button>
+      <button onclick="abrirFuncionarios()">
         <i class="fa-solid fa-users"></i>
         <span>Funcionários</span>
       </button>
 
-      <button>
+      <button onclick="abrirEmpresas()">
         <i class="fa-solid fa-building"></i>
         <span>Empresas</span>
       </button>
 
-      <button>
+      <button onclick="abrirRegistros()">
         <i class="fa-solid fa-clock"></i>
         <span>Registros</span>
       </button>
@@ -622,12 +632,12 @@ tbody tr:hover{
         <span>Antifraude</span>
       </button>
 
-      <button>
+      <button onclick="abrirRelatorios()">
         <i class="fa-solid fa-file-lines"></i>
         <span>Relatórios</span>
       </button>
 
-      <button>
+      <button onclick="abrirConfiguracoes()">
         <i class="fa-solid fa-gear"></i>
         <span>Configurações</span>
       </button>
@@ -643,7 +653,7 @@ tbody tr:hover{
 
   <main class="main">
 
-    <div class="topbar">
+        <div class="topbar">
 
       <div>
 
@@ -727,7 +737,7 @@ tbody tr:hover{
 
       </div>
 
-      <div class="card">
+            <div class="card">
 
         <div class="card-top">
 
@@ -765,8 +775,11 @@ tbody tr:hover{
 
         </div>
 
-        <div class="card-value">
-          OK
+        <div
+          class="card-value"
+          id="statusRealtime"
+        >
+          ONLINE
         </div>
 
         <div class="card-sub">
@@ -787,7 +800,10 @@ tbody tr:hover{
             Últimos Registros de Ponto
           </h3>
 
-          <button class="btn btn-primary">
+          <button
+            class="btn btn-primary"
+            onclick="exportarCSV()"
+          >
             <i class="fa-solid fa-file-export"></i>
             Exportar
           </button>
@@ -831,7 +847,7 @@ tbody tr:hover{
 
       </div>
 
-      <div class="section">
+            <div class="section">
 
         <div class="section-header">
 
@@ -866,6 +882,8 @@ tbody tr:hover{
 
 <script>
 
+let usuarioAdmin = null;
+
 const supabaseUrl =
   "https://ixeeperktitbzmnvcaqz.supabase.co";
 
@@ -877,6 +895,82 @@ const supabaseClient =
     supabaseUrl,
     supabaseKey
   );
+
+function escaparHTML(texto){
+
+  return String(texto || "")
+
+    .replace(/&/g,"&amp;")
+    .replace(/</g,"&lt;")
+    .replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;")
+    .replace(/'/g,"&#039;");
+
+}
+
+function formatarEvento(tipo){
+
+  const mapa = {
+
+    fora_do_raio:
+      "Fora do raio",
+
+    url_foto_invalida:
+      "Foto inválida",
+
+    spam_registro:
+      "Spam de registro",
+
+    funcionario_nao_autorizado:
+      "Funcionário não autorizado"
+
+  };
+
+  return mapa[tipo] || tipo;
+
+}
+
+  function exportarCSV(){
+
+  let csv =
+    "Funcionário,Tipo,Horário,Distância\n";
+
+  document.querySelectorAll(
+    "#tbodyRegistros tr"
+  ).forEach(tr => {
+
+    const cols =
+      tr.querySelectorAll("td");
+
+    if(cols.length >= 4){
+
+      csv +=
+        `${cols[0].innerText},${cols[1].innerText},${cols[2].innerText},${cols[3].innerText}\n`;
+
+    }
+
+  });
+
+  const blob =
+    new Blob(
+      ["\uFEFF" + csv],
+      {
+        type:"text/csv;charset=utf-8;"
+      }
+    );
+
+  const link =
+    document.createElement("a");
+
+  link.href =
+    URL.createObjectURL(blob);
+
+  link.download =
+    "registros.csv";
+
+  link.click();
+
+}
 
 async function validarAdmin(){
 
@@ -892,10 +986,105 @@ async function validarAdmin(){
     return false;
   }
 
+  const {
+    data,
+    error
+  } = await supabaseClient
+
+    .from("usuarios_empresas")
+
+    .select(`
+      *,
+      empresas(
+        nome
+      )
+    `)
+
+    .eq("user_id", session.user.id)
+
+    .in("perfil_admin", [
+      "super_admin",
+      "admin",
+      "rh",
+      "supervisor",
+      "auditor"
+    ])
+
+    .single();
+
+  if(error || !data){
+
+    alert(
+      "Acesso administrativo negado."
+    );
+
+    await supabaseClient.auth.signOut();
+
+    window.location.href =
+      "./login.html";
+
+    return false;
+  }
+
+  usuarioAdmin = data;
+
   document.getElementById("nomeUsuario").innerText =
     session.user.email || "Administrador";
 
+  aplicarPermissoes();
+
   return true;
+
+}
+  function aplicarPermissoes(){
+
+  const perfil =
+    usuarioAdmin.perfil_admin;
+
+  if(perfil === "supervisor"){
+
+    esconderMenu("Empresas");
+    esconderMenu("Configurações");
+    esconderMenu("Relatórios");
+
+  }
+
+  if(perfil === "rh"){
+
+    esconderMenu("Empresas");
+    esconderMenu("Configurações");
+
+  }
+
+  if(perfil === "auditor"){
+
+    esconderMenu("Funcionários");
+    esconderMenu("Empresas");
+    esconderMenu("Configurações");
+
+  }
+
+}
+
+function esconderMenu(nome){
+
+  const botoes =
+    document.querySelectorAll(".menu button");
+
+  botoes.forEach(botao => {
+
+    if(
+      botao.innerText
+      .trim()
+      .includes(nome)
+    ){
+
+      botao.style.display =
+        "none";
+
+    }
+
+  });
 
 }
 
@@ -909,204 +1098,254 @@ async function carregarDashboard(){
 
 }
 
-async function carregarRegistros(){
+  async function carregarRegistros(){
 
-  const hoje =
-    new Date();
+  try{
 
-  const inicio =
-    new Date(
-      hoje.getFullYear(),
-      hoje.getMonth(),
-      hoje.getDate()
-    ).toISOString();
+    const hoje =
+      new Date();
 
-  const {
-    data,
-    error
-  } = await supabaseClient
+    const inicio =
+      new Date(
+        hoje.getFullYear(),
+        hoje.getMonth(),
+        hoje.getDate()
+      ).toISOString();
 
-    .from("registros_ponto")
+    const {
+      data,
+      error,
+      count
+    } = await supabaseClient
 
-    .select(`
-      *,
-      funcionarios(
-        nome_completo
+      .from("registros_ponto")
+
+      .select(`
+        *,
+        funcionarios(
+          nome_completo
+        )
+      `,{
+        count:"exact"
+      })
+
+      .eq(
+        "empresa_id",
+        usuarioAdmin.empresa_id
       )
-    `)
 
-    .gte("data_hora", inicio)
+      .gte("data_hora", inicio)
 
-    .order("data_hora", {
-      ascending:false
-    })
+      .order("data_hora", {
+        ascending:false
+      })
 
-    .limit(10);
+      .limit(10);
 
-  if(error){
+    if(error){
 
-    console.log(error);
+      console.log(error);
 
-    return;
+      return;
+    }
+
+    document.getElementById("totalRegistros").innerText =
+      count || 0;
+
+    const tbody =
+      document.getElementById("tbodyRegistros");
+
+    tbody.innerHTML = "";
+
+    data.forEach(registro => {
+
+      const tr =
+        document.createElement("tr");
+
+      tr.innerHTML = `
+      
+        <td>
+          ${escaparHTML(registro.funcionarios?.nome_completo || "-")}
+        </td>
+
+        <td>
+          ${escaparHTML(registro.tipo)}
+        </td>
+
+        <td>
+          ${new Date(registro.data_hora).toLocaleTimeString("pt-BR")}
+        </td>
+
+        <td>
+          ${registro.distancia_metros || 0}m
+        </td>
+
+        <td>
+          <span class="badge badge-success">
+            Registrado
+          </span>
+        </td>
+
+        <td>
+
+          <div class="actions">
+
+            <button
+              class="action-btn"
+              onclick="visualizarRegistro('${registro.id}')"
+            >
+              <i class="fa-solid fa-eye"></i>
+            </button>
+
+          </div>
+
+        </td>
+
+      `;
+
+      tbody.appendChild(tr);
+
+    });
+
+  }catch(error){
+
+    console.error(error);
+
   }
 
-  document.getElementById("totalRegistros").innerText =
-    data.length;
-
-  const tbody =
-    document.getElementById("tbodyRegistros");
-
-  tbody.innerHTML = "";
-
-  data.forEach(registro => {
-
-    const tr =
-      document.createElement("tr");
-
-    tr.innerHTML = `
-    
-      <td>
-        ${registro.funcionarios?.nome_completo || "-"}
-      </td>
-
-      <td>
-        ${registro.tipo}
-      </td>
-
-      <td>
-        ${new Date(registro.data_hora).toLocaleTimeString("pt-BR")}
-      </td>
-
-      <td>
-        ${registro.distancia_metros || 0}m
-      </td>
-
-      <td>
-        <span class="badge badge-success">
-          Registrado
-        </span>
-      </td>
-
-      <td>
-
-        <div class="actions">
-
-          <button class="action-btn">
-            <i class="fa-solid fa-eye"></i>
-          </button>
-
-          <button class="action-btn">
-            <i class="fa-solid fa-pen"></i>
-          </button>
-
-        </div>
-
-      </td>
-
-    `;
-
-    tbody.appendChild(tr);
-
-  });
-
 }
+  async function carregarFuncionarios(){
 
-async function carregarFuncionarios(){
+  try{
 
-  const {
-    count
-  } = await supabaseClient
+    const {
+      count
+    } = await supabaseClient
 
-    .from("funcionarios")
+      .from("funcionarios")
 
-    .select("*", {
-      count:"exact",
-      head:true
-    })
+      .select("*", {
+        count:"exact",
+        head:true
+      })
 
-    .eq("ativo", true);
+      .eq("ativo", true)
 
-  document.getElementById("totalFuncionarios").innerText =
-    count || 0;
+      .eq(
+        "empresa_id",
+        usuarioAdmin.empresa_id
+      );
+
+    document.getElementById("totalFuncionarios").innerText =
+      count || 0;
+
+  }catch(error){
+
+    console.error(error);
+
+  }
 
 }
 
 async function carregarAntifraude(){
 
-  const hoje =
-    new Date();
+  try{
 
-  const inicio =
-    new Date(
-      hoje.getFullYear(),
-      hoje.getMonth(),
-      hoje.getDate()
-    ).toISOString();
+    const hoje =
+      new Date();
 
-  const {
-    data,
-    count
-  } = await supabaseClient
+    const inicio =
+      new Date(
+        hoje.getFullYear(),
+        hoje.getMonth(),
+        hoje.getDate()
+      ).toISOString();
 
-    .from("logs_antifraude")
+    const {
+      data,
+      count,
+      error
+    } = await supabaseClient
 
-    .select("*", {
-      count:"exact"
-    })
+      .from("logs_antifraude")
 
-    .gte("created_at", inicio)
+      .select("*", {
+        count:"exact"
+      })
 
-    .order("created_at", {
-      ascending:false
-    })
+      .eq(
+        "empresa_id",
+        usuarioAdmin.empresa_id
+      )
 
-    .limit(10);
+      .gte("created_at", inicio)
 
-  document.getElementById("totalAntifraude").innerText =
-    count || 0;
+      .order("created_at", {
+        ascending:false
+      })
 
-  const logsBox =
-    document.getElementById("logsBox");
+      .limit(10);
 
-  logsBox.innerHTML = "";
+    if(error){
 
-  (data || []).forEach(log => {
+      console.log(error);
 
-    const div =
-      document.createElement("div");
+      return;
+    }
 
-    div.className =
-      "log-item";
+    document.getElementById("totalAntifraude").innerText =
+      count || 0;
 
-    div.innerHTML = `
-    
-      <div class="log-info">
+    const logsBox =
+      document.getElementById("logsBox");
 
-        <strong>
-          ${log.tipo_evento}
-        </strong>
+    logsBox.innerHTML = "";
 
-        <small>
-          ${log.email || "Sem e-mail"}
-        </small>
+      (data || []).forEach(log => {
 
-      </div>
+      const div =
+        document.createElement("div");
 
-      <div class="log-badge badge-danger">
+      div.className =
+        "log-item";
 
-        ${log.distancia_metros || 0}m
+      div.innerHTML = `
+      
+        <div class="log-info">
 
-      </div>
+          <strong>
+            ${escaparHTML(formatarEvento(log.tipo_evento))}
+          </strong>
 
-    `;
+          <small>
+            ${escaparHTML(log.email || "Sem e-mail")}
+          </small>
 
-    logsBox.appendChild(div);
+        </div>
 
-  });
+        <div class="log-badge badge-danger">
+
+          ${log.distancia_metros || 0}m
+
+        </div>
+
+      `;
+
+      logsBox.appendChild(div);
+
+    });
+
+  }catch(error){
+
+    console.error(error);
+
+  }
 
 }
 
-function iniciarRealtime(){
+async function iniciarRealtime(){
+
+  await supabaseClient.removeAllChannels();
 
   supabaseClient
 
@@ -1117,12 +1356,13 @@ function iniciarRealtime(){
       {
         event:"INSERT",
         schema:"public",
-        table:"registros_ponto"
+        table:"registros_ponto",
+        filter:`empresa_id=eq.${usuarioAdmin.empresa_id}`
       },
 
-      () => {
+      async() => {
 
-        carregarRegistros();
+        await carregarDashboard();
 
       }
     )
@@ -1132,17 +1372,77 @@ function iniciarRealtime(){
       {
         event:"INSERT",
         schema:"public",
-        table:"logs_antifraude"
+        table:"logs_antifraude",
+        filter:`empresa_id=eq.${usuarioAdmin.empresa_id}`
       },
 
-      () => {
+      async() => {
 
-        carregarAntifraude();
+        await carregarDashboard();
 
       }
     )
 
-    .subscribe();
+    .subscribe((status) => {
+
+      console.log(
+        "Realtime:",
+        status
+      );
+
+      document.getElementById("statusRealtime").innerText =
+        status === "SUBSCRIBED"
+          ? "ONLINE"
+          : "OFFLINE";
+
+    });
+
+}
+  function visualizarRegistro(id){
+
+  alert(
+    `Visualizar registro: ${id}`
+  );
+
+}
+
+function abrirFuncionarios(){
+
+  alert(
+    "Módulo de funcionários em desenvolvimento."
+  );
+
+}
+
+function abrirEmpresas(){
+
+  alert(
+    "Módulo de empresas em desenvolvimento."
+  );
+
+}
+
+function abrirRegistros(){
+
+  alert(
+    "Módulo de registros em desenvolvimento."
+  );
+
+}
+
+function abrirRelatorios(){
+
+  alert(
+    "Módulo de relatórios em desenvolvimento."
+  );
+
+}
+
+function abrirConfiguracoes(){
+
+  alert(
+    "Módulo de configurações em desenvolvimento."
+  );
 
 }
 
@@ -1161,18 +1461,62 @@ async function logout(){
     "./login.html";
 
 }
+  supabaseClient.auth.onAuthStateChange(
+
+  async(event) => {
+
+    if(event === "SIGNED_OUT"){
+
+      window.location.href =
+        "./login.html";
+
+    }
+
+  }
+
+);
+
+window.addEventListener(
+
+  "unhandledrejection",
+
+  (event) => {
+
+    console.error(
+      "ERRO GLOBAL:",
+      event.reason
+    );
+
+  }
+
+);
 
 async function iniciar(){
 
-  const ok =
-    await validarAdmin();
+  try{
 
-  if(!ok)
-    return;
+    document.body.classList.add("loading");
 
-  await carregarDashboard();
+    const ok =
+      await validarAdmin();
 
-  iniciarRealtime();
+    if(!ok){
+      return;
+    }
+
+    await carregarDashboard();
+
+    await iniciarRealtime();
+
+  }catch(error){
+
+    console.error(error);
+
+  }finally{
+
+    document.body.classList.remove("loading");
+
+  }
 
 }
 
