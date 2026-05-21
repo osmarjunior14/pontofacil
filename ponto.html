@@ -448,64 +448,48 @@
 
   let empresaDados = null;
   let funcionarioLogado = null;
-  
-  const nomesTipos = {
-  entrada: "Entrada",
-  saida_intervalo: "Saída para intervalo",
-  retorno_intervalo: "Retorno do intervalo",
-  saida: "Saída"
-};
-  
   let streamCamera = null;
   let fotoCapturadaBlob = null;
   let modeloFaceCarregado = false;
 
-async function carregarModeloFace(){
+  const nomesTipos = {
+    entrada: "Entrada",
+    saida_intervalo: "Saída para intervalo",
+    retorno_intervalo: "Retorno do intervalo",
+    saida: "Saída"
+  };
 
-  if(modeloFaceCarregado){
-    return true;
+  async function carregarModeloFace(){
+    if(modeloFaceCarregado){
+      return true;
+    }
+
+    try{
+      const modelUrl =
+        "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
+
+      await faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl);
+
+      modeloFaceCarregado = true;
+
+      console.log("Modelos faciais carregados com sucesso.");
+
+      return true;
+
+    }catch(error){
+
+      console.log("Erro ao carregar modelos faciais:", error);
+
+      mostrarMensagem(
+        "erro",
+        "Não foi possível carregar a validação facial. Verifique sua internet e tente novamente."
+      );
+
+      return false;
+    }
   }
-
-  try{
-
-    const modelUrl =
-      "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
-
-    await faceapi.nets.tinyFaceDetector.loadFromUri(
-      modelUrl
-    );
-
-    await faceapi.nets.faceLandmark68Net.loadFromUri(
-      modelUrl
-    );
-
-    await faceapi.nets.faceRecognitionNet.loadFromUri(
-      modelUrl
-    );
-
-    modeloFaceCarregado = true;
-
-    console.log(
-      "Modelos faciais carregados com sucesso."
-    );
-
-    return true;
-
-  }catch(error){
-
-    console.log(
-      "Erro ao carregar modelos faciais:",
-      error
-    );
-
-    mostrarMensagem(
-      "erro",
-      "Não foi possível carregar a validação facial. Verifique sua internet e tente novamente."
-    );
-
-    return false;
-  }
-}
 
   function atualizarRelogio(){
     const agora = new Date();
@@ -529,7 +513,7 @@ async function carregarModeloFace(){
   atualizarRelogio();
 
   document.getElementById("observacao").addEventListener("input", function(){
-  document.getElementById("contadorObs").innerText = this.value.length;
+    document.getElementById("contadorObs").innerText = this.value.length;
   });
 
   function normalizarNomeArquivo(texto){
@@ -546,115 +530,112 @@ async function carregarModeloFace(){
       `<div class="${tipo}">${texto}</div>`;
   }
 
-async function obterProximoTipoPermitido(funcionarioId){
-  const hoje = new Date();
+  async function obterProximoTipoPermitido(funcionarioId){
+    const hoje = new Date();
 
-  const inicioHoje = new Date(
-    hoje.getFullYear(),
-    hoje.getMonth(),
-    hoje.getDate()
-  ).toISOString();
+    const inicioHoje = new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate()
+    ).toISOString();
 
-  const amanha = new Date(
-    hoje.getFullYear(),
-    hoje.getMonth(),
-    hoje.getDate() + 1
-  ).toISOString();
+    const amanha = new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate() + 1
+    ).toISOString();
 
-  const { data, error } = await supabaseClient
-    .from("registros_ponto")
-    .select("tipo, data_hora")
-    .eq("empresa_id", empresaId)
-    .eq("funcionario_id", funcionarioId)
-    .gte("data_hora", inicioHoje)
-    .lt("data_hora", amanha)
-    .order("data_hora", { ascending:true });
+    const { data, error } = await supabaseClient
+      .from("registros_ponto")
+      .select("tipo, data_hora")
+      .eq("empresa_id", empresaId)
+      .eq("funcionario_id", funcionarioId)
+      .gte("data_hora", inicioHoje)
+      .lt("data_hora", amanha)
+      .order("data_hora", { ascending:true });
 
-  if(error){
-    console.log("Erro ao buscar registros do dia:", error);
-    return null;
-  }
+    if(error){
+      console.log("Erro ao buscar registros do dia:", error);
+      return null;
+    }
 
-  const funcionario =
-  funcionarioLogado;
+    const funcionario = funcionarioLogado;
 
-  const tiposHoje = (data || []).map(registro => registro.tipo);
+    const tiposHoje = (data || []).map(registro => registro.tipo);
 
-  if(funcionario?.sem_intervalo === true){
+    if(funcionario?.sem_intervalo === true){
+      if(!tiposHoje.includes("entrada")) return "entrada";
+      if(!tiposHoje.includes("saida")) return "saida";
+      return "finalizado";
+    }
+
     if(!tiposHoje.includes("entrada")) return "entrada";
+    if(!tiposHoje.includes("saida_intervalo")) return "saida_intervalo";
+    if(!tiposHoje.includes("retorno_intervalo")) return "retorno_intervalo";
     if(!tiposHoje.includes("saida")) return "saida";
+
     return "finalizado";
   }
 
-  if(!tiposHoje.includes("entrada")) return "entrada";
-  if(!tiposHoje.includes("saida_intervalo")) return "saida_intervalo";
-  if(!tiposHoje.includes("retorno_intervalo")) return "retorno_intervalo";
-  if(!tiposHoje.includes("saida")) return "saida";
-
-  return "finalizado";
-}
   async function validarIntervaloMinimo(funcionarioId){
+    const agora = new Date();
 
-  const agora = new Date();
-
-  const cincoMinAtras =
-    new Date(
-      agora.getTime() - (5 * 60 * 1000)
-    );
-
-  const { data, error } =
-    await supabaseClient
-      .from("registros_ponto")
-      .select("*")
-      .eq("empresa_id", empresaId)
-      .eq("funcionario_id", funcionarioId)
-      .gte("data_hora", cincoMinAtras.toISOString())
-      .order("data_hora", { ascending:false })
-      .limit(1);
-
-  if(error){
-
-    console.log(
-      "Erro ao validar intervalo mínimo:",
-      error
-    );
-
-    return {
-      permitido:false,
-      motivo:"Erro ao validar intervalo."
-    };
-  }
-
-  if(data && data.length > 0){
-
-    const ultimoRegistro =
-      new Date(data[0].data_hora);
-
-    const diferencaSegundos =
-      Math.floor(
-        (agora.getTime() - ultimoRegistro.getTime()) / 1000
+    const cincoMinAtras =
+      new Date(
+        agora.getTime() - (5 * 60 * 1000)
       );
 
-    const segundosRestantes =
-    Math.max(0, 300 - diferencaSegundos);
+    const { data, error } =
+      await supabaseClient
+        .from("registros_ponto")
+        .select("*")
+        .eq("empresa_id", empresaId)
+        .eq("funcionario_id", funcionarioId)
+        .gte("data_hora", cincoMinAtras.toISOString())
+        .order("data_hora", { ascending:false })
+        .limit(1);
 
-    const minutos =
-      Math.floor(segundosRestantes / 60);
+    if(error){
+      console.log(
+        "Erro ao validar intervalo mínimo:",
+        error
+      );
 
-    const segundos =
-      segundosRestantes % 60;
+      return {
+        permitido:false,
+        motivo:"Erro ao validar intervalo."
+      };
+    }
+
+    if(data && data.length > 0){
+      const ultimoRegistro =
+        new Date(data[0].data_hora);
+
+      const diferencaSegundos =
+        Math.floor(
+          (agora.getTime() - ultimoRegistro.getTime()) / 1000
+        );
+
+      const segundosRestantes =
+        Math.max(0, 300 - diferencaSegundos);
+
+      const minutos =
+        Math.floor(segundosRestantes / 60);
+
+      const segundos =
+        segundosRestantes % 60;
+
+      return {
+        permitido:false,
+        motivo:`Aguarde ${minutos}m ${segundos}s para registrar novamente.`
+      };
+    }
 
     return {
-      permitido:false,
-      motivo:`Aguarde ${minutos}m ${segundos}s para registrar novamente.`
+      permitido:true
     };
   }
 
-  return {
-    permitido:true
-  };
-}
-  
   async function abrirCamera(){
     const video = document.getElementById("cameraVideo");
     const foto = document.getElementById("fotoCapturada");
@@ -690,440 +671,468 @@ async function obterProximoTipoPermitido(funcionarioId){
   }
 
   async function capturarFotoAoVivo(){
+    const video = document.getElementById("cameraVideo");
+    const canvas = document.getElementById("canvasFoto");
+    const foto = document.getElementById("fotoCapturada");
+    const status = document.getElementById("cameraStatus");
 
-  const video = document.getElementById("cameraVideo");
-  const canvas = document.getElementById("canvasFoto");
-  const foto = document.getElementById("fotoCapturada");
-  const status = document.getElementById("cameraStatus");
+    if(!streamCamera || !video.videoWidth){
+      mostrarMensagem("erro", "Abra a câmera antes de capturar a foto.");
+      return;
+    }
 
-  if(!streamCamera || !video.videoWidth){
-    mostrarMensagem("erro", "Abra a câmera antes de capturar a foto.");
-    return;
-  }
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
 
-  canvas.width = video.videoWidth;
-  canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
 
-  const ctx = canvas.getContext("2d");
-
-  ctx.drawImage(
-    video,
-    0,
-    0,
-    canvas.width,
-    canvas.height
-  );
-
-  const imageData =
-    ctx.getImageData(
+    ctx.drawImage(
+      video,
       0,
       0,
       canvas.width,
       canvas.height
     );
 
-  const pixels =
-    imageData.data;
+    const imageData =
+      ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
 
-  let brilhoTotal = 0;
+    const pixels =
+      imageData.data;
 
-  for(let i = 0; i < pixels.length; i += 4){
+    let brilhoTotal = 0;
 
-    const r = pixels[i];
-    const g = pixels[i + 1];
-    const b = pixels[i + 2];
+    for(let i = 0; i < pixels.length; i += 4){
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
 
-    const brilho =
-      (r + g + b) / 3;
+      const brilho =
+        (r + g + b) / 3;
 
-    brilhoTotal += brilho;
-  }
+      brilhoTotal += brilho;
+    }
 
-  const brilhoMedio =
-    brilhoTotal /
-    (pixels.length / 4);
+    const brilhoMedio =
+      brilhoTotal /
+      (pixels.length / 4);
 
-  if(brilhoMedio < 35){
+    if(brilhoMedio < 35){
+      fotoCapturadaBlob = null;
 
-    fotoCapturadaBlob = null;
-
-    status.innerText =
-      "Imagem muito escura.";
-
-    mostrarMensagem(
-      "erro",
-      "Imagem muito escura. Certifique-se de que seu rosto está visível."
-    );
-
-    return;
-  }
-
-  status.innerText =
-    "Validando rosto humano...";
-
-  const rostoValido =
-    await validarRostoHumano(canvas);
-
-  if(!rostoValido){
-
-    fotoCapturadaBlob = null;
-
-    status.innerText =
-      "Rosto não identificado.";
-
-    return;
-  }
-
-  status.innerText =
-  "Comparando com a foto cadastrada...";
-
-const faceConfere =
-  await validarFaceComCadastro(canvas);
-
-if(!faceConfere){
-
-  fotoCapturadaBlob = null;
-
-  status.innerText =
-
-    "Identificação facial não compatível.";
-
-  return;
-
-}
-    
-  canvas.toBlob(blob => {
-
-    if(!blob){
+      status.innerText =
+        "Imagem muito escura.";
 
       mostrarMensagem(
         "erro",
-        "Erro ao capturar a foto."
+        "Imagem muito escura. Certifique-se de que seu rosto está visível."
       );
 
       return;
     }
 
-    fotoCapturadaBlob = blob;
+    status.innerText =
+      "Validando rosto humano...";
 
-    const urlPreview =
-      URL.createObjectURL(blob);
+    const rostoValido =
+      await validarRostoHumano(canvas);
 
-    foto.src =
-      urlPreview;
-
-    foto.style.display =
-      "block";
-
-    video.style.display =
-      "none";
+    if(!rostoValido){
+      fotoCapturadaBlob = null;
+      status.innerText =
+        "Rosto não identificado.";
+      return;
+    }
 
     status.innerText =
-  "Foto validada com reconhecimento facial.";
+      "Comparando com a foto cadastrada...";
 
-    if(streamCamera){
+    const faceConfere =
+      await validarFaceComCadastro(canvas);
 
-      streamCamera.getTracks().forEach(
-        track => track.stop()
-      );
-
-      streamCamera = null;
+    if(!faceConfere){
+      fotoCapturadaBlob = null;
+      status.innerText =
+        "Identificação facial não compatível.";
+      return;
     }
 
-  }, "image/jpeg", 0.9);
-}
+    canvas.toBlob(blob => {
+      if(!blob){
+        mostrarMensagem(
+          "erro",
+          "Erro ao capturar a foto."
+        );
+
+        return;
+      }
+
+      fotoCapturadaBlob = blob;
+
+      const urlPreview =
+        URL.createObjectURL(blob);
+
+      foto.src =
+        urlPreview;
+
+      foto.style.display =
+        "block";
+
+      video.style.display =
+        "none";
+
+      status.innerText =
+        "Foto validada com reconhecimento facial.";
+
+      if(streamCamera){
+        streamCamera.getTracks().forEach(
+          track => track.stop()
+        );
+
+        streamCamera = null;
+      }
+
+    }, "image/jpeg", 0.9);
+  }
 
   async function validarRostoHumano(canvas){
+    const modeloOk =
+      await carregarModeloFace();
 
-  const modeloOk =
+    if(!modeloOk){
+      return false;
+    }
 
-    await carregarModeloFace();
-
-  if(!modeloOk){
-
-    return false;
-
-  }
-
-  const detections =
-
-    await faceapi.detectAllFaces(
-
-      canvas,
-
-      new faceapi.TinyFaceDetectorOptions({
-
-        inputSize:224,
-
-        scoreThreshold:0.5
-
-      })
-
-    );
-
-  if(!detections || detections.length === 0){
-
-    mostrarMensagem(
-      "erro",
-      "Nenhum rosto humano foi identificado. Posicione o rosto de frente para a câmera e capture novamente."
-    );
-
-    return false;
-  }
-
-  if(detections.length > 1){
-
-    mostrarMensagem(
-      "erro",
-      "Mais de um rosto foi identificado. Apenas o funcionário deve aparecer na foto."
-    );
-
-    return false;
-  }
-
-  return true;
-}
-
-async function validarFaceComCadastro(canvasSelfie){
-
-  if(!funcionarioLogado?.foto_url){
-
-    mostrarMensagem(
-      "erro",
-      "Este funcionário não possui foto cadastrada para validação facial."
-    );
-
-    return false;
-  }
-
-  const modeloOk =
-    await carregarModeloFace();
-
-  if(!modeloOk){
-    return false;
-  }
-
-  try{
-
-    const imgCadastro =
-      await faceapi.fetchImage(
-        funcionarioLogado.foto_url
+    const detections =
+      await faceapi.detectAllFaces(
+        canvas,
+        new faceapi.TinyFaceDetectorOptions({
+          inputSize:224,
+          scoreThreshold:0.5
+        })
       );
 
-    const opcoesDetector =
-      new faceapi.TinyFaceDetectorOptions({
-        inputSize:224,
-        scoreThreshold:0.5
-      });
-
-    const deteccaoCadastro =
-      await faceapi
-        .detectSingleFace(
-          imgCadastro,
-          opcoesDetector
-        )
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-    if(!deteccaoCadastro){
-
+    if(!detections || detections.length === 0){
       mostrarMensagem(
         "erro",
-        "Não foi possível identificar um rosto na foto cadastrada do funcionário."
+        "Nenhum rosto humano foi identificado. Posicione o rosto de frente para a câmera e capture novamente."
       );
 
       return false;
     }
 
-    const deteccaoSelfie =
-      await faceapi
-        .detectSingleFace(
-          canvasSelfie,
-          opcoesDetector
-        )
-        .withFaceLandmarks()
-        .withFaceDescriptor();
-
-    if(!deteccaoSelfie){
-
+    if(detections.length > 1){
       mostrarMensagem(
         "erro",
-        "Não foi possível identificar um rosto na selfie capturada."
-      );
-
-      return false;
-    }
-
-    const distancia =
-      faceapi.euclideanDistance(
-        deteccaoCadastro.descriptor,
-        deteccaoSelfie.descriptor
-      );
-
-    console.log(
-      "DISTÂNCIA FACIAL:",
-      distancia
-    );
-
-    const limiteAceitacao =
-      0.62;
-
-    if(distancia > limiteAceitacao){
-
-      mostrarMensagem(
-        "erro",
-        "Identificação facial não compatível. Tente novamente com o rosto bem iluminado e de frente para a câmera."
+        "Mais de um rosto foi identificado. Apenas o funcionário deve aparecer na foto."
       );
 
       return false;
     }
 
     return true;
-
-  }catch(error){
-
-    console.log(
-      "Erro na validação facial:",
-      error
-    );
-
-    mostrarMensagem(
-      "erro",
-      "Erro ao comparar a selfie com a foto cadastrada."
-    );
-
-    return false;
   }
-}
-  
+
+  async function validarFaceComCadastro(canvasSelfie){
+    if(!funcionarioLogado?.foto_url){
+      mostrarMensagem(
+        "erro",
+        "Este funcionário não possui foto cadastrada para validação facial."
+      );
+
+      return false;
+    }
+
+    const modeloOk =
+      await carregarModeloFace();
+
+    if(!modeloOk){
+      return false;
+    }
+
+    try{
+      const imgCadastro =
+        await faceapi.fetchImage(
+          funcionarioLogado.foto_url
+        );
+
+      const opcoesDetector =
+        new faceapi.TinyFaceDetectorOptions({
+          inputSize:224,
+          scoreThreshold:0.5
+        });
+
+      const deteccaoCadastro =
+        await faceapi
+          .detectSingleFace(
+            imgCadastro,
+            opcoesDetector
+          )
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+      if(!deteccaoCadastro){
+        mostrarMensagem(
+          "erro",
+          "Não foi possível identificar um rosto na foto cadastrada do funcionário."
+        );
+
+        return false;
+      }
+
+      const deteccaoSelfie =
+        await faceapi
+          .detectSingleFace(
+            canvasSelfie,
+            opcoesDetector
+          )
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+      if(!deteccaoSelfie){
+        mostrarMensagem(
+          "erro",
+          "Não foi possível identificar um rosto na selfie capturada."
+        );
+
+        return false;
+      }
+
+      const distancia =
+        faceapi.euclideanDistance(
+          deteccaoCadastro.descriptor,
+          deteccaoSelfie.descriptor
+        );
+
+      console.log(
+        "DISTÂNCIA FACIAL:",
+        distancia
+      );
+
+      const limiteAceitacao =
+        0.62;
+
+      if(distancia > limiteAceitacao){
+        mostrarMensagem(
+          "erro",
+          "Identificação facial não compatível. Tente novamente com o rosto bem iluminado e de frente para a câmera."
+        );
+
+        return false;
+      }
+
+      return true;
+
+    }catch(error){
+      console.log(
+        "Erro na validação facial:",
+        error
+      );
+
+      mostrarMensagem(
+        "erro",
+        "Erro ao comparar a selfie com a foto cadastrada."
+      );
+
+      return false;
+    }
+  }
+
   async function carregarFuncionarioLogado(){
+    const {
+      data:{ session }
+    } = await supabaseClient.auth.getSession();
 
-  const {
-    data:{ session }
-  } = await supabaseClient.auth.getSession();
+    if(!session){
+      window.location.href =
+        "./funcionario-login.html";
 
-  if(!session){
+      return false;
+    }
 
-    window.location.href =
-      "./funcionario-login.html";
+    const authUserId =
+      session.user.id;
 
-    return false;
+    const { data, error } =
+      await supabaseClient
+        .from("funcionarios")
+        .select("*")
+        .eq("auth_user_id", authUserId)
+        .single();
+
+    if(error || !data){
+      mostrarMensagem(
+        "erro",
+        "Funcionário não encontrado."
+      );
+
+      return false;
+    }
+
+    funcionarioLogado =
+      data;
+
+    if(funcionarioLogado.ativo !== true){
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      mostrarMensagem(
+        "erro",
+        "Seu acesso está inativo. Entre em contato com o responsável."
+      );
+
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
+
+      return false;
+    }
+
+    if(
+      String(funcionarioLogado.empresa_id)
+      !==
+      String(empresaId)
+    ){
+      mostrarMensagem(
+        "erro",
+        "Este funcionário não pertence a esta empresa."
+      );
+
+      return false;
+    }
+
+    const {
+      data: vinculo,
+      error: vinculoError
+    } = await supabaseClient
+      .from("usuarios_empresas")
+      .select("id, ativo, perfil, empresa_id")
+      .eq("user_id", authUserId)
+      .eq("empresa_id", empresaId)
+      .eq("perfil", "funcionario")
+      .maybeSingle();
+
+    if(vinculoError || !vinculo){
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      mostrarMensagem(
+        "erro",
+        "Vínculo do funcionário não encontrado."
+      );
+
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
+
+      return false;
+    }
+
+    if(vinculo.ativo !== true){
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      mostrarMensagem(
+        "erro",
+        "Seu acesso está inativo. Entre em contato com o responsável."
+      );
+
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
+
+      return false;
+    }
+
+    preencherPreviewFuncionario();
+
+    return true;
   }
-
-  const authUserId =
-    session.user.id;
-
-  const { data, error } =
-    await supabaseClient
-      .from("funcionarios")
-      .select("*")
-      .eq("auth_user_id", authUserId)
-      .single();
-
-  if(error || !data){
-
-    mostrarMensagem(
-      "erro",
-      "Funcionário não encontrado."
-    );
-
-    return false;
-  }
-
-  funcionarioLogado =
-    data;
-
-  /*
-  =========================================
-  FUNCIONÁRIO INATIVO
-  =========================================
-  */
-
-  if(funcionarioLogado.ativo !== true){
-
-    await supabaseClient.auth.signOut();
-
-    localStorage.clear();
-    sessionStorage.clear();
-
-    mostrarMensagem(
-      "erro",
-      "Seu acesso está inativo. Entre em contato com o responsável."
-    );
 
   function preencherPreviewFuncionario(){
+    const preview =
+      document.getElementById(
+        "previewFuncionario"
+      );
 
-  const preview =
+    const foto =
+      document.getElementById(
+        "fotoFuncionario"
+      );
+
+    const avatarFallback =
+      document.getElementById(
+        "avatarFallback"
+      );
+
     document.getElementById(
-      "previewFuncionario"
-    );
+      "nomeFuncionarioPreview"
+    ).innerText =
+      funcionarioLogado.nome_completo;
 
-  const foto =
     document.getElementById(
-      "fotoFuncionario"
-    );
+      "funcaoFuncionarioPreview"
+    ).innerText =
+      funcionarioLogado.funcao || "Funcionário";
 
-  const avatarFallback =
-    document.getElementById(
-      "avatarFallback"
-    );
+    if(funcionarioLogado.foto_url){
+      foto.src =
+        funcionarioLogado.foto_url;
 
-  document.getElementById(
-    "nomeFuncionarioPreview"
-  ).innerText =
-    funcionarioLogado.nome_completo;
+      foto.style.display =
+        "block";
 
-  document.getElementById(
-    "funcaoFuncionarioPreview"
-  ).innerText =
-    funcionarioLogado.funcao || "Funcionário";
+      avatarFallback.style.display =
+        "none";
 
-  if(funcionarioLogado.foto_url){
+    }else{
+      foto.style.display =
+        "none";
 
-    foto.src =
-      funcionarioLogado.foto_url;
+      avatarFallback.style.display =
+        "flex";
+    }
 
-    foto.style.display =
-      "block";
-
-    avatarFallback.style.display =
-      "none";
-
-  }else{
-
-    foto.style.display =
-      "none";
-
-    avatarFallback.style.display =
+    preview.style.display =
       "flex";
   }
 
-  preview.style.display =
-    "flex";
-}
-  
   async function carregarEmpresa(){
-  if(!empresaId){
-    mostrarMensagem("erro", "QR Code inválido. Empresa não identificada.");
-    return false;
+    if(!empresaId){
+      mostrarMensagem("erro", "QR Code inválido. Empresa não identificada.");
+      return false;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("empresas")
+      .select("id, nome, latitude, longitude, raio_permitido_metros, ativa, email_rh")
+      .eq("id", empresaId)
+      .eq("ativa", true)
+      .single();
+
+    if(error || !data){
+      console.log("Erro ao carregar empresa:", error);
+      mostrarMensagem("erro", "Empresa não encontrada ou inativa.");
+      return false;
+    }
+
+    empresaDados = data;
+    return true;
   }
-
-  const { data, error } = await supabaseClient
-    .from("empresas")
-    .select("id, nome, latitude, longitude, raio_permitido_metros, ativa, email_rh")
-    .eq("id", empresaId)
-    .eq("ativa", true)
-    .single();
-
-  if(error || !data){
-    console.log("Erro ao carregar empresa:", error);
-    mostrarMensagem("erro", "Empresa não encontrada ou inativa.");
-    return false;
-  }
-
-  empresaDados = data;
-  return true;
-}
 
   function calcularDistanciaMetros(lat1, lon1, lat2, lon2){
     const R = 6371000;
@@ -1215,38 +1224,38 @@ async function validarFaceComCadastro(canvasSelfie){
     }
   }
 
-async function atualizarTipoAutomatico(funcionarioId){
-  const selectTipo = document.getElementById("tipo");
-  const botao = document.getElementById("btnRegistrar");
+  async function atualizarTipoAutomatico(funcionarioId){
+    const selectTipo = document.getElementById("tipo");
+    const botao = document.getElementById("btnRegistrar");
 
-  selectTipo.innerHTML = `<option value="">Verificando próximo registro...</option>`;
-  selectTipo.disabled = true;
-  botao.disabled = true;
+    selectTipo.innerHTML = `<option value="">Verificando próximo registro...</option>`;
+    selectTipo.disabled = true;
+    botao.disabled = true;
 
-  const proximoTipo = await obterProximoTipoPermitido(funcionarioId);
+    const proximoTipo = await obterProximoTipoPermitido(funcionarioId);
 
-  if(proximoTipo === "finalizado"){
-    selectTipo.innerHTML = `<option value="">Ponto de hoje finalizado</option>`;
-    mostrarMensagem("sucesso", "✅ Todos os registros de ponto de hoje já foram concluídos.");
-    return;
+    if(proximoTipo === "finalizado"){
+      selectTipo.innerHTML = `<option value="">Ponto de hoje finalizado</option>`;
+      mostrarMensagem("sucesso", "✅ Todos os registros de ponto de hoje já foram concluídos.");
+      return;
+    }
+
+    if(proximoTipo === null){
+      selectTipo.innerHTML = `<option value="">Erro ao validar sequência</option>`;
+      mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
+      return;
+    }
+
+    selectTipo.innerHTML = `
+      <option value="${proximoTipo}">
+        ${nomesTipos[proximoTipo]}
+      </option>
+    `;
+
+    selectTipo.value = proximoTipo;
+    selectTipo.disabled = true;
+    botao.disabled = false;
   }
-
-  if(proximoTipo === null){
-    selectTipo.innerHTML = `<option value="">Erro ao validar sequência</option>`;
-    mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
-    return;
-  }
-
-  selectTipo.innerHTML = `
-    <option value="${proximoTipo}">
-      ${nomesTipos[proximoTipo]}
-    </option>
-  `;
-
-  selectTipo.value = proximoTipo;
-  selectTipo.disabled = true;
-  botao.disabled = false;
-}
 
   async function enviarFotoPonto(funcionarioId, tipo){
     if(!fotoCapturadaBlob){
@@ -1277,54 +1286,169 @@ async function atualizarTipoAutomatico(funcionarioId){
     return urlData.publicUrl;
   }
 
+  async function validarPermissaoAntesDeRegistrar(){
+    const {
+      data:{ session }
+    } = await supabaseClient.auth.getSession();
+
+    if(!session){
+      return {
+        ok:false,
+        mensagem:"Sessão expirada. Faça login novamente."
+      };
+    }
+
+    const authUserId =
+      session.user.id;
+
+    const { data: funcionarioAtual, error: funcionarioError } =
+      await supabaseClient
+        .from("funcionarios")
+        .select("id, empresa_id, ativo")
+        .eq("auth_user_id", authUserId)
+        .eq("empresa_id", empresaId)
+        .single();
+
+    if(funcionarioError || !funcionarioAtual){
+      return {
+        ok:false,
+        mensagem:"Funcionário não encontrado ou não pertence a esta empresa."
+      };
+    }
+
+    if(funcionarioAtual.ativo !== true){
+      return {
+        ok:false,
+        mensagem:"Seu acesso está inativo. Entre em contato com o responsável."
+      };
+    }
+
+    const { data: vinculoAtual, error: vinculoError } =
+      await supabaseClient
+        .from("usuarios_empresas")
+        .select("id, ativo")
+        .eq("user_id", authUserId)
+        .eq("empresa_id", empresaId)
+        .eq("perfil", "funcionario")
+        .maybeSingle();
+
+    if(vinculoError || !vinculoAtual){
+      return {
+        ok:false,
+        mensagem:"Vínculo do funcionário não encontrado."
+      };
+    }
+
+    if(vinculoAtual.ativo !== true){
+      return {
+        ok:false,
+        mensagem:"Seu acesso está inativo. Entre em contato com o responsável."
+      };
+    }
+
+    const { data: empresaAtual, error: empresaError } =
+      await supabaseClient
+        .from("empresas")
+        .select("id, ativa")
+        .eq("id", empresaId)
+        .single();
+
+    if(empresaError || !empresaAtual){
+      return {
+        ok:false,
+        mensagem:"Empresa não encontrada."
+      };
+    }
+
+    if(empresaAtual.ativa !== true){
+      return {
+        ok:false,
+        mensagem:"Empresa inativa. Registro bloqueado."
+      };
+    }
+
+    return {
+      ok:true
+    };
+  }
+
   async function registrarPonto(){
-    const funcionarioId =   funcionarioLogado.id;
-    const tipo = document.getElementById("tipo").value;
-    const observacao = document.getElementById("observacao").value.trim();
-    const botao = document.getElementById("btnRegistrar");
+    const funcionarioId =
+      funcionarioLogado?.id;
+
+    const tipo =
+      document.getElementById("tipo").value;
+
+    const observacao =
+      document.getElementById("observacao").value.trim();
+
+    const botao =
+      document.getElementById("btnRegistrar");
+
     const funcionarioSelecionado =
-    funcionarioLogado;
+      funcionarioLogado;
 
     document.getElementById("mensagem").innerHTML = "";
 
     if(!funcionarioId){
-    mostrarMensagem("erro", "Funcionário não identificado. Faça login novamente.");
-    return;
-}
+      mostrarMensagem("erro", "Funcionário não identificado. Faça login novamente.");
+      return;
+    }
 
     if(!tipo){
       mostrarMensagem("erro", "Selecione o tipo de registro.");
       return;
     }
-    
-const proximoTipoPermitido = await obterProximoTipoPermitido(funcionarioId);
 
-if(proximoTipoPermitido === "finalizado"){
-  mostrarMensagem("erro", "Você já concluiu todos os registros de ponto de hoje.");
-  return;
-}
+    const validacaoPermissao =
+      await validarPermissaoAntesDeRegistrar();
 
-if(proximoTipoPermitido === null){
-  mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
-  return;
-}
+    if(!validacaoPermissao.ok){
+      mostrarMensagem("erro", validacaoPermissao.mensagem);
 
-if(tipo !== proximoTipoPermitido){
-  mostrarMensagem(
-    "erro",
-    `Registro inválido. O próximo registro permitido é: ${nomesTipos[proximoTipoPermitido]}.`
-  );
+      await supabaseClient.auth.signOut();
 
-  return;
-}
+      localStorage.clear();
+      sessionStorage.clear();
 
-const validacaoTempo = await validarIntervaloMinimo(funcionarioId);
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
 
-if(!validacaoTempo.permitido){
-  mostrarMensagem("erro", validacaoTempo.motivo);
-  return;
-}
-    
+      return;
+    }
+
+    const proximoTipoPermitido =
+      await obterProximoTipoPermitido(funcionarioId);
+
+    if(proximoTipoPermitido === "finalizado"){
+      mostrarMensagem("erro", "Você já concluiu todos os registros de ponto de hoje.");
+      return;
+    }
+
+    if(proximoTipoPermitido === null){
+      mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
+      return;
+    }
+
+    if(tipo !== proximoTipoPermitido){
+      mostrarMensagem(
+        "erro",
+        `Registro inválido. O próximo registro permitido é: ${nomesTipos[proximoTipoPermitido]}.`
+      );
+
+      return;
+    }
+
+    const validacaoTempo =
+      await validarIntervaloMinimo(funcionarioId);
+
+    if(!validacaoTempo.permitido){
+      mostrarMensagem("erro", validacaoTempo.motivo);
+      return;
+    }
+
     if(!fotoCapturadaBlob){
       mostrarMensagem("erro", "Capture uma foto ao vivo para registrar o ponto.");
       return;
@@ -1333,7 +1457,8 @@ if(!validacaoTempo.permitido){
     botao.disabled = true;
     botao.innerHTML = `<i class="fa-solid fa-location-dot"></i> Verificando localização...`;
 
-    const localizacaoValidada = await validarLocalizacao();
+    const localizacaoValidada =
+      await validarLocalizacao();
 
     if(!localizacaoValidada){
       botao.disabled = false;
@@ -1343,7 +1468,8 @@ if(!validacaoTempo.permitido){
 
     botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
 
-    const fotoUrl = await enviarFotoPonto(funcionarioId, tipo);
+    const fotoUrl =
+      await enviarFotoPonto(funcionarioId, tipo);
 
     if(!fotoUrl){
       mostrarMensagem("erro", "Erro ao enviar foto do ponto.");
@@ -1353,61 +1479,56 @@ if(!validacaoTempo.permitido){
     }
 
     const {
-  data: { session }
-} = await supabaseClient.auth.getSession();
+      data: { session }
+    } = await supabaseClient.auth.getSession();
 
-const resposta = await fetch(
-  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
-  {
+    if(!session){
+      mostrarMensagem("erro", "Sessão expirada. Faça login novamente.");
+      botao.disabled = false;
+      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+      return;
+    }
 
-    method:"POST",
+    const resposta = await fetch(
+      "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":
+            `Bearer ${session.access_token}`
+        },
+        body:JSON.stringify({
+          tipo,
+          observacao,
+          foto_url:fotoUrl,
+          latitude:
+            localizacaoValidada.latitude,
+          longitude:
+            localizacaoValidada.longitude,
+          distancia_metros:
+            localizacaoValidada.distancia_metros
+        })
+      }
+    );
 
-    headers:{
+    const resultado =
+      await resposta.json();
 
-      "Content-Type":"application/json",
+    if(!resposta.ok){
+      console.log(resultado);
 
-      "Authorization":
-        `Bearer ${session.access_token}`
-    },
+      mostrarMensagem(
+        "erro",
+        resultado.error || "Erro ao registrar ponto."
+      );
 
-    body:JSON.stringify({
+      botao.disabled = false;
+      botao.innerHTML =
+        `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
 
-      tipo,
-      observacao,
-
-      foto_url:fotoUrl,
-
-      latitude:
-        localizacaoValidada.latitude,
-
-      longitude:
-        localizacaoValidada.longitude,
-
-      distancia_metros:
-        localizacaoValidada.distancia_metros
-    })
-  }
-);
-
-const resultado =
-  await resposta.json();
-
-if(!resposta.ok){
-
-  console.log(resultado);
-
-  mostrarMensagem(
-    "erro",
-    resultado.error || "Erro ao registrar ponto."
-  );
-
-  botao.disabled = false;
-
-  botao.innerHTML =
-    `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
-
-  return;
-}
+      return;
+    }
 
     document.getElementById("observacao").value = "";
     document.getElementById("contadorObs").innerText = "0";
@@ -1420,96 +1541,74 @@ if(!resposta.ok){
     document.getElementById("cameraStatus").innerText = "Nenhuma foto capturada.";
 
     mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
+
     try{
       const { data: emailData, error: emailError } =
+        await supabaseClient.functions.invoke("enviar-comprovante-ponto", {
+          body:{
+            empresa_nome: empresaDados?.nome || "PontoFácil",
+            funcionario_nome: funcionarioSelecionado?.nome_completo || "",
+            funcionario_email: funcionarioSelecionado?.email || "",
+            rh_email: empresaDados?.email_rh || "",
+            email_rh: empresaDados?.email_rh || "",
+            tipo_registro: nomesTipos[tipo] || tipo,
+            data_hora: new Date().toLocaleString("pt-BR"),
+            observacao: observacao || "Sem observação",
+            foto_url: fotoUrl || "",
+            latitude: localizacaoValidada.latitude,
+            longitude: localizacaoValidada.longitude,
+            distancia_metros: localizacaoValidada.distancia_metros
+          }
+        });
 
-  await supabaseClient.functions.invoke("enviar-comprovante-ponto", {
+      console.log("RETORNO EMAIL DATA:", emailData);
+      console.log("RETORNO EMAIL ERROR:", emailError);
 
-    body:{
+      if(emailError){
+        mostrarMensagem(
+          "sucesso",
+          "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
+        );
+      }
 
-      empresa_nome: empresaDados?.nome || "PontoFácil",
+    }catch(erroEmail){
+      console.log("ERRO GERAL AO ENVIAR EMAIL:", erroEmail);
 
-      funcionario_nome: funcionarioSelecionado?.nome_completo || "",
-
-      funcionario_email: funcionarioSelecionado?.email || "",
-
-      rh_email: empresaDados?.email_rh || "",
-
-      email_rh: empresaDados?.email_rh || "",
-
-      tipo_registro: nomesTipos[tipo] || tipo,
-
-      data_hora: new Date().toLocaleString("pt-BR"),
-
-      observacao: observacao || "Sem observação",
-
-      foto_url: fotoUrl || "",
-
-      latitude: localizacaoValidada.latitude,
-
-      longitude: localizacaoValidada.longitude,
-
-      distancia_metros: localizacaoValidada.distancia_metros
-
+      mostrarMensagem(
+        "sucesso",
+        "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
+      );
     }
 
-  });
+    await atualizarTipoAutomatico(
+      funcionarioLogado.id
+    );
 
-console.log("RETORNO EMAIL DATA:", emailData);
+    botao.innerHTML =
+      `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+  }
 
-console.log("RETORNO EMAIL ERROR:", emailError);
+  async function iniciar(){
+    const empresaOk =
+      await carregarEmpresa();
 
-if(emailError){
+    if(!empresaOk)
+      return;
 
-  mostrarMensagem(
-    "sucesso",
-    "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
-  );
+    const funcionarioOk =
+      await carregarFuncionarioLogado();
 
-}
+    if(!funcionarioOk)
+      return;
 
-}catch(erroEmail){
+    await carregarModeloFace();
 
-  console.log("ERRO GERAL AO ENVIAR EMAIL:", erroEmail);
+    await atualizarTipoAutomatico(
+      funcionarioLogado.id
+    );
+  }
 
-  mostrarMensagem(
-    "sucesso",
-    "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
-  );
-
-}
-
-await atualizarTipoAutomatico(
-  funcionarioLogado.id
-);
-
-botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
-
-}
-
-async function iniciar(){
-
-  const empresaOk =
-    await carregarEmpresa();
-
-  if(!empresaOk)
-    return;
-
-  const funcionarioOk =
-    await carregarFuncionarioLogado();
-
-  if(!funcionarioOk)
-    return;
-
-  await carregarModeloFace();
-
-  await atualizarTipoAutomatico(
-    funcionarioLogado.id
-  );
-
-}
-
-iniciar();
+  iniciar();
 </script>
 
 </body>
