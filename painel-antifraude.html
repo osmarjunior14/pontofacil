@@ -8,9 +8,12 @@
 <title>PontoFácil • Painel Antifraude</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
 
 <link rel="stylesheet"
 href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"/>
+
 
 <style>
 
@@ -494,11 +497,46 @@ pre{
   }
 
 }
-
+  
 </style>
 </head>
 
 <body>
+
+  <div style="
+position:fixed;
+top:24px;
+left:24px;
+z-index:99999;
+">
+
+<button
+onclick="window.location.href='./dashboard.html'"
+style="
+height:52px;
+padding:0 22px;
+border:none;
+border-radius:16px;
+background:rgba(15,23,42,.72);
+backdrop-filter:blur(10px);
+color:white;
+font-weight:900;
+cursor:pointer;
+display:flex;
+align-items:center;
+gap:10px;
+font-size:15px;
+box-shadow:0 10px 30px rgba(0,0,0,.28);
+"
+>
+
+<i data-lucide="arrow-left"></i>
+
+Voltar ao dashboard
+
+</button>
+
+</div>
 
 <div class="topo">
 
@@ -762,18 +800,6 @@ pre{
 
 <script>
 
-const supabaseUrl =
-  "https://ixeeperktitbzmnvcaqz.supabase.co";
-
-const supabaseKey =
-  "SUA_ANON_KEY";
-
-const supabaseClient =
-  window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
-
 let logs = [];
 
 let paginaAtual = 1;
@@ -789,7 +815,7 @@ async function validarUsuario(){
   if(!session){
 
     window.location.href =
-      "./login.html";
+      "./gestao.html";
 
     return false;
   }
