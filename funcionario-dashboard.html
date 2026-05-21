@@ -774,6 +774,81 @@ if(!empresa || empresa.ativa !== true){
   return null;
 
 }
+
+  /*
+=========================================
+VALIDA FUNCIONÁRIO ATIVO NA TABELA FUNCIONARIOS
+=========================================
+*/
+
+const {
+  data: funcionariosEncontrados,
+  error: funcionarioAtivoError
+} = await supabaseClient
+  .from("funcionarios")
+  .select("id, nome_completo, email, ativo, empresa_id")
+  .eq("empresa_id", vinculo.empresa_id)
+  .ilike("email", user.email.trim());
+
+if(funcionarioAtivoError){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+    "Erro ao validar funcionário: " + funcionarioAtivoError.message
+  );
+
+  window.location.href =
+    "./funcionario-login.html";
+
+  return null;
+}
+
+if(!funcionariosEncontrados || funcionariosEncontrados.length === 0){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+    "Funcionário não encontrado nesta empresa."
+  );
+
+  window.location.href =
+    "./funcionario-login.html";
+
+  return null;
+}
+
+const funcionarioAtivo =
+  funcionariosEncontrados.find(f =>
+    f.ativo === true
+  );
+
+if(!funcionarioAtivo){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+    "Seu acesso está inativo."
+  );
+
+  window.location.href =
+    "./funcionario-login.html";
+
+  return null;
+}
+  
   /*
 
   =========================================
