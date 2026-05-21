@@ -503,298 +503,419 @@ pre{
 
 <body>
 
-  <div style="
-position:fixed;
-top:24px;
-left:24px;
-z-index:99999;
-">
+<div class="layout">
 
-<button
-onclick="window.location.href='./dashboard.html'"
-style="
-height:52px;
-padding:0 22px;
-border:none;
-border-radius:16px;
-background:rgba(15,23,42,.72);
-backdrop-filter:blur(10px);
-color:white;
-font-weight:900;
-cursor:pointer;
-display:flex;
-align-items:center;
-gap:10px;
-font-size:15px;
-box-shadow:0 10px 30px rgba(0,0,0,.28);
-"
+<!-- SIDEBAR -->
+
+<aside class="sidebar">
+
+<div class="brand">
+
+<img
+src="./pontofacil-icone.png"
+alt="PontoFácil"
+class="logo-sidebar"
 >
 
-<i data-lucide="arrow-left"></i>
+<div class="brand-text">
+<strong>PontoFácil</strong>
+<small>Gestão de Ponto</small>
+</div>
 
-Voltar ao dashboard
+</div>
+
+<nav class="menu">
+
+<button onclick="window.location.href='./dashboard.html'">
+<i data-lucide="layout-dashboard"></i>
+Dashboard
+</button>
+
+<button onclick="window.location.href='./funcionarios.html'">
+<i data-lucide="users"></i>
+Funcionários
+</button>
+
+<button onclick="window.location.href='./relatorio.html'">
+<i data-lucide="clipboard-list"></i>
+Registros
+</button>
+
+<button onclick="window.location.href='./banco-horas.html'">
+<i data-lucide="clock-3"></i>
+Banco de horas
+</button>
+
+<button class="active">
+<i data-lucide="shield-alert"></i>
+Antifraude
+</button>
+
+<button onclick="window.location.href='./logs-antifraude.html'">
+<i data-lucide="history"></i>
+Logs antifraude
+</button>
+
+<button onclick="window.location.href='./painel-admin.html'">
+<i data-lucide="shield"></i>
+Painel admin
+</button>
+
+</nav>
+
+<div class="sidebar-footer">
+
+<div class="empresa-card">
+
+<small>Empresa</small>
+
+<strong id="empresaNomeSidebar">
+Carregando...
+</strong>
+
+</div>
+
+<div class="admin-card">
+
+<div class="avatar">
+G
+</div>
+
+<div>
+
+<strong>
+Gestor
+</strong>
+
+<small>
+Empresa
+</small>
+
+<small class="online">
+● Online
+</small>
+
+</div>
+
+</div>
+
+<button
+class="logout-card"
+onclick="logout()"
+>
+
+<i data-lucide="log-out"></i>
+
+Sair
 
 </button>
 
 </div>
 
+</aside>
+
+<!-- MAIN -->
+
+<main class="main">
+
 <div class="topo">
 
-  <div class="logo-box">
+<div class="logo-box">
 
-    <div class="logo">
-      <i class="fa-solid fa-shield-halved"></i>
-    </div>
+<div class="logo">
+<i class="fa-solid fa-shield-halved"></i>
+</div>
 
-    <div>
-      <h1>Painel Antifraude</h1>
-      <p>Monitoramento inteligente de tentativas suspeitas</p>
-    </div>
+<div>
 
-  </div>
+<h1>
+Painel Antifraude
+</h1>
 
-  <div class="usuario-box">
-    <strong id="empresaNome">Carregando...</strong>
-  </div>
+<p>
+Monitoramento inteligente de tentativas suspeitas
+</p>
 
 </div>
+
+</div>
+
+<div class="usuario-box">
+
+<strong id="empresaNome">
+Carregando...
+</strong>
+
+</div>
+
+</div>
+
+<!-- CARDS -->
 
 <div class="grid-cards">
 
-  <div class="card">
+<div class="card">
 
-    <div class="card-top">
+<div class="card-top">
 
-      <div class="card-title">
-        Logs Hoje
-      </div>
+<div class="card-title">
+Logs Hoje
+</div>
 
-      <div class="card-icon icon-blue">
-        <i class="fa-solid fa-database"></i>
-      </div>
-
-    </div>
-
-    <div class="card-value" id="totalLogs">
-      0
-    </div>
-
-    <div class="card-sub">
-      Total de eventos registrados
-    </div>
-
-  </div>
-
-  <div class="card">
-
-    <div class="card-top">
-
-      <div class="card-title">
-        Eventos Críticos
-      </div>
-
-      <div class="card-icon icon-red">
-        <i class="fa-solid fa-triangle-exclamation"></i>
-      </div>
-
-    </div>
-
-    <div class="card-value" id="totalCriticos">
-      0
-    </div>
-
-    <div class="card-sub">
-      Tentativas bloqueadas
-    </div>
-
-  </div>
-
-  <div class="card">
-
-    <div class="card-top">
-
-      <div class="card-title">
-        Funcionários Envolvidos
-      </div>
-
-      <div class="card-icon icon-yellow">
-        <i class="fa-solid fa-users"></i>
-      </div>
-
-    </div>
-
-    <div class="card-value" id="totalFuncionarios">
-      0
-    </div>
-
-    <div class="card-sub">
-      Usuários monitorados
-    </div>
-
-  </div>
-
-  <div class="card">
-
-    <div class="card-top">
-
-      <div class="card-title">
-        Status Sistema
-      </div>
-
-      <div class="card-icon icon-green">
-        <i class="fa-solid fa-shield"></i>
-      </div>
-
-    </div>
-
-    <div class="card-value">
-      OK
-    </div>
-
-    <div class="card-sub">
-      Realtime ativo
-    </div>
-
-  </div>
+<div class="card-icon icon-blue">
+<i class="fa-solid fa-database"></i>
+</div>
 
 </div>
+
+<div class="card-value" id="totalLogs">
+0
+</div>
+
+<div class="card-sub">
+Total de eventos registrados
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="card-top">
+
+<div class="card-title">
+Eventos Críticos
+</div>
+
+<div class="card-icon icon-red">
+<i class="fa-solid fa-triangle-exclamation"></i>
+</div>
+
+</div>
+
+<div class="card-value" id="totalCriticos">
+0
+</div>
+
+<div class="card-sub">
+Tentativas bloqueadas
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="card-top">
+
+<div class="card-title">
+Funcionários Envolvidos
+</div>
+
+<div class="card-icon icon-yellow">
+<i class="fa-solid fa-users"></i>
+</div>
+
+</div>
+
+<div class="card-value" id="totalFuncionarios">
+0
+</div>
+
+<div class="card-sub">
+Usuários monitorados
+</div>
+
+</div>
+
+<div class="card">
+
+<div class="card-top">
+
+<div class="card-title">
+Status Sistema
+</div>
+
+<div class="card-icon icon-green">
+<i class="fa-solid fa-shield"></i>
+</div>
+
+</div>
+
+<div class="card-value">
+OK
+</div>
+
+<div class="card-sub">
+Realtime ativo
+</div>
+
+</div>
+
+</div>
+
+<!-- FILTROS -->
 
 <div class="filtros">
 
-  <div class="input-box">
+<div class="input-box">
 
-    <label>Pesquisar</label>
+<label>
+Pesquisar
+</label>
 
-    <input
-      type="text"
-      id="pesquisa"
-      placeholder="Nome, email, IP..."
-    />
-
-  </div>
-
-  <div class="input-box">
-
-    <label>Tipo de evento</label>
-
-    <select id="filtroTipo">
-
-      <option value="">
-        Todos
-      </option>
-
-      <option value="url_foto_invalida">
-        URL Foto Inválida
-      </option>
-
-      <option value="fora_do_raio">
-        Fora do raio
-      </option>
-
-      <option value="spam_registro">
-        Spam registro
-      </option>
-
-      <option value="funcionario_nao_autorizado">
-        Funcionário não autorizado
-      </option>
-
-    </select>
-
-  </div>
-
-  <div class="actions">
-
-    <button
-      class="btn btn-primary"
-      onclick="carregarLogs()"
-    >
-      <i class="fa-solid fa-filter"></i>
-      Filtrar
-    </button>
-
-    <button
-      class="btn btn-secondary"
-      onclick="exportarCSV()"
-    >
-      <i class="fa-solid fa-file-csv"></i>
-      Exportar
-    </button>
-
-  </div>
+<input
+type="text"
+id="pesquisa"
+placeholder="Nome, email, IP..."
+>
 
 </div>
+
+<div class="input-box">
+
+<label>
+Tipo de evento
+</label>
+
+<select id="filtroTipo">
+
+<option value="">
+Todos
+</option>
+
+<option value="url_foto_invalida">
+URL Foto Inválida
+</option>
+
+<option value="fora_do_raio">
+Fora do raio
+</option>
+
+<option value="spam_registro">
+Spam registro
+</option>
+
+<option value="funcionario_nao_autorizado">
+Funcionário não autorizado
+</option>
+
+</select>
+
+</div>
+
+<div class="actions">
+
+<button
+class="btn btn-primary"
+onclick="carregarLogs()"
+>
+
+<i class="fa-solid fa-filter"></i>
+
+Filtrar
+
+</button>
+
+<button
+class="btn btn-secondary"
+onclick="exportarCSV()"
+>
+
+<i class="fa-solid fa-file-csv"></i>
+
+Exportar
+
+</button>
+
+</div>
+
+</div>
+
+<!-- TABELA -->
 
 <div class="tabela-box">
 
-  <div class="table-header">
+<div class="table-header">
 
-    <h2>
-      Logs Antifraude
-    </h2>
+<h2>
+Logs Antifraude
+</h2>
 
-    <div class="status-live">
+<div class="status-live">
 
-      <div class="live-dot"></div>
+<div class="live-dot"></div>
 
-      Atualização em tempo real
-
-    </div>
-
-  </div>
-
-  <div id="loading" class="loading">
-    Carregando logs...
-  </div>
-
-  <table id="tabelaLogs" style="display:none;">
-
-    <thead>
-
-      <tr>
-
-        <th>Data</th>
-        <th>Evento</th>
-        <th>Funcionário</th>
-        <th>IP</th>
-        <th>Distância</th>
-        <th>Severidade</th>
-        <th>Ações</th>
-
-      </tr>
-
-    </thead>
-
-    <tbody id="tbodyLogs"></tbody>
-
-  </table>
-
-  <div class="paginacao" id="paginacao"></div>
+Atualização em tempo real
 
 </div>
 
+</div>
+
+<div id="loading" class="loading">
+Carregando logs...
+</div>
+
+<table id="tabelaLogs" style="display:none;">
+
+<thead>
+
+<tr>
+
+<th>Data</th>
+<th>Evento</th>
+<th>Funcionário</th>
+<th>IP</th>
+<th>Distância</th>
+<th>Severidade</th>
+<th>Ações</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tbodyLogs"></tbody>
+
+</table>
+
+<div
+class="paginacao"
+id="paginacao"
+></div>
+
+</div>
+
+</main>
+
+</div>
+
+<!-- MODAL -->
+
 <div class="modal" id="modalDetalhes">
 
-  <div class="modal-content">
+<div class="modal-content">
 
-    <div class="modal-top">
+<div class="modal-top">
 
-      <h3>
-        Detalhes do Evento
-      </h3>
+<h3>
+Detalhes do Evento
+</h3>
 
-      <button
-        class="close-modal"
-        onclick="fecharModal()"
-      >
-        <i class="fa-solid fa-xmark"></i>
-      </button>
+<button
+class="close-modal"
+onclick="fecharModal()"
+>
 
-    </div>
+<i class="fa-solid fa-xmark"></i>
 
-    <div class="detail-grid" id="modalBody"></div>
+</button>
 
-  </div>
+</div>
+
+<div
+class="detail-grid"
+id="modalBody"
+></div>
+
+</div>
 
 </div>
 
