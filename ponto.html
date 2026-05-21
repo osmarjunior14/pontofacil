@@ -1030,25 +1030,26 @@ async function validarFaceComCadastro(canvasSelfie){
     return false;
   }
 
-  funcionarioLogado = data;
-  if(
-  String(funcionarioLogado.empresa_id)
-  !==
-  String(empresaId)
-){
+  funcionarioLogado =
+    data;
 
-  mostrarMensagem(
-    "erro",
-    "Este funcionário não pertence a esta empresa."
-  );
+  /*
+  =========================================
+  FUNCIONÁRIO INATIVO
+  =========================================
+  */
 
-  return false;
-}
+  if(funcionarioLogado.ativo !== true){
 
-  preencherPreviewFuncionario();
+    await supabaseClient.auth.signOut();
 
-  return true;
-}
+    localStorage.clear();
+    sessionStorage.clear();
+
+    mostrarMensagem(
+      "erro",
+      "Seu acesso está inativo. Entre em contato com o responsável."
+    );
 
   function preencherPreviewFuncionario(){
 
