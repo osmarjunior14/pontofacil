@@ -113,6 +113,34 @@
  box-shadow:0 12px 28px rgba(37,99,235,.24);
  }
 
+ .menu button{
+position:relative;
+overflow:hidden;
+}
+
+.menu button::before{
+content:"";
+position:absolute;
+left:0;
+top:0;
+width:4px;
+height:100%;
+background:transparent;
+transition:.2s;
+border-radius:999px;
+}
+
+.menu button:hover::before,
+.menu button.active::before{
+background:white;
+}
+
+.menu button i{
+width:20px;
+height:20px;
+flex-shrink:0;
+}
+  
  .sidebar-footer{
  margin-top:auto;
  display:flex;
@@ -825,10 +853,43 @@
  </div>
 
  <nav class="menu">
- <button onclick="window.location.href='./dashboard.html'"><i data-lucide="layout-dashboard"></i> Dashboard</button>
- <button class="active"><i data-lucide="users"></i> Funcionários</button>
- <button onclick="window.location.href='./relatorio.html'"><i data-lucide="clipboard-list"></i> Registros</button>
- </nav>
+
+<button onclick="window.location.href='./dashboard.html'">
+<i data-lucide="layout-dashboard"></i>
+Dashboard
+</button>
+
+<button class="active">
+<i data-lucide="users"></i>
+Funcionários
+</button>
+
+<button onclick="window.location.href='./relatorio.html'">
+<i data-lucide="clipboard-list"></i>
+Registros
+</button>
+
+<button onclick="window.location.href='./banco-horas.html'">
+<i data-lucide="clock-3"></i>
+Banco de horas
+</button>
+
+<button onclick="window.location.href='./painel-antifraude.html'">
+<i data-lucide="shield-alert"></i>
+Antifraude
+</button>
+
+<button onclick="window.location.href='./logs-antifraude.html'">
+<i data-lucide="history"></i>
+Logs antifraude
+</button>
+
+<button onclick="window.location.href='./painel-admin.html'">
+<i data-lucide="shield"></i>
+Painel admin
+</button>
+
+</nav>
 
  <div class="sidebar-footer">
  <div class="empresa-card">
