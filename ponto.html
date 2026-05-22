@@ -1555,53 +1555,58 @@
     }
 
     const resposta = await fetch(
-      "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json",
-          "Authorization":
-            `Bearer ${session.access_token}`
-        },
-        body:JSON.stringify({
+  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
+  {
+    method: "POST",
 
-  tipo,
-  observacao,
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization":
+        `Bearer ${session.access_token}`
+    },
 
-  foto_url:fotoUrl,
+    body: JSON.stringify({
 
-  latitude:
-    localizacaoValidada.latitude,
+      tipo,
+      observacao,
 
-  longitude:
-    localizacaoValidada.longitude,
+      foto_url: fotoUrl,
 
-  precisao_gps:
-    localizacaoValidada.precisao_gps,
+      latitude:
+        localizacaoValidada.latitude,
 
-  distancia_metros:
-    localizacaoValidada.distancia_metros,
+      longitude:
+        localizacaoValidada.longitude,
 
-  captura_ao_vivo:true,
+      precisao_gps:
+        localizacaoValidada.precisao_gps,
 
-  metodo_captura:"camera",
+      distancia_metros:
+        localizacaoValidada.distancia_metros,
 
-  score_fraude:
-    fraude.score,
+      captura_ao_vivo: true,
 
-  nivel_fraude:
-    fraude.nivel,
+      metodo_captura: "camera",
 
-  device_info:{
-    userAgent:navigator.userAgent,
-    plataforma:navigator.platform,
-    idioma:navigator.language
-  }
+      score_fraude:
+        fraude.score,
 
-})
+      nivel_fraude:
+        fraude.nivel,
+
+      device_info: {
+        userAgent: navigator.userAgent,
+        plataforma: navigator.platform,
+        idioma: navigator.language
+      }
+
     })
 
-};
+  }
+);
+
+const resultado =
+  await resposta.json();
 
     const resultado =
       await resposta.json();
