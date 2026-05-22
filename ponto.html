@@ -1152,6 +1152,50 @@
     return R * c;
   }
 
+  function calcularScoreFraude({
+  precisaoGps,
+  distanciaMetros,
+  capturaAoVivo,
+  metodoCaptura
+}){
+
+  let score = 0;
+
+  if(capturaAoVivo !== true){
+    score += 40;
+  }
+
+  if(metodoCaptura !== "camera"){
+    score += 30;
+  }
+
+  if(precisaoGps > 80){
+    score += 15;
+  }
+
+  if(distanciaMetros > 30){
+    score += 10;
+  }
+
+  let nivel = "baixo";
+
+  if(score >= 50){
+
+    nivel = "critico";
+
+  }else if(score >= 25){
+
+    nivel = "suspeito";
+
+  }
+
+  return {
+    score,
+    nivel
+  };
+
+}
+  
   function obterLocalizacaoAtual(){
     return new Promise((resolve, reject) => {
       if(!navigator.geolocation){
@@ -1213,10 +1257,16 @@
       }
 
       return {
-        latitude:localizacao.latitude,
-        longitude:localizacao.longitude,
-        distancia_metros:Math.round(distancia)
-      };
+
+  latitude:localizacao.latitude,
+
+  longitude:localizacao.longitude,
+
+  precisao_gps:localizacao.precisao,
+
+  distancia_metros:Math.round(distancia)
+
+};
 
     }catch(erro){
       mostrarMensagem("erro", erro);
@@ -1468,6 +1518,21 @@
 
     botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
 
+    const fraude =
+  calcularScoreFraude({
+
+    precisaoGps:
+      localizacaoValidada.precisao_gps,
+
+    distanciaMetros:
+      localizacaoValidada.distancia_metros,
+
+    capturaAoVivo:true,
+
+    metodoCaptura:"camera"
+
+  });
+    
     const fotoUrl =
       await enviarFotoPonto(funcionarioId, tipo);
 
@@ -1499,18 +1564,41 @@
             `Bearer ${session.access_token}`
         },
         body:JSON.stringify({
-          tipo,
-          observacao,
-          foto_url:fotoUrl,
-          latitude:
-            localizacaoValidada.latitude,
-          longitude:
-            localizacaoValidada.longitude,
-          distancia_metros:
-            localizacaoValidada.distancia_metros
-        })
-      }
-    );
+
+  tipo,
+  observacao,
+
+  foto_url:fotoUrl,
+
+  latitude:
+    localizacaoValidada.latitude,
+
+  longitude:
+    localizacaoValidada.longitude,
+
+  precisao_gps:
+    localizacaoValidada.precisao_gps,
+
+  distancia_metros:
+    localizacaoValidada.distancia_metros,
+
+  captura_ao_vivo:true,
+
+  metodo_captura:"camera",
+
+  score_fraude:
+    fraude.score,
+
+  nivel_fraude:
+    fraude.nivel,
+
+  device_info:{
+    userAgent:navigator.userAgent,
+    plataforma:navigator.platform,
+    idioma:navigator.language
+  }
+
+})
 
     const resultado =
       await resposta.json();
