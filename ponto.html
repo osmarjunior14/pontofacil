@@ -7,6 +7,8 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/security-compliance.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
@@ -437,11 +439,12 @@
 </div>
 
 <script>
-  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+  const supabaseClient = window.supabaseClient;
 
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
-
-  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+  if(!supabaseClient){
+    alert("Erro ao carregar Supabase.");
+    throw new Error("Supabase não carregado.");
+  }
 
   const params = new URLSearchParams(window.location.search);
   const empresaId = params.get("empresa");
@@ -526,8 +529,11 @@
   }
 
   function mostrarMensagem(tipo, texto){
-    document.getElementById("mensagem").innerHTML =
-      `<div class="${tipo}">${texto}</div>`;
+    PontoFacilSecurity.setSafeMessage(
+      document.getElementById("mensagem"),
+      tipo,
+      texto
+    );
   }
 
   async function obterProximoTipoPermitido(funcionarioId){
@@ -1153,63 +1159,42 @@
   }
 
   function calcularScoreFraude({
-
   precisaoGps,
-
   distanciaMetros,
-
   capturaAoVivo,
-
   metodoCaptura
-
-}){
+}) {
 
   let score = 0;
 
-  if(capturaAoVivo !== true){
-
+  if (capturaAoVivo !== true) {
     score += 40;
-
   }
 
-  if(metodoCaptura !== "camera"){
-
+  if (metodoCaptura !== "camera") {
     score += 30;
-
   }
 
-  if(precisaoGps > 80){
-
+  if (precisaoGps > 80) {
     score += 15;
-
   }
 
-  if(distanciaMetros > 30){
-
+  if (distanciaMetros > 30) {
     score += 10;
-
   }
 
   let nivel = "baixo";
 
-  if(score >= 70){
-
+  if (score >= 70) {
     nivel = "critico";
-
-  }else if(score >= 25){
-
+  } else if (score >= 25) {
     nivel = "medio";
-
   }
 
   return {
-
     score,
-
     nivel
-
   };
-
 }
   
   function obterLocalizacaoAtual(){
@@ -1241,64 +1226,72 @@
   }
 
   async function validarLocalizacao(){
-    if(!empresaDados){
-      mostrarMensagem("erro", "Dados da empresa não carregados.");
-      return null;
-    }
 
-    if(
+  if(!empresaDados){
+    mostrarMensagem(
+      "erro",
+      "Dados da empresa não carregados."
+    );
 
-  empresaDados.latitude === null ||
+    return null;
+  }
 
-  empresaDados.latitude === undefined ||
+  if(
+    empresaDados.latitude === null ||
+    empresaDados.latitude === undefined ||
+    empresaDados.longitude === null ||
+    empresaDados.longitude === undefined
+  ){
+    mostrarMensagem(
+      "erro",
+      "Esta empresa ainda não possui localização GPS cadastrada."
+    );
 
-  empresaDados.longitude === null ||
+    return null;
+  }
 
-  empresaDados.longitude === undefined
+  try{
 
-)
-      mostrarMensagem("erro", "Esta empresa ainda não possui localização GPS cadastrada.");
-      return null;
-    }
+    const localizacao =
+      await obterLocalizacaoAtual();
 
-    try{
-      const localizacao = await obterLocalizacaoAtual();
-
-      const distancia = calcularDistanciaMetros(
+    const distancia =
+      calcularDistanciaMetros(
         Number(empresaDados.latitude),
         Number(empresaDados.longitude),
         Number(localizacao.latitude),
         Number(localizacao.longitude)
       );
 
-      const raioPermitido = Number(empresaDados.raio_permitido_metros || 50);
+    const raioPermitido =
+      Number(
+        empresaDados.raio_permitido_metros || 50
+      );
 
-      if(distancia > raioPermitido){
-        mostrarMensagem(
-          "erro",
-          `Registro bloqueado. Você está a aproximadamente ${Math.round(distancia)}m da empresa. Limite permitido: ${raioPermitido}m.`
-        );
+    if(distancia > raioPermitido){
 
-        return null;
-      }
+      mostrarMensagem(
+        "erro",
+        `Registro bloqueado. Você está a aproximadamente ${Math.round(distancia)}m da empresa. Limite permitido: ${raioPermitido}m.`
+      );
 
-      return {
-
-  latitude: localizacao.latitude,
-
-  longitude: localizacao.longitude,
-
-  precisao_gps: localizacao.precisao,
-
-  distancia_metros: Math.round(distancia)
-
-};
-
-    }catch(erro){
-      mostrarMensagem("erro", erro);
       return null;
     }
+
+    return {
+      latitude: localizacao.latitude,
+      longitude: localizacao.longitude,
+      precisao_gps: localizacao.precisao,
+      distancia_metros: Math.round(distancia)
+    };
+
+  }catch(erro){
+
+    mostrarMensagem("erro", erro);
+
+    return null;
   }
+}
 
   async function atualizarTipoAutomatico(funcionarioId){
     const selectTipo = document.getElementById("tipo");
@@ -1464,9 +1457,9 @@
     const funcionarioSelecionado =
       funcionarioLogado;
 
-    document.getElementById("mensagem").innerHTML = "";
+    document.getElementById("mensagem").textContent = "";
 
-    if(funcionarioId === null || funcionarioId === undefined)
+    if(!funcionarioId){
       mostrarMensagem("erro", "Funcionário não identificado. Faça login novamente.");
       return;
     }
@@ -1580,56 +1573,39 @@
       return;
     }
 
-    const resposta = await fetch(
-  "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
-  {
-    method: "POST",
-
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization":
-        `Bearer ${session.access_token}`
-    },
-
-    body: JSON.stringify({
-
+    const payloadRegistro = {
+      empresa_id: empresaId,
       tipo,
       observacao,
-
       foto_url: fotoUrl,
-
-      latitude:
-        localizacaoValidada.latitude,
-
-      longitude:
-        localizacaoValidada.longitude,
-
-      precisao_gps:
-        localizacaoValidada.precisao_gps,
-
-      distancia_metros:
-        localizacaoValidada.distancia_metros,
-
+      latitude: localizacaoValidada.latitude,
+      longitude: localizacaoValidada.longitude,
+      precisao_gps: localizacaoValidada.precisao_gps,
+      distancia_metros: localizacaoValidada.distancia_metros,
       captura_ao_vivo: true,
-
       metodo_captura: "camera",
+      score_fraude: fraude.score,
+      nivel_fraude: fraude.nivel
+    };
 
-      score_fraude:
-        fraude.score,
+    const evidenciaCliente =
+      await PontoFacilSecurity.criarEvidenciaCliente(payloadRegistro);
 
-      nivel_fraude:
-        fraude.nivel,
-
-      device_info: {
-        userAgent: navigator.userAgent,
-        plataforma: navigator.platform,
-        idioma: navigator.language
+    const resposta = await fetch(
+      "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":
+            `Bearer ${session.access_token}`
+        },
+        body:JSON.stringify({
+          ...payloadRegistro,
+          device_info:evidenciaCliente
+        })
       }
-
-    })
-
-  }
-);
+    );
 
     const resultado =
       await resposta.json();
@@ -1659,7 +1635,12 @@
     document.getElementById("cameraPlaceholder").style.display = "block";
     document.getElementById("cameraStatus").innerText = "Nenhuma foto capturada.";
 
-    mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
+    const confirmacaoRegistro =
+      resultado?.nsr
+        ? `Ponto registrado com sucesso. NSR ${resultado.nsr}.`
+        : "Ponto registrado com sucesso.";
+
+    mostrarMensagem("sucesso", confirmacaoRegistro);
 
     try{
       const { data: emailData, error: emailError } =
@@ -1726,7 +1707,7 @@
       funcionarioLogado.id
     );
   }
-  console.log("SISTEMA INICIADO");
+
   iniciar();
 </script>
 
