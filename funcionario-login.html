@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+  <title>PontoFácil • Login do Funcionário</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    :root{
+      --azul:#2563eb;
+      --azul-escuro:#0f274c;
+      --bg:#f4f7fb;
+      --texto:#0f172a;
+      --muted:#64748b;
+      --borda:#dbe4f0;
+    }
+
+    body{
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px;
+
+      font-family:Arial,sans-serif;
+
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.10), transparent 35%),
+        linear-gradient(135deg,#f8fbff,#eef3fa);
+
+      color:var(--texto);
+    }
+
+    .card{
+      width:100%;
+      max-width:460px;
+
+      background:white;
+
+      border-radius:28px;
+
+      padding:42px 34px;
+
+      border:1px solid rgba(226,232,240,.9);
+
+      box-shadow:
+        0 20px 50px rgba(15,23,42,.08);
+    }
+
+    .topo{
+      text-align:center;
+      margin-bottom:34px;
+    }
+
+    .logo{
+      width:88px;
+      margin-bottom:18px;
+    }
+
+    h1{
+      color:var(--azul-escuro);
+      font-size:34px;
+      margin-bottom:10px;
+      letter-spacing:-1px;
+    }
+
+    .sub{
+      color:var(--muted);
+      line-height:1.6;
+      font-size:15px;
+    }
+
+    .campo{
+      margin-bottom:18px;
+    }
+
+    label{
+      display:block;
+      margin-bottom:8px;
+      font-weight:800;
+      color:#334155;
+      font-size:14px;
+    }
+
+    input{
+      width:100%;
+      height:58px;
+
+      border-radius:16px;
+
+      border:1px solid var(--borda);
+
+      padding:0 18px;
+
+      font-size:16px;
+
+      transition:.2s;
+    }
+
+    input:focus{
+      outline:none;
+      border-color:var(--azul);
+
+      box-shadow:
+        0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .btn{
+      width:100%;
+      height:58px;
+
+      border:none;
+
+      border-radius:16px;
+
+      background:
+        linear-gradient(90deg,#2563eb,#1d4ed8);
+
+      color:white;
+
+      font-size:16px;
+      font-weight:900;
+
+      cursor:pointer;
+
+      transition:.2s;
+
+      margin-top:8px;
+    }
+
+    .btn:hover{
+      transform:translateY(-1px);
+
+      box-shadow:
+        0 14px 28px rgba(37,99,235,.22);
+    }
+
+    .erro{
+      margin-top:18px;
+
+      background:#fee2e2;
+      color:#991b1b;
+
+      border:1px solid #fecaca;
+
+      border-radius:14px;
+
+      padding:14px;
+
+      font-size:14px;
+
+      display:none;
+    }
+
+    .footer{
+      margin-top:26px;
+      text-align:center;
+    }
+
+    .footer button{
+      background:none;
+      border:none;
+
+      color:var(--azul);
+
+      font-weight:800;
+
+      cursor:pointer;
+
+      font-size:14px;
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <div class="card">
+
+    <div class="topo">
+
+      <img
+        src="./pontofacil-icone.png"
+        class="logo"
+      >
+
+      <h1>PontoFácil</h1>
+
+      <div class="sub">
+        Acesse seu painel do funcionário
+      </div>
+
+    </div>
+
+    <div class="campo">
+      <label>E-mail</label>
+
+      <input
+        id="email"
+        type="email"
+        placeholder="Digite seu e-mail"
+      >
+    </div>
+
+    <div class="campo">
+      <label>Senha</label>
+
+      <input
+        id="senha"
+        type="password"
+        placeholder="Digite sua senha"
+      >
+    </div>
+
+    <button
+      class="btn"
+      onclick="fazerLogin()"
+    >
+      Entrar
+    </button>
+
+    <div
+      class="erro"
+      id="erro"
+    ></div>
+
+    <div class="footer">
+
+      <button onclick="esqueciSenha()">
+        Esqueci minha senha
+      </button>
+
+    </div>
+
+  </div>
+
+<script>
+
+const supabaseClient =
+  window.supabaseClient;
+
+if(!supabaseClient){
+
+  alert("Supabase não carregou.");
+
+  location.reload();
+}
+
+const params =
+  new URLSearchParams(window.location.search);
+
+const empresaQr =
+  params.get("empresa");
+  
+async function fazerLogin(){
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const senha =
+    document.getElementById("senha").value.trim();
+
+  const erro =
+    document.getElementById("erro");
+
+  erro.style.display = "none";
+
+  if(!email || !senha){
+
+    erro.innerHTML =
+      "Informe e-mail e senha.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  const {
+    data,
+    error
+  } = await supabaseClient.auth.signInWithPassword({
+
+    email,
+
+    password: senha
+
+  });
+
+  if(error){
+
+    erro.innerHTML =
+      "E-mail ou senha inválidos.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  const user =
+    data?.session?.user;
+
+  if(!user){
+
+    erro.innerHTML =
+      "Usuário não encontrado.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  /*
+  =========================================
+  BUSCA VÍNCULO
+  =========================================
+  */
+
+  const {
+
+  data: vinculo,
+
+  error: vinculoError
+
+} = await supabaseClient
+
+  .from("usuarios_empresas")
+
+  .select(`
+
+    empresa_id,
+
+    ativo,
+
+    perfil,
+
+    empresas (
+
+      id,
+
+      nome,
+
+      ativa
+
+    )
+
+  `)
+
+  .eq("user_id", user.id)
+
+  .eq("perfil", "funcionario")
+
+  .single();
+
+  if(vinculoError || !vinculo){
+
+    await supabaseClient.auth.signOut();
+
+    erro.innerHTML =
+      "Funcionário não vinculado a empresa.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  /*
+  =========================================
+  FUNCIONÁRIO INATIVO
+  =========================================
+  */
+
+  if(vinculo.ativo !== true){
+
+    await supabaseClient.auth.signOut();
+
+    erro.innerHTML =
+      "Seu acesso está inativo.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  const empresa = Array.isArray(vinculo.empresas)
+  ? vinculo.empresas[0]
+  : vinculo.empresas;
+
+if(!empresa || empresa.ativa !== true){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Empresa inativa. Entre em contato com o responsável.";
+
+  erro.style.display = "block";
+
+  return;
+}
+
+  /*
+=========================================
+VALIDA FUNCIONÁRIO ATIVO
+=========================================
+*/
+
+/*
+=========================================
+VALIDA FUNCIONÁRIO ATIVO NA TABELA FUNCIONARIOS
+=========================================
+*/
+
+console.log("VALIDANDO FUNCIONÁRIO:", {
+  empresa_id: vinculo.empresa_id,
+  user_email: user.email
+});
+
+const {
+  data: funcionariosEncontrados,
+  error: funcionarioError
+} = await supabaseClient
+  .from("funcionarios")
+  .select("id, nome_completo, email, ativo, empresa_id")
+  .eq("empresa_id", vinculo.empresa_id)
+  .ilike("email", user.email.trim());
+
+console.log("FUNCIONÁRIOS ENCONTRADOS:", {
+  funcionariosEncontrados,
+  funcionarioError
+});
+
+if(funcionarioError){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Erro ao validar funcionário: " + funcionarioError.message;
+
+  erro.style.display = "block";
+
+  return;
+}
+
+if(!funcionariosEncontrados || funcionariosEncontrados.length === 0){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Funcionário não encontrado nesta empresa.";
+
+  erro.style.display = "block";
+
+  return;
+}
+
+const funcionarioAtivo = funcionariosEncontrados.find(f =>
+  f.ativo === true
+);
+
+if(!funcionarioAtivo){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+  sessionStorage.clear();
+
+  erro.innerHTML =
+    "Seu acesso está inativo.";
+
+  erro.style.display = "block";
+
+  return;
+}
+  
+  /*
+  =========================================
+  VALIDA EMPRESA DO QR
+  =========================================
+  */
+
+  if(
+    empresaQr &&
+    String(vinculo.empresa_id) !== String(empresaQr)
+  ){
+
+    await supabaseClient.auth.signOut();
+
+    erro.innerHTML =
+      "Este QR Code não pertence à sua empresa.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  /*
+  =========================================
+  LOGIN OK
+  =========================================
+  */
+
+  localStorage.setItem(
+    "pontofacil_funcionario_logado",
+    "sim"
+  );
+
+  localStorage.setItem(
+    "pontofacil_empresa_id",
+    vinculo.empresa_id
+  );
+
+  console.log("LOGIN:", data);
+
+  window.location.href =
+    "./funcionario-dashboard.html";
+}
+
+async function esqueciSenha(){
+
+  const email =
+    document.getElementById("email").value.trim();
+
+  const erro =
+    document.getElementById("erro");
+
+  if(!email){
+
+    erro.innerHTML =
+      "Digite seu e-mail primeiro.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  const { error } =
+    await supabaseClient.auth.resetPasswordForEmail(
+      email,
+      {
+        redirectTo:
+  new URL("./resetar-senha.html", window.location.href).href
+      }
+    );
+
+  if(error){
+
+    erro.innerHTML =
+      "Erro ao enviar recuperação.";
+
+    erro.style.display = "block";
+
+    return;
+  }
+
+  alert(
+    "Enviamos um link para redefinição da senha."
+  );
+}
+
+  document.addEventListener("keydown", function(e){
+
+  if(e.key === "Enter"){
+
+    fazerLogin();
+
+  }
+
+});
+  
+</script>
+
+</body>
+</html>

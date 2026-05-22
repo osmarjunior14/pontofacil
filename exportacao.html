@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Exportação Fiscal</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/security-compliance.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{
+      min-height:100vh;
+      font-family:Arial,sans-serif;
+      background:linear-gradient(135deg,#f8fbff,#eef3fa);
+      color:#0f172a;
+    }
+    .layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .sidebar{
+      background:linear-gradient(180deg,#071426,#0f2f66);
+      color:white;
+      padding:28px 22px;
+      display:flex;
+      flex-direction:column;
+      gap:24px;
+    }
+    .brand{display:flex;align-items:center;gap:12px}
+    .brand img{width:48px;height:48px;object-fit:contain}
+    .brand strong{display:block;font-size:18px}
+    .brand small{color:#cbd5e1;font-weight:700}
+    .menu{display:flex;flex-direction:column;gap:10px}
+    .menu button,.logout{
+      border:none;
+      border-radius:8px;
+      background:transparent;
+      color:#dbeafe;
+      padding:13px 14px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight:900;
+      cursor:pointer;
+      text-align:left;
+    }
+    .menu button:hover,.menu .active{background:#2563eb;color:white}
+    .logout{margin-top:auto;background:rgba(15,23,42,.45)}
+    .main{padding:34px;max-width:1180px;width:100%;margin:0 auto}
+    .topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:18px;
+      margin-bottom:24px;
+    }
+    h1{font-size:32px;color:#0f2f66;margin-bottom:6px}
+    .muted{color:#64748b;font-weight:700;line-height:1.45}
+    .panel{
+      background:white;
+      border:1px solid #e2e8f0;
+      border-radius:8px;
+      padding:24px;
+      box-shadow:0 18px 45px rgba(15,23,42,.07);
+    }
+    .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;align-items:end}
+    label{display:block;font-size:13px;font-weight:900;color:#334155;margin-bottom:8px}
+    input,select{
+      width:100%;
+      height:48px;
+      border:1px solid #cbd5e1;
+      border-radius:8px;
+      padding:0 12px;
+      font-size:15px;
+      background:white;
+    }
+    input:focus,select:focus{outline:none;border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+    .btn{
+      height:48px;
+      border:none;
+      border-radius:8px;
+      background:#2563eb;
+      color:white;
+      font-weight:900;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+    }
+    .btn:disabled{opacity:.55;cursor:not-allowed}
+    .resultado{
+      margin-top:18px;
+      display:none;
+      border:1px solid #dbeafe;
+      background:#f8fbff;
+      border-radius:8px;
+      padding:18px;
+    }
+    .resultado dl{display:grid;grid-template-columns:180px 1fr;gap:10px 14px}
+    dt{font-weight:900;color:#334155}
+    dd{color:#0f172a;word-break:break-all}
+    .acoes{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+    .secundario{background:#0f172a}
+    .alerta{
+      margin-top:18px;
+      border:1px solid #fed7aa;
+      background:#fff7ed;
+      color:#9a3412;
+      border-radius:8px;
+      padding:14px;
+      font-weight:800;
+      line-height:1.45;
+    }
+    .erro{
+      margin-top:18px;
+      border:1px solid #fecaca;
+      background:#fef2f2;
+      color:#991b1b;
+      border-radius:8px;
+      padding:14px;
+      font-weight:800;
+      display:none;
+    }
+    @media(max-width:900px){
+      .layout{grid-template-columns:1fr}
+      .sidebar{position:static}
+      .grid{grid-template-columns:1fr}
+      .topo{flex-direction:column}
+      .resultado dl{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <img src="./pontofacil-icone.png" alt="PontoFácil">
+        <div>
+          <strong>PontoFácil</strong>
+          <small>Gestão de Ponto</small>
+        </div>
+      </div>
+
+      <nav class="menu">
+        <button onclick="window.location.href='./dashboard.html'"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+        <button onclick="window.location.href='./funcionarios.html'"><i data-lucide="users"></i> Funcionários</button>
+        <button onclick="window.location.href='./relatorio.html'"><i data-lucide="clipboard-list"></i> Registros</button>
+        <button onclick="window.location.href='./banco-horas.html'"><i data-lucide="clock-3"></i> Banco de horas</button>
+        <button class="active"><i data-lucide="file-down"></i> Exportação fiscal</button>
+      </nav>
+
+      <button class="logout" onclick="sair()"><i data-lucide="log-out"></i> Sair</button>
+    </aside>
+
+    <main class="main">
+      <div class="topo">
+        <div>
+          <h1>Exportação fiscal</h1>
+          <p class="muted">Gere arquivos AFD REP-P e AEJ com hash, data de emissão e trilha de auditoria.</p>
+        </div>
+      </div>
+
+      <section class="panel">
+        <div class="grid">
+          <div>
+            <label for="tipoArquivo">Arquivo</label>
+            <select id="tipoArquivo">
+              <option value="afd">AFD REP-P</option>
+              <option value="aej">AEJ</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="inicio">Início</label>
+            <input id="inicio" type="date">
+          </div>
+
+          <div>
+            <label for="fim">Fim</label>
+            <input id="fim" type="date">
+          </div>
+
+          <button id="btnExportar" class="btn" onclick="exportarArquivo()">
+            <i data-lucide="download"></i>
+            Gerar arquivo
+          </button>
+        </div>
+
+        <div id="erro" class="erro"></div>
+
+        <div class="alerta">
+          O AFD REP-P deve ser assinado com certificado digital ICP-Brasil do fabricante/desenvolvedor antes de entrega fiscal. A função de backend retorna o conteúdo e o hash; a assinatura P7S precisa estar configurada no ambiente de produção.
+        </div>
+
+        <div id="resultado" class="resultado">
+          <dl>
+            <dt>Arquivo</dt>
+            <dd id="arquivoNome">-</dd>
+            <dt>Emitido em</dt>
+            <dd id="emitidoEm">-</dd>
+            <dt>Hash SHA-256</dt>
+            <dd id="hashArquivo">-</dd>
+            <dt>Registros</dt>
+            <dd id="qtdRegistros">-</dd>
+            <dt>Observação</dt>
+            <dd id="observacao">-</dd>
+            <dt>Validação</dt>
+            <dd id="validacaoArquivo">-</dd>
+          </dl>
+
+          <div class="acoes">
+            <button class="btn" onclick="baixarArquivo()">
+              <i data-lucide="download"></i>
+              Baixar arquivo
+            </button>
+            <button class="btn secundario" onclick="copiarHash()">
+              <i data-lucide="copy"></i>
+              Copiar hash
+            </button>
+            <button class="btn secundario" onclick="validarArquivo()">
+              <i data-lucide="shield-check"></i>
+              Validar AFD
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const supabaseClient = window.supabaseClient;
+    const escapeHtml = PontoFacilSecurity.escapeHtml;
+    let empresaId = null;
+    let ultimoArquivo = null;
+
+    function setErro(texto){
+      const erro = document.getElementById("erro");
+      erro.textContent = texto || "";
+      erro.style.display = texto ? "block" : "none";
+    }
+
+    function dataIsoLocal(date){
+      return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    }
+
+    function popularPeriodo(){
+      const hoje = new Date();
+      const inicio = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+      const fim = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 1);
+
+      document.getElementById("inicio").value = dataIsoLocal(inicio);
+      document.getElementById("fim").value = dataIsoLocal(fim);
+    }
+
+    async function carregarEmpresa(){
+      const { data:{ user }, error:userError } = await supabaseClient.auth.getUser();
+
+      if(userError || !user){
+        window.location.href = "./gestao.html";
+        return false;
+      }
+
+      const { data, error } = await supabaseClient
+        .from("usuarios_empresas")
+        .select("empresa_id, perfil, perfil_admin, ativo")
+        .eq("user_id", user.id)
+        .eq("ativo", true)
+        .limit(1);
+
+      if(error || !data || data.length === 0){
+        window.location.href = "./gestao.html";
+        return false;
+      }
+
+      const perfil = data[0].perfil_admin || data[0].perfil;
+      const permitidos = ["gestor", "admin", "super_admin", "rh", "auditor", "supervisor"];
+
+      if(!permitidos.includes(perfil)){
+        setErro("Seu perfil não tem permissão para exportar arquivos fiscais.");
+        return false;
+      }
+
+      empresaId = data[0].empresa_id;
+      return true;
+    }
+
+    async function exportarArquivo(){
+      setErro("");
+
+      if(!empresaId){
+        setErro("Empresa não carregada.");
+        return;
+      }
+
+      const tipo = document.getElementById("tipoArquivo").value;
+      const inicio = document.getElementById("inicio").value;
+      const fim = document.getElementById("fim").value;
+      const btn = document.getElementById("btnExportar");
+
+      if(!inicio || !fim){
+        setErro("Informe início e fim do período.");
+        return;
+      }
+
+      if(new Date(inicio) >= new Date(fim)){
+        setErro("A data final deve ser maior que a inicial.");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Gerando...";
+
+      const { data, error } = await supabaseClient.functions.invoke("exportar-afd-aej", {
+        body:{
+          tipo,
+          empresa_id: empresaId,
+          inicio: `${inicio}T00:00:00-03:00`,
+          fim: `${fim}T00:00:00-03:00`
+        }
+      });
+
+      btn.disabled = false;
+      btn.innerHTML = `<i data-lucide="download"></i> Gerar arquivo`;
+      lucide.createIcons();
+
+      if(error || !data?.success){
+        setErro(data?.error || error?.message || "Não foi possível gerar o arquivo.");
+        return;
+      }
+
+      ultimoArquivo = data;
+
+      document.getElementById("arquivoNome").textContent = data.filename || "-";
+      document.getElementById("emitidoEm").textContent =
+        data.emitido_em ? new Date(data.emitido_em).toLocaleString("pt-BR") : "-";
+      document.getElementById("hashArquivo").textContent = data.hash_arquivo || "-";
+      document.getElementById("qtdRegistros").textContent = String(data.qtd_registros ?? 0);
+      document.getElementById("observacao").textContent = data.observacao || "-";
+      document.getElementById("validacaoArquivo").textContent = "Pendente";
+      document.getElementById("resultado").style.display = "block";
+
+      if(tipo === "afd"){
+        await validarArquivo();
+      }
+    }
+
+    function baixarArquivo(){
+      if(!ultimoArquivo?.conteudo_base64) return;
+
+      const conteudo = decodeURIComponent(escape(atob(ultimoArquivo.conteudo_base64)));
+      const blob = new Blob([conteudo], { type: ultimoArquivo.mime_type || "text/plain" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = ultimoArquivo.filename || "exportacao.txt";
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+
+    async function copiarHash(){
+      if(!ultimoArquivo?.hash_arquivo) return;
+      await navigator.clipboard.writeText(ultimoArquivo.hash_arquivo);
+    }
+
+    async function validarArquivo(){
+      if(!ultimoArquivo?.conteudo_base64) return;
+
+      const { data, error } = await supabaseClient.functions.invoke("validar-afd", {
+        body:{
+          conteudo_base64: ultimoArquivo.conteudo_base64
+        }
+      });
+
+      if(error){
+        document.getElementById("validacaoArquivo").textContent = error.message || "Erro ao validar.";
+        return;
+      }
+
+      document.getElementById("validacaoArquivo").textContent =
+        data.valido
+          ? `Estrutura válida. ${data.qtd_marcacoes} marcações.`
+          : `Pendências: ${(data.erros || []).join("; ")}`;
+    }
+
+    async function sair(){
+      await supabaseClient.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      window.location.href = "./gestao.html";
+    }
+
+    async function iniciar(){
+      popularPeriodo();
+      if(!supabaseClient){
+        setErro("Supabase não carregou.");
+        return;
+      }
+      await carregarEmpresa();
+      lucide.createIcons();
+    }
+
+    iniciar();
+  </script>
+</body>
+</html>

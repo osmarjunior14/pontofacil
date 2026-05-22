@@ -1,0 +1,1745 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8" />
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+/>
+
+<title>PontoFácil - Dashboard</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="./js/supabase-client.js"></script>
+<script src="./js/security-compliance.js"></script>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+:root{
+
+  --azul:#2563eb;
+  --azul-hover:#1d4ed8;
+
+  --azul-noite:#071426;
+  --azul-escuro:#0f2f66;
+
+  --texto:#0f172a;
+  --muted:#64748b;
+
+  --bg:#f4f7fb;
+
+  --card:#ffffff;
+
+  --verde:#16a34a;
+  --vermelho:#dc2626;
+  --laranja:#f97316;
+  --roxo:#7c3aed;
+
+  --borda:#e2e8f0;
+
+}
+
+*::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+
+*::-webkit-scrollbar-thumb{
+  background:#cbd5e1;
+  border-radius:999px;
+}
+
+body{
+
+  font-family:Arial,sans-serif;
+
+  background:
+    radial-gradient(
+      circle at top right,
+      rgba(37,99,235,.10),
+      transparent 32%
+    ),
+
+    linear-gradient(
+      135deg,
+      #f8fbff,
+      #eef3fa
+    );
+
+  color:var(--texto);
+
+  min-height:100vh;
+
+}
+
+button{
+  font-family:inherit;
+}
+
+.layout{
+
+  min-height:100vh;
+
+  display:grid;
+
+  grid-template-columns:280px 1fr;
+
+}
+
+.sidebar{
+
+  background:
+
+    radial-gradient(
+      circle at top left,
+      rgba(37,99,235,.32),
+      transparent 38%
+    ),
+
+    linear-gradient(
+      180deg,
+      #06152b,
+      #0b2342 52%,
+      #06152b
+    );
+
+  color:white;
+
+  padding:28px 24px;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:24px;
+
+  position:sticky;
+
+  top:0;
+
+  height:100vh;
+
+  box-shadow:
+    20px 0 60px rgba(15,23,42,.16);
+
+}
+
+.brand{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  margin-bottom:18px;
+
+}
+
+.logo-sidebar{
+
+  width:54px;
+  height:54px;
+
+  object-fit:contain;
+
+  flex-shrink:0;
+
+}
+
+.brand-text strong{
+
+  display:block;
+
+  font-size:21px;
+
+  line-height:1;
+
+}
+
+.brand-text small{
+
+  color:#cbd5e1;
+
+  font-size:13px;
+
+}
+
+.menu{
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:10px;
+
+}
+
+.menu button{
+
+  width:100%;
+
+  border:none;
+
+  background:transparent;
+
+  color:#cbd5e1;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:14px;
+
+  padding:15px 16px;
+
+  border-radius:14px;
+
+  cursor:pointer;
+
+  font-weight:800;
+
+  font-size:15px;
+
+  text-align:left;
+
+  transition:.2s;
+
+}
+
+.menu button:hover,
+.menu button.active{
+
+  background:
+    linear-gradient(
+      90deg,
+      #2563eb,
+      #1d4ed8
+    );
+
+  color:white;
+
+  box-shadow:
+    0 12px 28px rgba(37,99,235,.24);
+
+}
+
+.sidebar-footer{
+
+  margin-top:auto;
+
+  display:flex;
+
+  flex-direction:column;
+
+  gap:14px;
+
+}
+
+.empresa-card,
+.admin-card,
+.logout-card{
+
+  border:
+    1px solid rgba(148,163,184,.20);
+
+  background:
+    rgba(15,23,42,.38);
+
+  border-radius:16px;
+
+  padding:16px;
+
+  backdrop-filter:blur(14px);
+
+}
+
+.empresa-card small,
+.admin-card small{
+
+  color:#94a3b8;
+
+  display:block;
+
+  margin-bottom:4px;
+
+}
+
+.empresa-card strong,
+.admin-card strong{
+
+  display:block;
+
+  font-size:14px;
+
+}
+
+.admin-card{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+}
+
+.avatar{
+
+  width:42px;
+  height:42px;
+
+  border-radius:50%;
+
+  background:
+    linear-gradient(
+      135deg,
+      #dbeafe,
+      #93c5fd
+    );
+
+  color:#1e3a8a;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  font-weight:900;
+
+  flex-shrink:0;
+
+}
+
+.online{
+
+  color:#22c55e!important;
+
+  font-size:12px!important;
+
+  margin-top:4px;
+
+}
+
+.logout-card{
+
+  width:100%;
+
+  color:#cbd5e1;
+
+  border:none;
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  cursor:pointer;
+
+  font-weight:800;
+
+}
+
+.main{
+
+  padding:34px 42px 28px;
+
+  overflow-x:hidden;
+
+}
+
+.antifraude-btn{
+
+  border:none;
+
+  border-radius:18px;
+
+  background:
+    linear-gradient(
+      90deg,
+      #dc2626,
+      #991b1b
+    );
+
+  color:white;
+
+  font-weight:900;
+
+  padding:18px 22px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  gap:12px;
+
+  cursor:pointer;
+
+  box-shadow:
+    0 18px 36px rgba(220,38,38,.20);
+
+  margin-bottom:26px;
+
+  transition:.2s;
+
+}
+
+.antifraude-btn:hover{
+
+  transform:translateY(-2px);
+
+}
+
+.cards{
+
+  display:grid;
+
+  grid-template-columns:
+    repeat(4,minmax(0,1fr));
+
+  gap:18px;
+
+  margin-top:24px;
+
+}
+
+.metric-card{
+
+  background:white;
+
+  border:
+    1px solid rgba(226,232,240,.80);
+
+  border-radius:22px;
+
+  padding:22px;
+
+  min-height:160px;
+
+  box-shadow:
+    0 18px 46px rgba(15,23,42,.06);
+
+  transition:.2s;
+
+}
+
+.metric-card:hover{
+
+  transform:translateY(-3px);
+
+}
+
+.metric-head{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:14px;
+
+  margin-bottom:14px;
+
+}
+
+.metric-icon{
+
+  width:48px;
+  height:48px;
+
+  border-radius:15px;
+
+  display:flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+}
+
+.icon-blue{
+  background:#eff6ff;
+  color:#2563eb;
+}
+
+.icon-green{
+  background:#dcfce7;
+  color:#16a34a;
+}
+
+.icon-red{
+  background:#fee2e2;
+  color:#dc2626;
+}
+
+.icon-orange{
+  background:#ffedd5;
+  color:#f97316;
+}
+
+.icon-purple{
+  background:#f3e8ff;
+  color:#7c3aed;
+}
+
+.metric-card strong{
+
+  display:block;
+
+  font-size:40px;
+
+  margin-top:10px;
+
+  color:#2563eb;
+
+}
+
+.metric-card.green strong{
+  color:#16a34a;
+}
+
+.metric-card.red strong{
+  color:#dc2626;
+}
+
+.metric-card.orange strong{
+  color:#f97316;
+}
+
+.metric-note{
+
+  margin-top:12px;
+
+  color:#64748b;
+
+  font-size:13px;
+
+  font-weight:700;
+
+}
+
+.grid-bottom{
+
+  display:grid;
+
+  grid-template-columns:1.4fr 1fr;
+
+  gap:24px;
+
+  margin-top:26px;
+
+}
+
+.panel{
+
+  background:white;
+
+  border-radius:24px;
+
+  border:
+    1px solid rgba(226,232,240,.90);
+
+  padding:26px;
+
+  box-shadow:
+    0 18px 46px rgba(15,23,42,.06);
+
+}
+
+.panel-head{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  margin-bottom:24px;
+
+}
+
+.panel-title{
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  font-size:20px;
+
+  font-weight:900;
+
+  color:#0f274c;
+
+}
+
+.chart-box{
+  height:320px;
+}
+
+.ultimos-lista{
+  min-height:320px;
+}
+
+.registro{
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:flex-start;
+
+  gap:14px;
+
+  padding:14px 0;
+
+  border-bottom:1px solid #e2e8f0;
+
+}
+
+.registro:last-child{
+  border-bottom:none;
+}
+
+.registro-esquerda{
+
+  display:flex;
+
+  gap:12px;
+
+}
+
+.foto{
+
+  width:56px;
+  height:56px;
+
+  object-fit:cover;
+
+  border-radius:14px;
+
+  border:1px solid #dbe4f0;
+
+  cursor:pointer;
+
+}
+
+.badge{
+
+  display:inline-flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  min-width:110px;
+
+  padding:6px 10px;
+
+  border-radius:999px;
+
+  font-size:11px;
+
+  font-weight:900;
+
+  color:white;
+
+  text-transform:capitalize;
+
+  letter-spacing:.3px;
+
+}
+
+.entrada{
+  background:#16a34a;
+}
+
+.saida_intervalo{
+  background:#f59e0b;
+}
+
+.retorno_intervalo{
+  background:#2563eb;
+}
+
+.saida{
+  background:#dc2626;
+}
+
+.modal{
+
+  display:none;
+
+  position:fixed;
+
+  inset:0;
+
+  background:rgba(0,0,0,.85);
+
+  align-items:center;
+
+  justify-content:center;
+
+  z-index:9999;
+
+  cursor:zoom-out;
+
+}
+
+.modal img{
+
+  max-width:95vw;
+
+  max-height:90vh;
+
+  border-radius:18px;
+
+}
+
+@media(max-width:1100px){
+
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .sidebar{
+    display:none;
+  }
+
+  .cards{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .grid-bottom{
+    grid-template-columns:1fr;
+  }
+
+  #mobileMenu{
+    display:flex!important;
+  }
+
+  .antifraude-btn{
+    width:100%;
+  }
+
+}
+
+@media(max-width:700px){
+
+  .main{
+    padding:18px;
+  }
+
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="layout">
+
+  <aside class="sidebar">
+
+    <div class="brand">
+
+      <img
+        src="./pontofacil-icone.png"
+        class="logo-sidebar"
+      >
+
+      <div class="brand-text">
+
+        <strong>PontoFácil</strong>
+
+        <small>Gestão de Ponto</small>
+
+      </div>
+
+    </div>
+
+    <nav class="menu">
+
+      <button class="active">
+        <i data-lucide="layout-dashboard"></i>
+        Dashboard
+      </button>
+
+      <button onclick="window.location.href='./funcionarios.html'">
+        <i data-lucide="users"></i>
+        Funcionários
+      </button>
+
+      <button onclick="window.location.href='./relatorio.html'">
+        <i data-lucide="clipboard-list"></i>
+        Registros
+      </button>
+
+      <button onclick="window.location.href='./banco-horas.html'">
+        <i data-lucide="clock-3"></i>
+        Banco de horas
+      </button>
+
+      <button onclick="window.location.href='./painel-antifraude.html'">
+        <i data-lucide="shield-alert"></i>
+        Antifraude
+      </button>
+
+      <button onclick="window.location.href='./logs-antifraude.html'">
+        <i data-lucide="history"></i>
+        Logs antifraude
+      </button>
+
+      <button onclick="window.location.href='./exportacao.html'">
+        <i data-lucide="file-down"></i>
+        Exportação fiscal
+      </button>
+
+      <button onclick="window.location.href='./rep-p-confiabilidade.html'">
+        <i data-lucide="shield-check"></i>
+        Confiabilidade REP-P
+      </button>
+
+      <button onclick="window.location.href='./painel-admin.html'">
+        <i data-lucide="shield"></i>
+        Painel admin
+      </button>
+
+    </nav>
+
+    <div class="sidebar-footer">
+
+      <div class="empresa-card">
+
+        <small>Empresa</small>
+
+        <strong id="empresaNomeSidebar">
+          PontoFácil
+        </strong>
+
+      </div>
+
+      <div class="admin-card">
+
+        <div class="avatar" id="avatarAdmin">
+          G
+        </div>
+
+        <div>
+
+          <strong id="nomeGestor">
+            Gestor
+          </strong>
+
+          <small>
+            Empresa
+          </small>
+
+          <small class="online">
+            ● Online
+          </small>
+
+        </div>
+
+      </div>
+
+      <button
+        class="logout-card"
+        onclick="logout()"
+      >
+
+        <i data-lucide="log-out"></i>
+
+        Sair
+
+      </button>
+
+    </div>
+
+  </aside>
+
+  <main class="main">
+
+    <div
+      id="mobileMenu"
+      style="
+      display:none;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+      "
+    >
+
+      <button
+        class="antifraude-btn"
+        onclick="window.location.href='./funcionarios.html'"
+      >
+        Funcionários
+      </button>
+
+      <button
+        class="antifraude-btn"
+        onclick="window.location.href='./relatorio.html'"
+      >
+        Registros
+      </button>
+
+      <button
+        class="antifraude-btn"
+        onclick="window.location.href='./banco-horas.html'"
+      >
+        Banco de horas
+      </button>
+
+      <button
+        class="antifraude-btn"
+        onclick="window.location.href='./exportacao.html'"
+      >
+        Exportação fiscal
+      </button>
+
+    </div>
+
+    <button
+      class="antifraude-btn"
+      onclick="window.location.href='./painel-antifraude.html'"
+    >
+
+      <i data-lucide="shield-alert"></i>
+
+      Abrir painel antifraude
+
+    </button>
+
+    <div style="
+
+      margin-bottom:22px;
+
+      display:flex;
+
+      justify-content:space-between;
+
+      align-items:center;
+
+      flex-wrap:wrap;
+
+      gap:14px;
+
+    ">
+
+      <div>
+
+        <h1 style="
+
+          font-size:34px;
+
+          color:#0f274c;
+
+          font-weight:900;
+
+          margin-bottom:6px;
+
+        ">
+
+          Dashboard
+
+        </h1>
+
+        <p style="
+
+          color:#64748b;
+
+          font-weight:700;
+
+        ">
+
+          Gestão inteligente de ponto eletrônico
+
+        </p>
+
+      </div>
+
+      <div style="
+
+        background:white;
+
+        border:1px solid #e2e8f0;
+
+        border-radius:16px;
+
+        padding:14px 18px;
+
+        box-shadow:0 10px 30px rgba(15,23,42,.05);
+
+      ">
+
+        <small style="
+
+          display:block;
+
+          color:#64748b;
+
+          margin-bottom:4px;
+
+          font-weight:700;
+
+        ">
+
+          Empresa
+
+        </small>
+
+        <strong id="empresaNomeTopo">
+
+          Carregando...
+
+        </strong>
+
+      </div>
+
+    </div>
+
+    <section class="cards">
+
+      <div class="metric-card">
+
+        <div class="metric-head">
+
+          <div class="metric-icon icon-blue">
+
+            <i data-lucide="users"></i>
+
+          </div>
+
+          <div>
+
+            <small>
+              Funcionários ativos
+            </small>
+
+            <strong id="totalFuncionarios">
+              0
+            </strong>
+
+          </div>
+
+        </div>
+
+        <div class="metric-note">
+          Total de colaboradores ativos
+        </div>
+
+      </div>
+
+      <div class="metric-card green">
+
+        <div class="metric-head">
+
+          <div class="metric-icon icon-green">
+
+            <i data-lucide="clock"></i>
+
+          </div>
+
+          <div>
+
+            <small>
+              Pontos hoje
+            </small>
+
+            <strong id="totalPontosHoje">
+              0
+            </strong>
+
+          </div>
+
+        </div>
+
+        <div class="metric-note">
+          Registros do dia
+        </div>
+
+      </div>
+
+      <div class="metric-card orange">
+
+        <div class="metric-head">
+
+          <div class="metric-icon icon-orange">
+
+            <i data-lucide="triangle-alert"></i>
+
+          </div>
+
+          <div>
+
+            <small>
+              Atrasos
+            </small>
+
+            <strong id="totalAtrasos">
+              0
+            </strong>
+
+          </div>
+
+        </div>
+
+        <div class="metric-note">
+          Funcionários atrasados hoje
+        </div>
+
+      </div>
+
+      <div class="metric-card red">
+
+        <div class="metric-head">
+
+          <div class="metric-icon icon-red">
+
+            <i data-lucide="shield-alert"></i>
+
+          </div>
+
+          <div>
+
+            <small>
+              Suspeitos
+            </small>
+
+            <strong id="totalSuspeitos">
+              0
+            </strong>
+
+          </div>
+
+        </div>
+
+        <div class="metric-note">
+          Possíveis fraudes detectadas
+        </div>
+
+      </div>
+
+    </section>
+
+    <section class="grid-bottom">
+
+      <div class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+
+            <i data-lucide="line-chart"></i>
+
+            Registros do dia
+
+          </div>
+
+        </div>
+
+        <div class="chart-box">
+
+          <canvas id="graficoHoje"></canvas>
+
+        </div>
+
+      </div>
+
+      <div class="panel">
+
+        <div class="panel-head">
+
+          <div class="panel-title">
+
+            <i data-lucide="clock-3"></i>
+
+            Últimos registros
+
+          </div>
+
+        </div>
+
+        <div
+          class="ultimos-lista"
+          id="ultimosRegistros"
+        ></div>
+
+      </div>
+
+    </section>
+
+  </main>
+
+</div>
+
+<div
+  class="modal"
+  id="modalFoto"
+  onclick="fecharModal()"
+>
+
+  <img id="imgModal">
+
+</div>
+
+<script>
+
+const supabaseClient =
+  window.supabaseClient;
+
+const escapeHtml =
+  PontoFacilSecurity.escapeHtml;
+
+if(!supabaseClient){
+
+  alert("Supabase não carregou.");
+
+  window.location.href =
+    "./gestao.html";
+
+}
+
+let empresaId = null;
+
+let funcionarios = [];
+
+let registrosHoje = [];
+
+let graficoHoje = null;
+
+let timeoutRealtime;
+
+async function carregarEmpresa(){
+
+  const {
+    data:{ user }
+  } = await supabaseClient.auth.getUser();
+
+  if(!user){
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+
+  }
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+
+    .from("usuarios_empresas")
+
+    .select(`
+      empresa_id,
+      perfil,
+      empresas(
+        id,
+        nome,
+        ativa
+      )
+    `)
+
+    .eq("user_id", user.id)
+
+    .eq("perfil","gestor")
+
+    .eq("ativo",true)
+
+    .single();
+
+  if(error || !data){
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+
+  }
+
+  const empresa =
+    Array.isArray(data.empresas)
+      ? data.empresas[0]
+      : data.empresas;
+
+  if(!empresa || empresa.ativa !== true){
+
+    await supabaseClient.auth.signOut();
+
+    localStorage.clear();
+
+    sessionStorage.clear();
+
+    alert("Empresa inativa.");
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+
+  }
+
+  empresaId = empresa.id;
+
+  document.getElementById(
+    "empresaNomeSidebar"
+  ).innerText = empresa.nome;
+
+  document.getElementById(
+    "empresaNomeTopo"
+  ).innerText = empresa.nome;
+
+  document.getElementById(
+    "nomeGestor"
+  ).innerText =
+    user.email || "Gestor";
+
+  document.getElementById(
+    "avatarAdmin"
+  ).innerText =
+    (empresa.nome || "G")
+      .charAt(0)
+      .toUpperCase();
+
+  return true;
+
+}
+
+function abrirModal(url){
+
+  if(!url) return;
+
+  document.getElementById(
+    "imgModal"
+  ).src = url;
+
+  document.getElementById(
+    "modalFoto"
+  ).style.display = "flex";
+
+}
+
+function fecharModal(){
+
+  document.getElementById(
+    "modalFoto"
+  ).style.display = "none";
+
+}
+
+function formatarHora(data){
+
+  return new Date(data)
+    .toLocaleTimeString(
+      "pt-BR",
+      {
+        hour:"2-digit",
+        minute:"2-digit"
+      }
+    );
+
+}
+
+async function carregarDashboard(){
+
+  const hoje = new Date();
+
+  const inicioHoje =
+    new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate()
+    ).toISOString();
+
+  const amanha =
+    new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate()+1
+    ).toISOString();
+
+  const {
+    data: funcionariosData
+  } = await supabaseClient
+
+    .from("funcionarios")
+
+    .select("*")
+
+    .eq("empresa_id",empresaId)
+
+    .eq("ativo",true);
+
+  funcionarios =
+    funcionariosData || [];
+
+  document.getElementById(
+    "totalFuncionarios"
+  ).innerText =
+    funcionarios.length;
+
+  const {
+    data: registros,
+    error
+  } = await supabaseClient
+
+    .from("registros_ponto")
+
+    .select("*")
+
+    .eq("empresa_id",empresaId)
+
+    .gte("data_hora",inicioHoje)
+
+    .lt("data_hora",amanha)
+
+    .order("data_hora",{
+      ascending:false
+    });
+
+  if(error){
+
+    console.log(error);
+
+    return;
+
+  }
+
+  registrosHoje = registros || [];
+
+  document.getElementById(
+    "totalPontosHoje"
+  ).innerText =
+    registrosHoje.length;
+
+  const suspeitos =
+    registrosHoje.filter(r =>
+
+      r.captura_ao_vivo !== true ||
+
+      r.metodo_captura !== "camera"
+
+    ).length;
+
+  document.getElementById(
+    "totalSuspeitos"
+  ).innerText =
+    suspeitos;
+
+  calcularAtrasos();
+
+  renderizarUltimos();
+
+  renderizarGrafico();
+
+}
+
+function calcularAtrasos(){
+
+  let atrasos = 0;
+
+  registrosHoje.forEach(registro => {
+
+    if(registro.tipo !== "entrada") return;
+
+    const horarioRegistro =
+      new Date(registro.data_hora);
+
+    const hora =
+      horarioRegistro.getHours();
+
+    const minuto =
+      horarioRegistro.getMinutes();
+
+    const totalRegistro =
+      hora * 60 + minuto;
+
+    if(totalRegistro > (8 * 60 + 10)){
+      atrasos++;
+    }
+
+  });
+
+  document.getElementById(
+    "totalAtrasos"
+  ).innerText = atrasos;
+
+}
+
+function renderizarUltimos(){
+
+  const lista =
+    document.getElementById(
+      "ultimosRegistros"
+    );
+
+  if(registrosHoje.length === 0){
+
+    lista.innerHTML =
+      "Nenhum registro hoje.";
+
+    return;
+
+  }
+
+  const funcionariosMap = {};
+
+  funcionarios.forEach(f => {
+    funcionariosMap[f.id] = f;
+  });
+
+  lista.innerHTML =
+    registrosHoje.slice(0,8).map(registro => {
+
+      const funcionario =
+        funcionariosMap[registro.funcionario_id];
+
+      return `
+
+        <div class="registro">
+
+          <div class="registro-esquerda">
+
+            <img
+
+              class="foto"
+
+              src="${escapeHtml(registro.foto_url || './user.png')}"
+
+              onclick="${
+                registro.foto_url
+	                  ? `abrirModal('${escapeHtml(registro.foto_url)}')`
+                  : ''
+              }"
+
+            >
+
+            <div>
+
+              <strong>
+	                ${escapeHtml(funcionario?.nome_completo || "Funcionário")}
+              </strong>
+
+              <small>
+	                ${escapeHtml(formatarHora(registro.data_hora))}
+              </small>
+
+            </div>
+
+          </div>
+
+          <span class="badge ${registro.tipo}">
+            ${registro.tipo}
+          </span>
+
+        </div>
+
+      `;
+
+    }).join("");
+
+}
+
+function renderizarGrafico(){
+
+  const horas =
+    Array.from(
+      {length:24},
+      (_,i) => i
+    );
+
+  const dados =
+    horas.map(hora =>
+
+      registrosHoje.filter(r =>
+
+        new Date(r.data_hora)
+          .getHours() === hora
+
+      ).length
+
+    );
+
+  const ctx =
+    document.getElementById(
+      "graficoHoje"
+    );
+
+  if(graficoHoje){
+
+    graficoHoje.destroy();
+
+  }
+
+  graficoHoje =
+    new Chart(ctx,{
+
+      type:"line",
+
+      data:{
+
+        labels:
+          horas.map(h =>
+            `${String(h).padStart(2,"0")}h`
+          ),
+
+        datasets:[{
+
+          label:"Pontos",
+
+          data:dados,
+
+          borderColor:"#2563eb",
+
+          borderWidth:3,
+
+          pointRadius:4,
+
+          pointHoverRadius:6,
+
+          backgroundColor:
+            "rgba(37,99,235,.12)",
+
+          fill:true,
+
+          tension:.4
+
+        }]
+
+      },
+
+      options:{
+
+        responsive:true,
+
+        maintainAspectRatio:false,
+
+        plugins:{
+          legend:{
+            display:false
+          }
+        },
+
+        scales:{
+          y:{
+            beginAtZero:true,
+            ticks:{
+              precision:0
+            }
+          }
+        }
+
+      }
+
+    });
+
+}
+
+function iniciarRealtime(){
+
+  supabaseClient
+
+    .channel("dashboard-realtime")
+
+    .on(
+
+      "postgres_changes",
+
+      {
+
+        event:"*",
+
+        schema:"public",
+
+        table:"registros_ponto"
+
+      },
+
+      () => {
+
+        clearTimeout(timeoutRealtime);
+
+        timeoutRealtime =
+          setTimeout(() => {
+
+            carregarDashboard();
+
+          },500);
+
+      }
+
+    )
+
+    .subscribe();
+
+}
+
+async function logout(){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  window.location.href =
+    "./gestao.html";
+
+}
+
+async function iniciar(){
+
+  lucide.createIcons();
+
+  const ok =
+    await carregarEmpresa();
+
+  if(!ok) return;
+
+  await carregarDashboard();
+
+  iniciarRealtime();
+
+  setInterval(async () => {
+
+    if(document.hidden) return;
+
+    await carregarDashboard();
+
+  },30000);
+
+}
+
+iniciar();
+
+</script>
+
+</body>
+
+</html>

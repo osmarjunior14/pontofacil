@@ -1,0 +1,1702 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Registrar ponto</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/security-compliance.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+
+    body{
+      min-height:100vh;
+      font-family:Arial, sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.45), transparent 32%),
+        radial-gradient(circle at bottom left, rgba(14,165,233,.35), transparent 32%),
+        linear-gradient(145deg,#020617,#071426 48%,#0f172a);
+      color:#0f172a;
+      padding:14px;
+      display:flex;
+      justify-content:center;
+      align-items:flex-start;
+    }
+
+    .app{
+      width:100%;
+      max-width:430px;
+      border-radius:34px;
+      overflow:hidden;
+      background:#ffffff;
+      box-shadow:
+        0 0 0 1px rgba(96,165,250,.35),
+        0 28px 80px rgba(0,0,0,.35);
+      margin:8px auto;
+    }
+
+    .hero{
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.55), transparent 42%),
+        linear-gradient(145deg,#020617,#071426);
+      padding:34px 24px 30px;
+      text-align:center;
+      color:white;
+      border-bottom-left-radius:28px;
+      border-bottom-right-radius:28px;
+    }
+
+    .logo{
+      width:210px;
+      max-width:86%;
+      display:block;
+      margin:0 auto 12px;
+      object-fit:contain;
+    }
+
+    .hero p{
+      color:#cbd5e1;
+      font-size:15px;
+      font-weight:600;
+    }
+
+    .content{
+      padding:26px 24px 30px;
+    }
+
+    .clock-card{
+      background:linear-gradient(135deg,#eff6ff,#f8fbff);
+      border:1px solid #dbeafe;
+      border-radius:22px;
+      padding:24px 18px;
+      text-align:center;
+      margin-bottom:24px;
+      box-shadow:0 12px 28px rgba(37,99,235,.08);
+    }
+
+    .hora{
+      font-size:54px;
+      font-weight:900;
+      color:#2563eb;
+      line-height:1;
+      letter-spacing:-2px;
+    }
+
+    .data{
+      margin-top:10px;
+      font-size:15px;
+      color:#64748b;
+      font-weight:700;
+      text-transform:capitalize;
+    }
+
+    .campo{
+      margin-bottom:18px;
+    }
+
+    label{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      margin-bottom:9px;
+      font-size:15px;
+      font-weight:900;
+      color:#0f172a;
+    }
+
+    label i{
+      color:#2563eb;
+      font-size:18px;
+      width:22px;
+      text-align:center;
+    }
+
+    select,
+    textarea{
+      width:100%;
+      border:1px solid #dbe4f0;
+      border-radius:16px;
+      background:#ffffff;
+      color:#0f172a;
+      font-size:16px;
+      outline:none;
+      box-shadow:0 6px 18px rgba(15,23,42,.03);
+      font-family:Arial, sans-serif;
+    }
+
+    select{
+      height:58px;
+      padding:0 18px;
+    }
+
+    textarea{
+      min-height:96px;
+      padding:16px;
+      resize:none;
+      line-height:1.4;
+    }
+
+    select:focus,
+    textarea:focus{
+      border-color:#2563eb;
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    .preview{
+      display:none;
+      align-items:center;
+      gap:12px;
+      background:#f8fafc;
+      border:1px solid #e2e8f0;
+      border-radius:18px;
+      padding:12px;
+      margin:-4px 0 18px;
+      box-shadow:0 8px 20px rgba(15,23,42,.04);
+    }
+
+    .preview img{
+      width:64px;
+      height:64px;
+      object-fit:cover;
+      border-radius:16px;
+      background:#e2e8f0;
+      flex-shrink:0;
+    }
+
+    .avatar-fallback{
+      width:64px;
+      height:64px;
+      border-radius:16px;
+      background:#e2e8f0;
+      color:#94a3b8;
+      display:none;
+      align-items:center;
+      justify-content:center;
+      font-size:26px;
+      flex-shrink:0;
+    }
+
+    .preview strong{
+      display:block;
+      margin-bottom:4px;
+      font-size:16px;
+      color:#0f172a;
+    }
+
+    .preview small{
+      color:#64748b;
+      font-weight:700;
+    }
+
+    .camera-box{
+      background:#f8fbff;
+      border:1.5px dashed #bfdbfe;
+      border-radius:18px;
+      padding:14px;
+      overflow:hidden;
+    }
+
+    .camera-area{
+      width:100%;
+      aspect-ratio:4/3;
+      background:#020617;
+      border-radius:16px;
+      overflow:hidden;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      position:relative;
+    }
+
+    video,
+    #fotoCapturada{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      display:block;
+    }
+
+    #fotoCapturada{
+      display:none;
+    }
+
+    .camera-placeholder{
+      color:#cbd5e1;
+      text-align:center;
+      padding:20px;
+      font-size:14px;
+    }
+
+    .camera-actions{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+      margin-top:12px;
+    }
+
+    .btn-camera{
+      height:48px;
+      border:none;
+      border-radius:14px;
+      font-weight:900;
+      cursor:pointer;
+      color:white;
+      font-size:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      font-family:Arial, sans-serif;
+    }
+
+    .btn-abrir{
+      background:#2563eb;
+    }
+
+    .btn-capturar{
+      background:#0f172a;
+    }
+
+    .camera-status{
+      margin-top:10px;
+      color:#64748b;
+      font-size:13px;
+      font-weight:700;
+      text-align:center;
+    }
+
+    canvas{
+      display:none;
+    }
+
+    .contador{
+      text-align:right;
+      font-size:12px;
+      color:#64748b;
+      margin-top:6px;
+      font-weight:700;
+    }
+
+    .btn{
+      width:100%;
+      height:62px;
+      border:none;
+      border-radius:18px;
+      background:linear-gradient(90deg,#2563eb,#1d4ed8);
+      color:white;
+      font-size:18px;
+      font-weight:900;
+      cursor:pointer;
+      box-shadow:0 14px 30px rgba(37,99,235,.28);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      gap:10px;
+      margin-top:8px;
+      font-family:Arial, sans-serif;
+    }
+
+    .btn:disabled,
+    .btn-camera:disabled{
+      opacity:.65;
+      cursor:not-allowed;
+    }
+
+    .sucesso{
+      margin-top:16px;
+      background:#dcfce7;
+      color:#166534;
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+      font-weight:bold;
+    }
+
+    .erro{
+      margin-top:16px;
+      background:#fee2e2;
+      color:#991b1b;
+      border-radius:14px;
+      padding:14px;
+      text-align:center;
+      font-weight:bold;
+    }
+
+    @media(max-width:480px){
+      body{padding:10px}
+      .app{border-radius:30px}
+      .hero{padding:30px 18px 28px}
+      .content{padding:24px 20px 28px}
+      .hora{font-size:48px}
+      .logo{width:190px}
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+
+  <div class="hero">
+    <img src="./pontofacil-logo-transparente.png" class="logo" alt="PontoFácil">
+    <p>Registro eletrônico de ponto</p>
+  </div>
+
+  <div class="content">
+
+    <div class="clock-card">
+      <div class="hora" id="horaAtual">--:--</div>
+      <div class="data" id="dataAtual">--</div>
+    </div>
+
+    <div id="previewFuncionario" class="preview">
+      <img
+        id="fotoFuncionario"
+        src=""
+        onerror="this.style.display='none'; document.getElementById('avatarFallback').style.display='flex';"
+      >
+
+      <div id="avatarFallback" class="avatar-fallback">
+        <i class="fa-solid fa-user"></i>
+      </div>
+
+      <div>
+        <strong id="nomeFuncionarioPreview"></strong>
+        <small id="funcaoFuncionarioPreview"></small>
+      </div>
+    </div>
+
+    <div class="campo">
+      <label>
+        <i class="fa-regular fa-clock"></i>
+        Tipo de registro
+      </label>
+
+      <select id="tipo">
+        <option value="">Verificando...</option>
+      </select>
+    </div>
+
+    <div class="campo">
+      <label>
+        <i class="fa-regular fa-camera"></i>
+        Foto ao vivo do funcionário
+      </label>
+
+      <div class="camera-box">
+        <div class="camera-area">
+          <video id="cameraVideo" autoplay playsinline muted></video>
+          <img id="fotoCapturada" src="">
+          <div id="cameraPlaceholder" class="camera-placeholder">
+            Clique em “Abrir câmera” para iniciar a validação ao vivo.
+          </div>
+        </div>
+
+        <div class="camera-actions">
+          <button type="button" class="btn-camera btn-abrir" onclick="abrirCamera()">
+            <i class="fa-solid fa-video"></i>
+            Abrir câmera
+          </button>
+
+          <button type="button" class="btn-camera btn-capturar" onclick="capturarFotoAoVivo()">
+            <i class="fa-solid fa-camera"></i>
+            Capturar foto
+          </button>
+        </div>
+
+        <div id="cameraStatus" class="camera-status">
+          Nenhuma foto capturada.
+        </div>
+      </div>
+
+      <canvas id="canvasFoto"></canvas>
+    </div>
+
+    <div class="campo">
+      <label>
+        <i class="fa-regular fa-pen-to-square"></i>
+        Observação opcional
+      </label>
+
+      <textarea id="observacao" maxlength="200" placeholder="Digite uma observação..."></textarea>
+      <div class="contador"><span id="contadorObs">0</span>/200</div>
+    </div>
+
+    <button class="btn" id="btnRegistrar" onclick="registrarPonto()" disabled>
+      <i class="fa-regular fa-floppy-disk"></i>
+      Registrar ponto
+    </button>
+
+    <div id="mensagem"></div>
+
+  </div>
+
+</div>
+
+<script>
+  const supabaseClient = window.supabaseClient;
+
+  if(!supabaseClient){
+    alert("Erro ao carregar Supabase.");
+    throw new Error("Supabase não carregado.");
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const empresaId = params.get("empresa");
+
+  let empresaDados = null;
+  let funcionarioLogado = null;
+  let streamCamera = null;
+  let fotoCapturadaBlob = null;
+  let modeloFaceCarregado = false;
+
+  const nomesTipos = {
+    entrada: "Entrada",
+    saida_intervalo: "Saída para intervalo",
+    retorno_intervalo: "Retorno do intervalo",
+    saida: "Saída"
+  };
+
+  async function carregarModeloFace(){
+    if(modeloFaceCarregado){
+      return true;
+    }
+
+    try{
+      const modelUrl =
+        "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
+
+      await faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl);
+      await faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl);
+      await faceapi.nets.faceRecognitionNet.loadFromUri(modelUrl);
+
+      modeloFaceCarregado = true;
+
+      console.log("Modelos faciais carregados com sucesso.");
+
+      return true;
+
+    }catch(error){
+
+      console.log("Erro ao carregar modelos faciais:", error);
+
+      mostrarMensagem(
+        "erro",
+        "Não foi possível carregar a validação facial. Verifique sua internet e tente novamente."
+      );
+
+      return false;
+    }
+  }
+
+  function atualizarRelogio(){
+    const agora = new Date();
+
+    document.getElementById("horaAtual").innerText =
+      agora.toLocaleTimeString("pt-BR", {
+        hour:"2-digit",
+        minute:"2-digit"
+      });
+
+    document.getElementById("dataAtual").innerText =
+      agora.toLocaleDateString("pt-BR", {
+        weekday:"long",
+        day:"2-digit",
+        month:"long",
+        year:"numeric"
+      });
+  }
+
+  setInterval(atualizarRelogio, 1000);
+  atualizarRelogio();
+
+  document.getElementById("observacao").addEventListener("input", function(){
+    document.getElementById("contadorObs").innerText = this.value.length;
+  });
+
+  function normalizarNomeArquivo(texto){
+    return String(texto || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function mostrarMensagem(tipo, texto){
+    PontoFacilSecurity.setSafeMessage(
+      document.getElementById("mensagem"),
+      tipo,
+      texto
+    );
+  }
+
+  async function obterProximoTipoPermitido(funcionarioId){
+    const hoje = new Date();
+
+    const inicioHoje = new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate()
+    ).toISOString();
+
+    const amanha = new Date(
+      hoje.getFullYear(),
+      hoje.getMonth(),
+      hoje.getDate() + 1
+    ).toISOString();
+
+    const { data, error } = await supabaseClient
+      .from("registros_ponto")
+      .select("tipo, data_hora")
+      .eq("empresa_id", empresaId)
+      .eq("funcionario_id", funcionarioId)
+      .gte("data_hora", inicioHoje)
+      .lt("data_hora", amanha)
+      .order("data_hora", { ascending:true });
+
+    if(error){
+      console.log("Erro ao buscar registros do dia:", error);
+      return null;
+    }
+
+    const funcionario = funcionarioLogado;
+
+    const tiposHoje = (data || []).map(registro => registro.tipo);
+
+    if(funcionario?.sem_intervalo === true){
+      if(!tiposHoje.includes("entrada")) return "entrada";
+      if(!tiposHoje.includes("saida")) return "saida";
+      return "finalizado";
+    }
+
+    if(!tiposHoje.includes("entrada")) return "entrada";
+    if(!tiposHoje.includes("saida_intervalo")) return "saida_intervalo";
+    if(!tiposHoje.includes("retorno_intervalo")) return "retorno_intervalo";
+    if(!tiposHoje.includes("saida")) return "saida";
+
+    return "finalizado";
+  }
+
+  async function validarIntervaloMinimo(funcionarioId){
+    const agora = new Date();
+
+    const cincoMinAtras =
+      new Date(
+        agora.getTime() - (5 * 60 * 1000)
+      );
+
+    const { data, error } =
+      await supabaseClient
+        .from("registros_ponto")
+        .select("*")
+        .eq("empresa_id", empresaId)
+        .eq("funcionario_id", funcionarioId)
+        .gte("data_hora", cincoMinAtras.toISOString())
+        .order("data_hora", { ascending:false })
+        .limit(1);
+
+    if(error){
+      console.log(
+        "Erro ao validar intervalo mínimo:",
+        error
+      );
+
+      return {
+        permitido:false,
+        motivo:"Erro ao validar intervalo."
+      };
+    }
+
+    if(data && data.length > 0){
+      const ultimoRegistro =
+        new Date(data[0].data_hora);
+
+      const diferencaSegundos =
+        Math.floor(
+          (agora.getTime() - ultimoRegistro.getTime()) / 1000
+        );
+
+      const segundosRestantes =
+        Math.max(0, 300 - diferencaSegundos);
+
+      const minutos =
+        Math.floor(segundosRestantes / 60);
+
+      const segundos =
+        segundosRestantes % 60;
+
+      return {
+        permitido:false,
+        motivo:`Aguarde ${minutos}m ${segundos}s para registrar novamente.`
+      };
+    }
+
+    return {
+      permitido:true
+    };
+  }
+
+  async function abrirCamera(){
+    const video = document.getElementById("cameraVideo");
+    const foto = document.getElementById("fotoCapturada");
+    const placeholder = document.getElementById("cameraPlaceholder");
+    const status = document.getElementById("cameraStatus");
+
+    try{
+      if(streamCamera){
+        streamCamera.getTracks().forEach(track => track.stop());
+      }
+
+      streamCamera = await navigator.mediaDevices.getUserMedia({
+        video:{
+          facingMode:"user",
+          width:{ ideal:720 },
+          height:{ ideal:720 }
+        },
+        audio:false
+      });
+
+      video.srcObject = streamCamera;
+      video.style.display = "block";
+      foto.style.display = "none";
+      placeholder.style.display = "none";
+
+      fotoCapturadaBlob = null;
+      status.innerText = "Câmera ao vivo aberta. Agora capture a foto.";
+
+    }catch(error){
+      console.log("Erro ao abrir câmera:", error);
+      mostrarMensagem("erro", "Não foi possível abrir a câmera. Permita o acesso à câmera e tente novamente.");
+    }
+  }
+
+  async function capturarFotoAoVivo(){
+    const video = document.getElementById("cameraVideo");
+    const canvas = document.getElementById("canvasFoto");
+    const foto = document.getElementById("fotoCapturada");
+    const status = document.getElementById("cameraStatus");
+
+    if(!streamCamera || !video.videoWidth){
+      mostrarMensagem("erro", "Abra a câmera antes de capturar a foto.");
+      return;
+    }
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.drawImage(
+      video,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+
+    const imageData =
+      ctx.getImageData(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
+
+    const pixels =
+      imageData.data;
+
+    let brilhoTotal = 0;
+
+    for(let i = 0; i < pixels.length; i += 4){
+      const r = pixels[i];
+      const g = pixels[i + 1];
+      const b = pixels[i + 2];
+
+      const brilho =
+        (r + g + b) / 3;
+
+      brilhoTotal += brilho;
+    }
+
+    const brilhoMedio =
+      brilhoTotal /
+      (pixels.length / 4);
+
+    if(brilhoMedio < 35){
+      fotoCapturadaBlob = null;
+
+      status.innerText =
+        "Imagem muito escura.";
+
+      mostrarMensagem(
+        "erro",
+        "Imagem muito escura. Certifique-se de que seu rosto está visível."
+      );
+
+      return;
+    }
+
+    status.innerText =
+      "Validando rosto humano...";
+
+    const rostoValido =
+      await validarRostoHumano(canvas);
+
+    if(!rostoValido){
+      fotoCapturadaBlob = null;
+      status.innerText =
+        "Rosto não identificado.";
+      return;
+    }
+
+    status.innerText =
+      "Comparando com a foto cadastrada...";
+
+    const faceConfere =
+      await validarFaceComCadastro(canvas);
+
+    if(!faceConfere){
+      fotoCapturadaBlob = null;
+      status.innerText =
+        "Identificação facial não compatível.";
+      return;
+    }
+
+    canvas.toBlob(blob => {
+      if(!blob){
+        mostrarMensagem(
+          "erro",
+          "Erro ao capturar a foto."
+        );
+
+        return;
+      }
+
+      fotoCapturadaBlob = blob;
+
+      const urlPreview =
+        URL.createObjectURL(blob);
+
+      foto.src =
+        urlPreview;
+
+      foto.style.display =
+        "block";
+
+      video.style.display =
+        "none";
+
+      status.innerText =
+        "Foto validada com reconhecimento facial.";
+
+      if(streamCamera){
+        streamCamera.getTracks().forEach(
+          track => track.stop()
+        );
+
+        streamCamera = null;
+      }
+
+    }, "image/jpeg", 0.9);
+  }
+
+  async function validarRostoHumano(canvas){
+    const modeloOk =
+      await carregarModeloFace();
+
+    if(!modeloOk){
+      return false;
+    }
+
+    const detections =
+      await faceapi.detectAllFaces(
+        canvas,
+        new faceapi.TinyFaceDetectorOptions({
+          inputSize:224,
+          scoreThreshold:0.5
+        })
+      );
+
+    if(!detections || detections.length === 0){
+      mostrarMensagem(
+        "erro",
+        "Nenhum rosto humano foi identificado. Posicione o rosto de frente para a câmera e capture novamente."
+      );
+
+      return false;
+    }
+
+    if(detections.length > 1){
+      mostrarMensagem(
+        "erro",
+        "Mais de um rosto foi identificado. Apenas o funcionário deve aparecer na foto."
+      );
+
+      return false;
+    }
+
+    return true;
+  }
+
+  async function validarFaceComCadastro(canvasSelfie){
+    if(!funcionarioLogado?.foto_url){
+      mostrarMensagem(
+        "erro",
+        "Este funcionário não possui foto cadastrada para validação facial."
+      );
+
+      return false;
+    }
+
+    const modeloOk =
+      await carregarModeloFace();
+
+    if(!modeloOk){
+      return false;
+    }
+
+    try{
+      const imgCadastro =
+        await faceapi.fetchImage(
+          funcionarioLogado.foto_url
+        );
+
+      const opcoesDetector =
+        new faceapi.TinyFaceDetectorOptions({
+          inputSize:224,
+          scoreThreshold:0.5
+        });
+
+      const deteccaoCadastro =
+        await faceapi
+          .detectSingleFace(
+            imgCadastro,
+            opcoesDetector
+          )
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+      if(!deteccaoCadastro){
+        mostrarMensagem(
+          "erro",
+          "Não foi possível identificar um rosto na foto cadastrada do funcionário."
+        );
+
+        return false;
+      }
+
+      const deteccaoSelfie =
+        await faceapi
+          .detectSingleFace(
+            canvasSelfie,
+            opcoesDetector
+          )
+          .withFaceLandmarks()
+          .withFaceDescriptor();
+
+      if(!deteccaoSelfie){
+        mostrarMensagem(
+          "erro",
+          "Não foi possível identificar um rosto na selfie capturada."
+        );
+
+        return false;
+      }
+
+      const distancia =
+        faceapi.euclideanDistance(
+          deteccaoCadastro.descriptor,
+          deteccaoSelfie.descriptor
+        );
+
+      console.log(
+        "DISTÂNCIA FACIAL:",
+        distancia
+      );
+
+      const limiteAceitacao =
+        0.62;
+
+      if(distancia > limiteAceitacao){
+        mostrarMensagem(
+          "erro",
+          "Identificação facial não compatível. Tente novamente com o rosto bem iluminado e de frente para a câmera."
+        );
+
+        return false;
+      }
+
+      return true;
+
+    }catch(error){
+      console.log(
+        "Erro na validação facial:",
+        error
+      );
+
+      mostrarMensagem(
+        "erro",
+        "Erro ao comparar a selfie com a foto cadastrada."
+      );
+
+      return false;
+    }
+  }
+
+  async function carregarFuncionarioLogado(){
+    const {
+      data:{ session }
+    } = await supabaseClient.auth.getSession();
+
+    if(!session){
+      window.location.href =
+        "./funcionario-login.html";
+
+      return false;
+    }
+
+    const authUserId =
+      session.user.id;
+
+    const { data, error } =
+      await supabaseClient
+        .from("funcionarios")
+        .select("*")
+        .eq("auth_user_id", authUserId)
+        .single();
+
+    if(error || !data){
+      mostrarMensagem(
+        "erro",
+        "Funcionário não encontrado."
+      );
+
+      return false;
+    }
+
+    funcionarioLogado =
+      data;
+
+    if(funcionarioLogado.ativo !== true){
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      mostrarMensagem(
+        "erro",
+        "Seu acesso está inativo. Entre em contato com o responsável."
+      );
+
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
+
+      return false;
+    }
+
+    if(
+      String(funcionarioLogado.empresa_id)
+      !==
+      String(empresaId)
+    ){
+      mostrarMensagem(
+        "erro",
+        "Este funcionário não pertence a esta empresa."
+      );
+
+      return false;
+    }
+
+    const {
+      data: vinculo,
+      error: vinculoError
+    } = await supabaseClient
+      .from("usuarios_empresas")
+      .select("id, ativo, perfil, empresa_id")
+      .eq("user_id", authUserId)
+      .eq("empresa_id", empresaId)
+      .eq("perfil", "funcionario")
+      .maybeSingle();
+
+    if(vinculoError || !vinculo){
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      mostrarMensagem(
+        "erro",
+        "Vínculo do funcionário não encontrado."
+      );
+
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
+
+      return false;
+    }
+
+    if(vinculo.ativo !== true){
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      mostrarMensagem(
+        "erro",
+        "Seu acesso está inativo. Entre em contato com o responsável."
+      );
+
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
+
+      return false;
+    }
+
+    preencherPreviewFuncionario();
+
+    return true;
+  }
+
+  function preencherPreviewFuncionario(){
+    const preview =
+      document.getElementById(
+        "previewFuncionario"
+      );
+
+    const foto =
+      document.getElementById(
+        "fotoFuncionario"
+      );
+
+    const avatarFallback =
+      document.getElementById(
+        "avatarFallback"
+      );
+
+    document.getElementById(
+      "nomeFuncionarioPreview"
+    ).innerText =
+      funcionarioLogado.nome_completo;
+
+    document.getElementById(
+      "funcaoFuncionarioPreview"
+    ).innerText =
+      funcionarioLogado.funcao || "Funcionário";
+
+    if(funcionarioLogado.foto_url){
+      foto.src =
+        funcionarioLogado.foto_url;
+
+      foto.style.display =
+        "block";
+
+      avatarFallback.style.display =
+        "none";
+
+    }else{
+      foto.style.display =
+        "none";
+
+      avatarFallback.style.display =
+        "flex";
+    }
+
+    preview.style.display =
+      "flex";
+  }
+
+  async function carregarEmpresa(){
+    if(!empresaId){
+      mostrarMensagem("erro", "QR Code inválido. Empresa não identificada.");
+      return false;
+    }
+
+    const { data, error } = await supabaseClient
+      .from("empresas")
+      .select("id, nome, latitude, longitude, raio_permitido_metros, ativa, email_rh")
+      .eq("id", empresaId)
+      .eq("ativa", true)
+      .single();
+
+    if(error || !data){
+      console.log("Erro ao carregar empresa:", error);
+      mostrarMensagem("erro", "Empresa não encontrada ou inativa.");
+      return false;
+    }
+
+    empresaDados = data;
+    return true;
+  }
+
+  function calcularDistanciaMetros(lat1, lon1, lat2, lon2){
+    const R = 6371000;
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad;
+    const dLon = (lon2 - lon1) * rad;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * rad) *
+      Math.cos(lat2 * rad) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+    return R * c;
+  }
+
+  function calcularScoreFraude({
+  precisaoGps,
+  distanciaMetros,
+  capturaAoVivo,
+  metodoCaptura
+}){
+
+  let score = 0;
+
+  if(capturaAoVivo !== true){
+    score += 40;
+  }
+
+  if(metodoCaptura !== "camera"){
+    score += 30;
+  }
+
+  if(precisaoGps > 80){
+    score += 15;
+  }
+
+  if(distanciaMetros > 30){
+    score += 10;
+  }
+
+  let nivel = "baixo";
+
+  if(score >= 50){
+
+    nivel = "critico";
+
+  }else if(score >= 25){
+
+    nivel = "suspeito";
+
+  }
+
+  return {
+    score,
+    nivel
+  };
+
+}
+  
+  function obterLocalizacaoAtual(){
+    return new Promise((resolve, reject) => {
+      if(!navigator.geolocation){
+        reject("Geolocalização não suportada neste aparelho.");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        posicao => {
+          resolve({
+            latitude: posicao.coords.latitude,
+            longitude: posicao.coords.longitude,
+            precisao: posicao.coords.accuracy
+          });
+        },
+        erro => {
+          console.log("Erro GPS:", erro);
+          reject("Não foi possível obter sua localização. Ative o GPS e permita o acesso à localização.");
+        },
+        {
+          enableHighAccuracy:true,
+          timeout:15000,
+          maximumAge:0
+        }
+      );
+    });
+  }
+
+  async function validarLocalizacao(){
+    if(!empresaDados){
+      mostrarMensagem("erro", "Dados da empresa não carregados.");
+      return null;
+    }
+
+    if(!empresaDados.latitude || !empresaDados.longitude){
+      mostrarMensagem("erro", "Esta empresa ainda não possui localização GPS cadastrada.");
+      return null;
+    }
+
+    try{
+      const localizacao = await obterLocalizacaoAtual();
+
+      const distancia = calcularDistanciaMetros(
+        Number(empresaDados.latitude),
+        Number(empresaDados.longitude),
+        Number(localizacao.latitude),
+        Number(localizacao.longitude)
+      );
+
+      const raioPermitido = Number(empresaDados.raio_permitido_metros || 50);
+
+      if(distancia > raioPermitido){
+        mostrarMensagem(
+          "erro",
+          `Registro bloqueado. Você está a aproximadamente ${Math.round(distancia)}m da empresa. Limite permitido: ${raioPermitido}m.`
+        );
+
+        return null;
+      }
+
+      return {
+
+  latitude:localizacao.latitude,
+
+  longitude:localizacao.longitude,
+
+  precisao_gps:localizacao.precisao,
+
+  distancia_metros:Math.round(distancia)
+
+};
+
+    }catch(erro){
+      mostrarMensagem("erro", erro);
+      return null;
+    }
+  }
+
+  async function atualizarTipoAutomatico(funcionarioId){
+    const selectTipo = document.getElementById("tipo");
+    const botao = document.getElementById("btnRegistrar");
+
+    selectTipo.innerHTML = `<option value="">Verificando próximo registro...</option>`;
+    selectTipo.disabled = true;
+    botao.disabled = true;
+
+    const proximoTipo = await obterProximoTipoPermitido(funcionarioId);
+
+    if(proximoTipo === "finalizado"){
+      selectTipo.innerHTML = `<option value="">Ponto de hoje finalizado</option>`;
+      mostrarMensagem("sucesso", "✅ Todos os registros de ponto de hoje já foram concluídos.");
+      return;
+    }
+
+    if(proximoTipo === null){
+      selectTipo.innerHTML = `<option value="">Erro ao validar sequência</option>`;
+      mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
+      return;
+    }
+
+    selectTipo.innerHTML = `
+      <option value="${proximoTipo}">
+        ${nomesTipos[proximoTipo]}
+      </option>
+    `;
+
+    selectTipo.value = proximoTipo;
+    selectTipo.disabled = true;
+    botao.disabled = false;
+  }
+
+  async function enviarFotoPonto(funcionarioId, tipo){
+    if(!fotoCapturadaBlob){
+      return null;
+    }
+
+    const nomeArquivo = `${empresaId}/${funcionarioId}/${tipo}-${Date.now()}-camera-ao-vivo.jpg`;
+
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("pontos")
+      .upload(nomeArquivo, fotoCapturadaBlob, {
+        cacheControl:"3600",
+        upsert:false,
+        contentType:"image/jpeg"
+      });
+
+    if(uploadError){
+      console.log("Erro upload foto ponto:", uploadError);
+      return null;
+    }
+
+    const { data: urlData } = supabaseClient
+      .storage
+      .from("pontos")
+      .getPublicUrl(nomeArquivo);
+
+    return urlData.publicUrl;
+  }
+
+  async function validarPermissaoAntesDeRegistrar(){
+    const {
+      data:{ session }
+    } = await supabaseClient.auth.getSession();
+
+    if(!session){
+      return {
+        ok:false,
+        mensagem:"Sessão expirada. Faça login novamente."
+      };
+    }
+
+    const authUserId =
+      session.user.id;
+
+    const { data: funcionarioAtual, error: funcionarioError } =
+      await supabaseClient
+        .from("funcionarios")
+        .select("id, empresa_id, ativo")
+        .eq("auth_user_id", authUserId)
+        .eq("empresa_id", empresaId)
+        .single();
+
+    if(funcionarioError || !funcionarioAtual){
+      return {
+        ok:false,
+        mensagem:"Funcionário não encontrado ou não pertence a esta empresa."
+      };
+    }
+
+    if(funcionarioAtual.ativo !== true){
+      return {
+        ok:false,
+        mensagem:"Seu acesso está inativo. Entre em contato com o responsável."
+      };
+    }
+
+    const { data: vinculoAtual, error: vinculoError } =
+      await supabaseClient
+        .from("usuarios_empresas")
+        .select("id, ativo")
+        .eq("user_id", authUserId)
+        .eq("empresa_id", empresaId)
+        .eq("perfil", "funcionario")
+        .maybeSingle();
+
+    if(vinculoError || !vinculoAtual){
+      return {
+        ok:false,
+        mensagem:"Vínculo do funcionário não encontrado."
+      };
+    }
+
+    if(vinculoAtual.ativo !== true){
+      return {
+        ok:false,
+        mensagem:"Seu acesso está inativo. Entre em contato com o responsável."
+      };
+    }
+
+    const { data: empresaAtual, error: empresaError } =
+      await supabaseClient
+        .from("empresas")
+        .select("id, ativa")
+        .eq("id", empresaId)
+        .single();
+
+    if(empresaError || !empresaAtual){
+      return {
+        ok:false,
+        mensagem:"Empresa não encontrada."
+      };
+    }
+
+    if(empresaAtual.ativa !== true){
+      return {
+        ok:false,
+        mensagem:"Empresa inativa. Registro bloqueado."
+      };
+    }
+
+    return {
+      ok:true
+    };
+  }
+
+  async function registrarPonto(){
+    const funcionarioId =
+      funcionarioLogado?.id;
+
+    const tipo =
+      document.getElementById("tipo").value;
+
+    const observacao =
+      document.getElementById("observacao").value.trim();
+
+    const botao =
+      document.getElementById("btnRegistrar");
+
+    const funcionarioSelecionado =
+      funcionarioLogado;
+
+    document.getElementById("mensagem").textContent = "";
+
+    if(!funcionarioId){
+      mostrarMensagem("erro", "Funcionário não identificado. Faça login novamente.");
+      return;
+    }
+
+    if(!tipo){
+      mostrarMensagem("erro", "Selecione o tipo de registro.");
+      return;
+    }
+
+    const validacaoPermissao =
+      await validarPermissaoAntesDeRegistrar();
+
+    if(!validacaoPermissao.ok){
+      mostrarMensagem("erro", validacaoPermissao.mensagem);
+
+      await supabaseClient.auth.signOut();
+
+      localStorage.clear();
+      sessionStorage.clear();
+
+      setTimeout(() => {
+        window.location.href =
+          "./funcionario-login.html";
+      }, 1800);
+
+      return;
+    }
+
+    const proximoTipoPermitido =
+      await obterProximoTipoPermitido(funcionarioId);
+
+    if(proximoTipoPermitido === "finalizado"){
+      mostrarMensagem("erro", "Você já concluiu todos os registros de ponto de hoje.");
+      return;
+    }
+
+    if(proximoTipoPermitido === null){
+      mostrarMensagem("erro", "Não foi possível validar a sequência do ponto.");
+      return;
+    }
+
+    if(tipo !== proximoTipoPermitido){
+      mostrarMensagem(
+        "erro",
+        `Registro inválido. O próximo registro permitido é: ${nomesTipos[proximoTipoPermitido]}.`
+      );
+
+      return;
+    }
+
+    const validacaoTempo =
+      await validarIntervaloMinimo(funcionarioId);
+
+    if(!validacaoTempo.permitido){
+      mostrarMensagem("erro", validacaoTempo.motivo);
+      return;
+    }
+
+    if(!fotoCapturadaBlob){
+      mostrarMensagem("erro", "Capture uma foto ao vivo para registrar o ponto.");
+      return;
+    }
+
+    botao.disabled = true;
+    botao.innerHTML = `<i class="fa-solid fa-location-dot"></i> Verificando localização...`;
+
+    const localizacaoValidada =
+      await validarLocalizacao();
+
+    if(!localizacaoValidada){
+      botao.disabled = false;
+      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+      return;
+    }
+
+    botao.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Registrando...`;
+
+    const fraude =
+  calcularScoreFraude({
+
+    precisaoGps:
+      localizacaoValidada.precisao_gps,
+
+    distanciaMetros:
+      localizacaoValidada.distancia_metros,
+
+    capturaAoVivo:true,
+
+    metodoCaptura:"camera"
+
+  });
+    
+    const fotoUrl =
+      await enviarFotoPonto(funcionarioId, tipo);
+
+    if(!fotoUrl){
+      mostrarMensagem("erro", "Erro ao enviar foto do ponto.");
+      botao.disabled = false;
+      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+      return;
+    }
+
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if(!session){
+      mostrarMensagem("erro", "Sessão expirada. Faça login novamente.");
+      botao.disabled = false;
+      botao.innerHTML = `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+      return;
+    }
+
+    const payloadRegistro = {
+      empresa_id: empresaId,
+      tipo,
+      observacao,
+      foto_url: fotoUrl,
+      latitude: localizacaoValidada.latitude,
+      longitude: localizacaoValidada.longitude,
+      precisao_gps: localizacaoValidada.precisao_gps,
+      distancia_metros: localizacaoValidada.distancia_metros,
+      captura_ao_vivo: true,
+      metodo_captura: "camera",
+      score_fraude: fraude.score,
+      nivel_fraude: fraude.nivel
+    };
+
+    const evidenciaCliente =
+      await PontoFacilSecurity.criarEvidenciaCliente(payloadRegistro);
+
+    const resposta = await fetch(
+      "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
+      {
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json",
+          "Authorization":
+            `Bearer ${session.access_token}`
+        },
+        body:JSON.stringify({
+          ...payloadRegistro,
+          device_info:evidenciaCliente
+        })
+      }
+    );
+
+    const resultado =
+      await resposta.json();
+
+    if(!resposta.ok){
+      console.log(resultado);
+
+      mostrarMensagem(
+        "erro",
+        resultado.error || "Erro ao registrar ponto."
+      );
+
+      botao.disabled = false;
+      botao.innerHTML =
+        `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+
+      return;
+    }
+
+    document.getElementById("observacao").value = "";
+    document.getElementById("contadorObs").innerText = "0";
+
+    fotoCapturadaBlob = null;
+    document.getElementById("fotoCapturada").src = "";
+    document.getElementById("fotoCapturada").style.display = "none";
+    document.getElementById("cameraVideo").style.display = "block";
+    document.getElementById("cameraPlaceholder").style.display = "block";
+    document.getElementById("cameraStatus").innerText = "Nenhuma foto capturada.";
+
+    const confirmacaoRegistro =
+      resultado?.nsr
+        ? `Ponto registrado com sucesso. NSR ${resultado.nsr}.`
+        : "Ponto registrado com sucesso.";
+
+    mostrarMensagem("sucesso", confirmacaoRegistro);
+
+    try{
+      const { data: emailData, error: emailError } =
+        await supabaseClient.functions.invoke("enviar-comprovante-ponto", {
+          body:{
+            empresa_nome: empresaDados?.nome || "PontoFácil",
+            funcionario_nome: funcionarioSelecionado?.nome_completo || "",
+            funcionario_email: funcionarioSelecionado?.email || "",
+            rh_email: empresaDados?.email_rh || "",
+            email_rh: empresaDados?.email_rh || "",
+            tipo_registro: nomesTipos[tipo] || tipo,
+            data_hora: new Date().toLocaleString("pt-BR"),
+            observacao: observacao || "Sem observação",
+            foto_url: fotoUrl || "",
+            latitude: localizacaoValidada.latitude,
+            longitude: localizacaoValidada.longitude,
+            distancia_metros: localizacaoValidada.distancia_metros
+          }
+        });
+
+      console.log("RETORNO EMAIL DATA:", emailData);
+      console.log("RETORNO EMAIL ERROR:", emailError);
+
+      if(emailError){
+        mostrarMensagem(
+          "sucesso",
+          "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
+        );
+      }
+
+    }catch(erroEmail){
+      console.log("ERRO GERAL AO ENVIAR EMAIL:", erroEmail);
+
+      mostrarMensagem(
+        "sucesso",
+        "✅ Ponto registrado com sucesso. Porém, houve erro ao enviar o comprovante por e-mail."
+      );
+    }
+
+    await atualizarTipoAutomatico(
+      funcionarioLogado.id
+    );
+
+    botao.innerHTML =
+      `<i class="fa-regular fa-floppy-disk"></i> Registrar ponto`;
+  }
+
+  async function iniciar(){
+    const empresaOk =
+      await carregarEmpresa();
+
+    if(!empresaOk)
+      return;
+
+    const funcionarioOk =
+      await carregarFuncionarioLogado();
+
+    if(!funcionarioOk)
+      return;
+
+    await carregarModeloFace();
+
+    await atualizarTipoAutomatico(
+      funcionarioLogado.id
+    );
+  }
+
+  iniciar();
+</script>
+
+</body>
+</html>

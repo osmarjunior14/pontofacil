@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Confiabilidade REP-P</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/security-compliance.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#f4f7fb;color:#0f172a;min-height:100vh}
+    .layout{display:grid;grid-template-columns:280px 1fr;min-height:100vh}
+    .sidebar{background:linear-gradient(180deg,#071426,#0f2f66);color:white;padding:28px 22px;display:flex;flex-direction:column;gap:24px}
+    .brand{display:flex;align-items:center;gap:12px}.brand img{width:48px}.brand small{color:#cbd5e1;font-weight:700}
+    .menu{display:flex;flex-direction:column;gap:10px}.menu button,.logout{border:none;border-radius:8px;background:transparent;color:#dbeafe;padding:13px 14px;display:flex;align-items:center;gap:10px;font-weight:900;cursor:pointer;text-align:left}.menu button:hover,.menu .active{background:#2563eb;color:white}.logout{margin-top:auto;background:rgba(15,23,42,.45)}
+    .main{padding:34px;max-width:1180px;width:100%;margin:0 auto}
+    h1{font-size:32px;color:#0f2f66;margin-bottom:6px}.muted{color:#64748b;font-weight:700;line-height:1.45}
+    .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:24px 0}
+    .card,.panel{background:white;border:1px solid #e2e8f0;border-radius:8px;box-shadow:0 14px 40px rgba(15,23,42,.06)}
+    .card{padding:18px}.card small{display:block;color:#64748b;font-weight:900;margin-bottom:8px}.card strong{font-size:28px;color:#0f2f66}
+    .panel{padding:22px;margin-top:18px}.panel h2{font-size:20px;margin-bottom:14px;color:#0f2f66}
+    .checklist{display:grid;gap:10px}.item{display:flex;gap:10px;align-items:flex-start;border:1px solid #e2e8f0;border-radius:8px;padding:12px}.ok{color:#16a34a}.warn{color:#f97316}.bad{color:#dc2626}
+    button.action{height:44px;border:none;border-radius:8px;background:#2563eb;color:white;font-weight:900;cursor:pointer;padding:0 16px;display:inline-flex;align-items:center;gap:8px;margin-top:12px}
+    .erro{display:none;margin-top:14px;background:#fef2f2;border:1px solid #fecaca;color:#991b1b;border-radius:8px;padding:12px;font-weight:800}
+    @media(max-width:900px){.layout{grid-template-columns:1fr}.cards{grid-template-columns:1fr}.sidebar{position:static}}
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><img src="./pontofacil-icone.png" alt="PontoFácil"><div><strong>PontoFácil</strong><br><small>REP-P</small></div></div>
+      <nav class="menu">
+        <button onclick="location.href='./dashboard.html'"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+        <button onclick="location.href='./exportacao.html'"><i data-lucide="file-down"></i> Exportação fiscal</button>
+        <button class="active"><i data-lucide="shield-check"></i> Confiabilidade</button>
+        <button onclick="location.href='./termo-responsabilidade.html'"><i data-lucide="file-signature"></i> Atestado técnico</button>
+        <button onclick="location.href='./lgpd-biometria.html'"><i data-lucide="fingerprint"></i> LGPD/Biometria</button>
+        <button onclick="location.href='./dispositivos-offline.html'"><i data-lucide="smartphone"></i> Dispositivos</button>
+      </nav>
+      <button class="logout" onclick="sair()"><i data-lucide="log-out"></i> Sair</button>
+    </aside>
+    <main class="main">
+      <h1>Confiabilidade REP-P</h1>
+      <p class="muted">Painel operacional para acompanhar saúde fiscal, NSR, hash, exportações, offline e sincronismo.</p>
+      <div id="erro" class="erro"></div>
+      <section class="cards">
+        <div class="card"><small>Marcações</small><strong id="marcacoesTotal">0</strong></div>
+        <div class="card"><small>Sem NSR</small><strong id="semNsr">0</strong></div>
+        <div class="card"><small>Sem hash</small><strong id="semHash">0</strong></div>
+        <div class="card"><small>Offline pendente</small><strong id="offlinePendente">0</strong></div>
+      </section>
+      <section class="panel">
+        <h2>Checklist comercial</h2>
+        <div class="checklist" id="checklist"></div>
+        <button class="action" onclick="carregarTudo()"><i data-lucide="refresh-cw"></i> Atualizar</button>
+      </section>
+      <section class="panel">
+        <h2>Saúde do servidor</h2>
+        <div id="health" class="muted">Carregando...</div>
+        <button class="action" onclick="checarSaude()"><i data-lucide="activity"></i> Checar agora</button>
+      </section>
+    </main>
+  </div>
+  <script>
+    const supabaseClient = window.supabaseClient;
+    let empresaId = null;
+
+    function erro(texto){
+      const box = document.getElementById("erro");
+      box.textContent = texto || "";
+      box.style.display = texto ? "block" : "none";
+    }
+
+    function item(texto, status){
+      const icone = status === "ok" ? "check-circle" : status === "bad" ? "x-circle" : "alert-triangle";
+      return `<div class="item"><i class="${status}" data-lucide="${icone}"></i><strong>${PontoFacilSecurity.escapeHtml(texto)}</strong></div>`;
+    }
+
+    async function carregarEmpresa(){
+      const { data:{ user } } = await supabaseClient.auth.getUser();
+      if(!user){ location.href = "./gestao.html"; return false; }
+      const { data, error } = await supabaseClient.from("usuarios_empresas").select("empresa_id").eq("user_id", user.id).eq("ativo", true).limit(1);
+      if(error || !data?.length){ location.href = "./gestao.html"; return false; }
+      empresaId = data[0].empresa_id;
+      return true;
+    }
+
+    async function carregarDashboard(){
+      const { data, error } = await supabaseClient.rpc("rep_p_dashboard_confiabilidade", { p_empresa_id: empresaId });
+      if(error){ erro(error.message); return; }
+      document.getElementById("marcacoesTotal").textContent = data.marcacoes_total || 0;
+      document.getElementById("semNsr").textContent = data.marcacoes_sem_nsr || 0;
+      document.getElementById("semHash").textContent = data.marcacoes_sem_hash || 0;
+      document.getElementById("offlinePendente").textContent = data.offline_pendente || 0;
+      document.getElementById("checklist").innerHTML = [
+        item("NSR sequencial ativo", Number(data.marcacoes_sem_nsr || 0) === 0 ? "ok" : "bad"),
+        item("Hash de marcação ativo", Number(data.marcacoes_sem_hash || 0) === 0 ? "ok" : "bad"),
+        item("Exportação fiscal disponível", "ok"),
+        item("Assinatura P7S/ICP-Brasil configurada no ambiente de produção", "warn"),
+        item("Sincronismo HLB deve ser monitorado por fonte oficial", "warn"),
+        item("Atestado Técnico deve ser emitido e assinado em PAdES", "warn")
+      ].join("");
+      lucide.createIcons();
+    }
+
+    async function checarSaude(){
+      const { data, error } = await supabaseClient.functions.invoke("rep-p-health", { body:{} });
+      document.getElementById("health").textContent = error ? error.message : JSON.stringify(data, null, 2);
+    }
+
+    async function carregarTudo(){
+      erro("");
+      if(!empresaId && !(await carregarEmpresa())) return;
+      await carregarDashboard();
+      await checarSaude();
+    }
+
+    async function sair(){
+      await supabaseClient.auth.signOut();
+      localStorage.clear();
+      sessionStorage.clear();
+      location.href = "./gestao.html";
+    }
+
+    carregarTudo();
+  </script>
+</body>
+</html>

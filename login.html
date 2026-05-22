@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
+<title>PontoFácil • Login</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./js/supabase-client.js"></script>
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+/>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+
+  font-family:Arial,sans-serif;
+
+  background:
+    radial-gradient(circle at top right, rgba(37,99,235,.35), transparent 30%),
+    radial-gradient(circle at bottom left, rgba(14,165,233,.25), transparent 30%),
+    linear-gradient(145deg,#020617,#071426 48%,#0f172a);
+
+  min-height:100vh;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  overflow:hidden;
+
+  color:white;
+}
+
+body.loading{
+  opacity:.7;
+  pointer-events:none;
+}
+
+.bg-blur{
+
+  position:fixed;
+  width:500px;
+  height:500px;
+
+  border-radius:50%;
+
+  filter:blur(120px);
+
+  z-index:0;
+}
+
+.bg1{
+  background:#2563eb;
+  top:-120px;
+  right:-120px;
+  opacity:.25;
+}
+
+.bg2{
+  background:#0ea5e9;
+  bottom:-150px;
+  left:-120px;
+  opacity:.2;
+}
+
+.login-container{
+
+  position:relative;
+  z-index:2;
+
+  width:100%;
+  max-width:460px;
+
+  padding:24px;
+}
+
+.login-card{
+
+  background:
+    rgba(255,255,255,.06);
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  backdrop-filter:blur(20px);
+
+  border-radius:32px;
+
+  padding:42px 34px;
+
+  box-shadow:
+    0 20px 60px rgba(0,0,0,.35);
+}
+
+.logo{
+
+  width:88px;
+  height:88px;
+
+  margin:0 auto 26px auto;
+
+  border-radius:28px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #0ea5e9
+    );
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:38px;
+}
+
+h1{
+
+  text-align:center;
+
+  font-size:34px;
+  font-weight:900;
+
+  margin-bottom:10px;
+}
+
+.subtitle{
+
+  text-align:center;
+
+  color:#94a3b8;
+
+  line-height:1.5;
+
+  margin-bottom:34px;
+}
+
+.form-group{
+  margin-bottom:22px;
+}
+
+.form-label{
+
+  display:block;
+
+  margin-bottom:10px;
+
+  font-size:14px;
+  font-weight:700;
+
+  color:#cbd5e1;
+}
+
+.input-wrapper{
+  position:relative;
+}
+
+.input-wrapper i{
+
+  position:absolute;
+
+  left:18px;
+  top:50%;
+
+  transform:translateY(-50%);
+
+  color:#94a3b8;
+}
+
+.input{
+
+  width:100%;
+  height:58px;
+
+  border-radius:18px;
+
+  border:
+    1px solid rgba(255,255,255,.08);
+
+  background:
+    rgba(255,255,255,.04);
+
+  outline:none;
+
+  padding:0 18px 0 52px;
+
+  color:white;
+
+  font-size:15px;
+
+  transition:.2s;
+}
+
+.input:focus{
+
+  border:
+    1px solid rgba(37,99,235,.7);
+
+  box-shadow:
+    0 0 0 4px rgba(37,99,235,.15);
+}
+
+.input::placeholder{
+  color:#64748b;
+}
+
+.password-toggle{
+
+  position:absolute;
+
+  right:18px;
+  top:50%;
+
+  transform:translateY(-50%);
+
+  cursor:pointer;
+
+  color:#94a3b8;
+}
+
+.options{
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  margin-bottom:26px;
+
+  gap:16px;
+
+  flex-wrap:wrap;
+}
+
+.checkbox-area{
+
+  display:flex;
+  align-items:center;
+  gap:10px;
+
+  color:#cbd5e1;
+
+  font-size:14px;
+}
+
+.checkbox-area input{
+  accent-color:#2563eb;
+}
+
+.forgot{
+
+  color:#60a5fa;
+
+  text-decoration:none;
+
+  font-size:14px;
+
+  font-weight:600;
+}
+
+.forgot:hover{
+  text-decoration:underline;
+}
+
+.login-btn{
+
+  width:100%;
+  height:60px;
+
+  border:none;
+
+  border-radius:20px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #1d4ed8
+    );
+
+  color:white;
+
+  font-size:16px;
+  font-weight:900;
+
+  cursor:pointer;
+
+  transition:.25s;
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  gap:12px;
+}
+
+.login-btn:hover{
+
+  transform:translateY(-2px);
+
+  box-shadow:
+    0 16px 40px rgba(37,99,235,.35);
+}
+
+.login-btn:disabled{
+
+  opacity:.7;
+
+  cursor:not-allowed;
+
+  transform:none;
+}
+
+.loading-spinner{
+
+  width:18px;
+  height:18px;
+
+  border-radius:50%;
+
+  border:3px solid rgba(255,255,255,.25);
+
+  border-top-color:white;
+
+  animation:spin .8s linear infinite;
+}
+
+@keyframes spin{
+  to{
+    transform:rotate(360deg);
+  }
+}
+
+.message{
+
+  margin-top:22px;
+
+  padding:16px 18px;
+
+  border-radius:18px;
+
+  font-size:14px;
+  font-weight:700;
+
+  display:none;
+}
+
+.message.error{
+
+  display:block;
+
+  background:
+    rgba(239,68,68,.12);
+
+  border:
+    1px solid rgba(239,68,68,.3);
+
+  color:#fecaca;
+}
+
+.message.success{
+
+  display:block;
+
+  background:
+    rgba(34,197,94,.12);
+
+  border:
+    1px solid rgba(34,197,94,.3);
+
+  color:#bbf7d0;
+}
+
+.footer{
+
+  margin-top:28px;
+
+  text-align:center;
+
+  color:#64748b;
+
+  font-size:13px;
+}
+
+.version{
+
+  margin-top:8px;
+
+  font-size:12px;
+
+  color:#475569;
+}
+
+@media(max-width:540px){
+
+  .login-container{
+    padding:18px;
+  }
+
+  .login-card{
+    padding:34px 24px;
+  }
+
+  h1{
+    font-size:28px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="bg-blur bg1"></div>
+<div class="bg-blur bg2"></div>
+
+<div class="login-container">
+
+  <div class="login-card">
+
+    <div class="logo">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+
+    <h1>PontoFácil</h1>
+
+    <div class="subtitle">
+
+      Sistema inteligente de controle de ponto
+      com autenticação segura e proteção antifraude.
+
+    </div>
+
+    <form id="loginForm">
+
+      <div class="form-group">
+
+        <label class="form-label">
+          E-mail
+        </label>
+
+        <div class="input-wrapper">
+
+          <i class="fa-solid fa-envelope"></i>
+
+          <input
+            type="email"
+            id="email"
+            class="input"
+            placeholder="Digite seu e-mail"
+            autocomplete="email"
+            required
+          />
+
+        </div>
+
+      </div>
+
+      <div class="form-group">
+
+        <label class="form-label">
+          Senha
+        </label>
+
+        <div class="input-wrapper">
+
+          <i class="fa-solid fa-lock"></i>
+
+          <input
+            type="password"
+            id="senha"
+            class="input"
+            placeholder="Digite sua senha"
+            autocomplete="current-password"
+            required
+          />
+
+          <div
+            class="password-toggle"
+            onclick="alternarSenha()"
+          >
+            <i
+              id="iconeSenha"
+              class="fa-solid fa-eye"
+            ></i>
+          </div>
+
+        </div>
+
+      </div>
+
+            <div class="options">
+
+        <label class="checkbox-area">
+
+          <input
+            type="checkbox"
+            id="lembrar"
+          />
+
+          <span>
+            Manter conectado
+          </span>
+
+        </label>
+
+        <a
+          href="#"
+          class="forgot"
+        >
+          Esqueci minha senha
+        </a>
+
+      </div>
+
+      <button
+        type="submit"
+        class="login-btn"
+        id="loginBtn"
+      >
+
+        <i class="fa-solid fa-right-to-bracket"></i>
+
+        <span>
+          Entrar no sistema
+        </span>
+
+      </button>
+
+      <div
+        id="mensagem"
+        class="message"
+      ></div>
+
+    </form>
+
+    <div class="footer">
+
+      PontoFácil © 2026
+
+      <div class="version">
+        Versão 1.0.0
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const supabaseClient = window.supabaseClient;
+
+if(!supabaseClient){
+  alert("Erro ao carregar Supabase.");
+  throw new Error("Supabase não carregado.");
+}
+
+const form =
+  document.getElementById("loginForm");
+
+const mensagem =
+  document.getElementById("mensagem");
+
+const loginBtn =
+  document.getElementById("loginBtn");
+
+function mostrarMensagem(
+  texto,
+  tipo = "error"
+){
+
+  mensagem.className =
+    `message ${tipo}`;
+
+  mensagem.innerText =
+    texto;
+
+}
+
+function limparMensagem(){
+
+  mensagem.className =
+    "message";
+
+  mensagem.innerHTML = "";
+
+}
+
+function alternarSenha(){
+
+  const input =
+    document.getElementById("senha");
+
+  const icone =
+    document.getElementById("iconeSenha");
+
+  if(input.type === "password"){
+
+    input.type = "text";
+
+    icone.className =
+      "fa-solid fa-eye-slash";
+
+  }else{
+
+    input.type = "password";
+
+    icone.className =
+      "fa-solid fa-eye";
+
+  }
+
+}
+
+function setLoading(status){
+
+  document.body.classList.toggle(
+    "loading",
+    status
+  );
+
+  loginBtn.disabled = status;
+
+  if(status){
+
+    loginBtn.innerHTML = `
+    
+      <div class="loading-spinner"></div>
+      Entrando...
+    
+    `;
+
+  }else{
+
+    loginBtn.innerHTML = `
+    
+      <i class="fa-solid fa-right-to-bracket"></i>
+      <span>Entrar no sistema</span>
+    
+    `;
+
+  }
+
+}
+
+  async function verificarSessaoExistente(){
+
+  const {
+    data:{ session }
+  } = await supabaseClient.auth.getSession();
+
+  if(!session){
+    return;
+  }
+
+  await redirecionarUsuario(
+    session.user.id
+  );
+
+}
+
+async function redirecionarUsuario(userId){
+
+  const {
+    data,
+    error
+  } = await supabaseClient
+
+    .from("usuarios_empresas")
+
+    .select(`
+      perfil,
+      perfil_admin,
+      ativo
+    `)
+
+    .eq("user_id", userId)
+
+    .eq("ativo", true)
+
+    .single();
+
+  if(error || !data){
+
+    mostrarMensagem(
+      "Usuário sem permissão de acesso."
+    );
+
+    await supabaseClient.auth.signOut();
+
+    return;
+  }
+
+  /*
+  =========================================
+  FUNCIONÁRIO
+  =========================================
+  */
+
+  if(data.perfil === "funcionario"){
+
+    window.location.href =
+      "./funcionario-dashboard.html";
+
+    return;
+  }
+
+  /*
+  =========================================
+  ADMINISTRATIVO
+  =========================================
+  */
+
+  const adminsPermitidos = [
+    "super_admin",
+    "admin",
+    "rh",
+    "supervisor",
+    "auditor"
+  ];
+
+  if(
+    adminsPermitidos.includes(
+      data.perfil_admin
+    )
+  ){
+
+    window.location.href =
+      "./painel-admin.html";
+
+    return;
+  }
+
+  mostrarMensagem(
+    "Perfil sem acesso autorizado."
+  );
+
+  await supabaseClient.auth.signOut();
+
+}
+
+form.addEventListener(
+  "submit",
+  async(event) => {
+
+    event.preventDefault();
+
+    limparMensagem();
+
+    const email =
+      document
+      .getElementById("email")
+      .value
+      .trim();
+
+    const senha =
+      document
+      .getElementById("senha")
+      .value;
+
+    if(!email || !senha){
+
+      mostrarMensagem(
+        "Preencha todos os campos."
+      );
+
+      return;
+    }
+
+    try{
+
+      setLoading(true);
+
+      const {
+        data,
+        error
+      } = await supabaseClient.auth.signInWithPassword({
+
+        email,
+        password:senha
+
+      });
+
+      if(error){
+        throw error;
+      }
+
+      mostrarMensagem(
+        "Login realizado com sucesso.",
+        "success"
+      );
+
+      await redirecionarUsuario(
+        data.user.id
+      );
+
+    }catch(error){
+
+      console.error(error);
+
+      mostrarMensagem(
+
+        error.message ||
+
+        "Erro ao realizar login."
+
+      );
+
+    }finally{
+
+      setLoading(false);
+
+    }
+
+  }
+);
+
+window.addEventListener(
+
+  "unhandledrejection",
+
+  (event) => {
+
+    console.error(
+      "ERRO GLOBAL:",
+      event.reason
+    );
+
+  }
+
+);
+
+verificarSessaoExistente();
+
+</script>
+
+</body>
+</html>
+
+
+  
+
+      

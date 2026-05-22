@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil - Atestado Técnico</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/security-compliance.js"></script>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Arial,sans-serif;background:#eef3fa;color:#111827;padding:28px}
+    .toolbar{max-width:980px;margin:0 auto 18px;display:flex;gap:10px;flex-wrap:wrap}
+    button{height:42px;border:none;border-radius:8px;background:#2563eb;color:white;font-weight:900;padding:0 14px;cursor:pointer}
+    button.secondary{background:#0f172a}
+    .doc{max-width:980px;margin:0 auto;background:white;border:1px solid #e5e7eb;border-radius:8px;padding:42px;box-shadow:0 14px 45px rgba(15,23,42,.08)}
+    h1{text-align:center;font-size:24px;margin-bottom:22px;color:#0f2f66}
+    h2{font-size:17px;margin:22px 0 10px;color:#0f2f66}
+    p,li{line-height:1.6;margin-bottom:10px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0}
+    .box{border:1px solid #d1d5db;border-radius:8px;padding:12px}
+    .assinaturas{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:46px}
+    .linha{border-top:1px solid #111827;padding-top:10px;text-align:center}
+    @media print{body{background:white;padding:0}.toolbar{display:none}.doc{box-shadow:none;border:none;border-radius:0;max-width:none}}
+    @media(max-width:760px){.grid,.assinaturas{grid-template-columns:1fr}.doc{padding:24px}}
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <button onclick="window.print()">Salvar PDF</button>
+    <button class="secondary" onclick="location.href='./rep-p-confiabilidade.html'">Voltar</button>
+  </div>
+  <main class="doc">
+    <h1>Atestado Técnico e Termo de Responsabilidade - REP-P</h1>
+    <p>Este documento consolida as informações técnicas mínimas do sistema PontoFácil para operação como REP-P, devendo ser revisado, assinado e arquivado a cada versão publicada.</p>
+    <div class="grid">
+      <div class="box"><strong>Programa:</strong><br>PontoFácil REP-P</div>
+      <div class="box"><strong>Versão:</strong><br><span id="versao">2026.05</span></div>
+      <div class="box"><strong>Data de emissão:</strong><br><span id="dataEmissao"></span></div>
+      <div class="box"><strong>Hash do pacote:</strong><br><span id="hashPacote">A definir no release assinado</span></div>
+    </div>
+    <h2>Declaração técnica</h2>
+    <p>O responsável técnico declara que o sistema registra marcações de ponto com NSR sequencial, data e hora de servidor, trilha de auditoria, hash SHA-256 por marcação e bloqueio de escrita direta na tabela fiscal de registros.</p>
+    <h2>Controles implementados</h2>
+    <ul>
+      <li>Registro oficial por Edge Function/RPC transacional.</li>
+      <li>Políticas RLS para isolamento por empresa.</li>
+      <li>Exportação AFD REP-P e AEJ com hash do arquivo.</li>
+      <li>Logs de auditoria append-only para eventos sensíveis.</li>
+      <li>Controle de dispositivos, offline e consentimento biométrico versionados no backend.</li>
+    </ul>
+    <h2>Pendências de produção</h2>
+    <ul>
+      <li>Configurar assinatura P7S/ICP-Brasil do AFD.</li>
+      <li>Validar AFD/AEJ contra os validadores oficiais aplicáveis.</li>
+      <li>Arquivar evidências de testes, release e backup/restore.</li>
+    </ul>
+    <div class="assinaturas">
+      <div class="linha">Responsável técnico</div>
+      <div class="linha">Representante legal</div>
+    </div>
+  </main>
+  <script>
+    document.getElementById("dataEmissao").textContent = new Date().toLocaleString("pt-BR");
+  </script>
+</body>
+</html>

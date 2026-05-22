@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PontoFácil</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+
+  <style>
+
+    *{
+      box-sizing:border-box;
+      margin:0;
+      padding:0;
+    }
+
+    body{
+      font-family:Arial, sans-serif;
+      background:#f4f7fb;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+    }
+
+    .login-box{
+      width:100%;
+      max-width:420px;
+      background:white;
+      border-radius:22px;
+      padding:34px;
+      box-shadow:0 15px 45px rgba(0,0,0,.08);
+    }
+
+    .logo{
+      text-align:center;
+      margin-bottom:24px;
+    }
+
+    .logo h1{
+      font-size:38px;
+      color:#2563eb;
+      margin-bottom:6px;
+    }
+
+    .logo p{
+      color:#64748b;
+      font-size:15px;
+    }
+
+    input{
+      width:100%;
+      padding:15px;
+      border-radius:12px;
+      border:1px solid #dbe4f0;
+      margin-bottom:14px;
+      font-size:15px;
+    }
+
+    input:focus{
+      outline:none;
+      border-color:#2563eb;
+      box-shadow:0 0 0 4px rgba(37,99,235,.12);
+    }
+
+    button{
+      width:100%;
+      padding:15px;
+      border:none;
+      border-radius:12px;
+      background:#2563eb;
+      color:white;
+      font-size:16px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:.2s;
+    }
+
+    button:hover{
+      background:#1d4ed8;
+    }
+
+    .erro{
+      margin-top:14px;
+      color:#dc2626;
+      text-align:center;
+      font-size:14px;
+      display:none;
+    }
+
+  </style>
+</head>
+<body>
+
+<div class="login-box">
+
+  <div class="logo">
+    <h1>PontoFácil</h1>
+    <p>Sistema inteligente de registro de ponto</p>
+  </div>
+
+  <input
+    type="email"
+    id="email"
+    placeholder="E-mail"
+    autocomplete="email"
+  >
+
+  <input
+    type="password"
+    id="senha"
+    placeholder="Senha"
+    autocomplete="current-password"
+  >
+
+  <button onclick="login()">
+    Entrar
+  </button>
+
+  <div id="erro" class="erro">
+    E-mail ou senha inválidos.
+  </div>
+
+</div>
+
+<script>
+
+const supabaseClient = window.supabaseClient;
+
+if(!supabaseClient){
+
+  alert("Erro ao carregar Supabase.");
+}
+
+async function login(){
+
+  try{
+
+    const email =
+      document.getElementById("email")
+      .value
+      .trim();
+
+    const senha =
+      document.getElementById("senha")
+      .value;
+
+    const erro =
+      document.getElementById("erro");
+
+    erro.style.display = "none";
+
+    if(!email || !senha){
+
+      erro.innerText =
+        "Preencha todos os campos.";
+
+      erro.style.display =
+        "block";
+
+      return;
+    }
+
+    // LOGIN AUTH
+    const {
+      data,
+      error
+    } = await supabaseClient.auth.signInWithPassword({
+
+      email,
+      password: senha
+
+    });
+
+    if(error){
+
+      erro.innerText =
+        "E-mail ou senha inválidos.";
+
+      erro.style.display =
+        "block";
+
+      return;
+    }
+
+    if(!data?.user){
+
+      erro.innerText =
+        "Usuário não encontrado.";
+
+      erro.style.display =
+        "block";
+
+      return;
+    }
+
+    // VERIFICA ADMIN
+    const {
+      data: admin,
+      error: adminError
+    } = await supabaseClient
+      .from("administradores")
+      .select("*")
+      .eq("auth_user_id", data.user.id)
+      .eq("ativo", true)
+      .single();
+
+    if(adminError || !admin){
+
+      await supabaseClient.auth.signOut();
+
+      erro.innerText =
+        "Usuário sem permissão de administrador.";
+
+      erro.style.display =
+        "block";
+
+      return;
+    }
+
+    // LOGIN OK
+    window.location.href =
+      "./painel.html";
+
+  }catch(e){
+
+    console.log("ERRO LOGIN:", e);
+
+    const erro =
+      document.getElementById("erro");
+
+    erro.innerText =
+      "Erro ao realizar login.";
+
+    erro.style.display =
+      "block";
+  }
+}
+
+document.addEventListener("keydown", function(e){
+
+  if(e.key === "Enter"){
+
+    login();
+  }
+});
+
+</script>
+
+</body>
+</html>

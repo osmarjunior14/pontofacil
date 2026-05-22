@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PontoFácil • Logs Antifraude</title>
+
+<link
+  rel="stylesheet"
+  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+/>
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+/>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="./js/supabase-client.js"></script>
+<script src="./js/security-compliance.js"></script>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+
+  background:
+    radial-gradient(circle at top right, rgba(37,99,235,.18), transparent 35%),
+    radial-gradient(circle at bottom left, rgba(14,165,233,.12), transparent 35%),
+    linear-gradient(145deg,#020617,#071426 45%,#0f172a);
+
+  min-height:100vh;
+
+  font-family:Arial,sans-serif;
+
+  color:#e2e8f0;
+
+  padding:24px;
+}
+
+.topbar{
+
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+
+  margin-bottom:26px;
+}
+
+.logo-area{
+
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+.logo{
+
+  width:56px;
+  height:56px;
+  border-radius:18px;
+
+  background:linear-gradient(135deg,#2563eb,#0ea5e9);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  font-size:24px;
+  color:white;
+
+  box-shadow:0 14px 28px rgba(37,99,235,.35);
+}
+
+.logo-title h1{
+
+  font-size:24px;
+  font-weight:900;
+  margin-bottom:2px;
+}
+
+.logo-title p{
+
+  margin:0;
+  color:#94a3b8;
+  font-size:14px;
+  font-weight:600;
+}
+
+.cards-grid{
+
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:18px;
+
+  margin-bottom:26px;
+}
+
+.card-status{
+
+  background:rgba(15,23,42,.92);
+
+  border:1px solid rgba(255,255,255,.06);
+
+  border-radius:24px;
+
+  padding:22px;
+
+  backdrop-filter:blur(16px);
+
+  box-shadow:0 14px 30px rgba(0,0,0,.25);
+}
+
+.card-status small{
+
+  color:#94a3b8;
+  font-weight:700;
+}
+
+.card-status h2{
+
+  font-size:34px;
+  font-weight:900;
+  margin-top:8px;
+}
+
+.filters{
+
+  background:rgba(15,23,42,.92);
+
+  border-radius:24px;
+
+  padding:22px;
+
+  border:1px solid rgba(255,255,255,.06);
+
+  margin-bottom:22px;
+}
+
+.table-wrapper{
+
+  background:rgba(15,23,42,.92);
+
+  border-radius:24px;
+
+  padding:20px;
+
+  border:1px solid rgba(255,255,255,.06);
+
+  overflow:auto;
+}
+
+.table{
+
+  color:#e2e8f0;
+  margin:0;
+}
+
+.table thead{
+
+  background:#111827;
+}
+
+.table thead th{
+
+  border:none;
+  padding:18px 14px;
+  font-size:13px;
+  text-transform:uppercase;
+  color:#94a3b8;
+}
+
+.table tbody td{
+
+  border-color:rgba(255,255,255,.05);
+
+  padding:16px 14px;
+
+  vertical-align:middle;
+}
+
+.badge-severidade{
+
+  padding:8px 14px;
+
+  border-radius:999px;
+
+  font-size:12px;
+
+  font-weight:800;
+
+  text-transform:uppercase;
+}
+
+.baixa{
+  background:#1d4ed8;
+  color:white;
+}
+
+.media{
+  background:#ca8a04;
+  color:white;
+}
+
+.alta{
+  background:#ea580c;
+  color:white;
+}
+
+.critica{
+  background:#dc2626;
+  color:white;
+}
+
+.tipo-evento{
+
+  font-weight:800;
+  font-size:13px;
+}
+
+.btn-detalhes{
+
+  border:none;
+
+  background:#2563eb;
+
+  color:white;
+
+  width:40px;
+  height:40px;
+
+  border-radius:12px;
+
+  cursor:pointer;
+
+  transition:.2s;
+}
+
+.btn-detalhes:hover{
+
+  transform:scale(1.05);
+}
+
+.modal-content{
+
+  background:#0f172a;
+  color:#e2e8f0;
+
+  border-radius:24px;
+  border:1px solid rgba(255,255,255,.08);
+}
+
+.modal-header{
+
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
+
+.modal-footer{
+
+  border-top:1px solid rgba(255,255,255,.06);
+}
+
+pre{
+
+  background:#020617;
+
+  border-radius:18px;
+
+  padding:18px;
+
+  font-size:13px;
+
+  overflow:auto;
+
+  color:#93c5fd;
+}
+
+.form-control,
+.form-select{
+
+  background:#020617 !important;
+
+  border:1px solid rgba(255,255,255,.08);
+
+  color:#e2e8f0 !important;
+}
+
+.form-control::placeholder{
+  color:#64748b;
+}
+
+.form-control:focus,
+.form-select:focus{
+
+  border-color:#2563eb;
+
+  box-shadow:0 0 0 4px rgba(37,99,235,.18);
+}
+
+@media(max-width:768px){
+
+  body{
+    padding:14px;
+  }
+
+  .topbar{
+    flex-direction:column;
+    align-items:flex-start;
+    gap:16px;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="topbar">
+
+  <div class="logo-area">
+
+    <div class="logo">
+      <i class="fa-solid fa-shield-halved"></i>
+    </div>
+
+    <div class="logo-title">
+      <h1>Logs Antifraude</h1>
+      <p>PontoFácil • Monitoramento inteligente</p>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="cards-grid">
+
+  <div class="card-status">
+    <small>Total hoje</small>
+    <h2 id="totalLogs">0</h2>
+  </div>
+
+  <div class="card-status">
+    <small>Críticos</small>
+    <h2 id="totalCriticos">0</h2>
+  </div>
+
+  <div class="card-status">
+    <small>Altos</small>
+    <h2 id="totalAltos">0</h2>
+  </div>
+
+  <div class="card-status">
+    <small>Funcionários suspeitos</small>
+    <h2 id="funcionariosSuspeitos">0</h2>
+  </div>
+
+</div>
+
+<div class="filters">
+
+<div class="row g-3">
+
+<div class="col-md-6">
+
+<input
+  type="text"
+  id="busca"
+  class="form-control"
+  placeholder="Buscar funcionário, evento, email ou IP..."
+>
+
+</div>
+
+<div class="col-md-3">
+
+<select id="filtroSeveridade" class="form-select">
+
+<option value="">Todas severidades</option>
+
+<option value="baixa">Baixa</option>
+<option value="media">Média</option>
+<option value="alta">Alta</option>
+<option value="critica">Crítica</option>
+
+</select>
+
+</div>
+
+<div class="col-md-3">
+
+<button
+  class="btn btn-primary w-100 h-100"
+  onclick="carregarLogs()"
+>
+  <i class="fa-solid fa-rotate-right"></i>
+  Atualizar
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="table-wrapper">
+
+<table class="table align-middle">
+
+<thead>
+
+<tr>
+
+<th>Data</th>
+<th>Funcionário</th>
+<th>Evento</th>
+<th>Severidade</th>
+<th>Distância</th>
+<th>IP</th>
+<th></th>
+
+</tr>
+
+</thead>
+
+<tbody id="tbodyLogs">
+
+<tr>
+
+<td colspan="7" class="text-center py-5">
+Carregando logs...
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+<div class="modal fade" id="modalDetalhes" tabindex="-1">
+
+<div class="modal-dialog modal-xl modal-dialog-scrollable">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h5 class="modal-title">
+Detalhes do Log
+</h5>
+
+<button
+  type="button"
+  class="btn-close btn-close-white"
+  data-bs-dismiss="modal"
+></button>
+
+</div>
+
+<div class="modal-body">
+
+<div id="detalhesConteudo"></div>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+  class="btn btn-secondary"
+  data-bs-dismiss="modal"
+>
+Fechar
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+const supabaseClient = window.supabaseClient;
+const escapeHtml = PontoFacilSecurity.escapeHtml;
+
+if(!supabaseClient){
+  alert("Erro ao carregar Supabase.");
+  throw new Error("Supabase não carregado.");
+}
+
+let logs = [];
+
+async function carregarLogs(){
+
+  const busca =
+    document.getElementById("busca")
+    .value
+    .toLowerCase();
+
+  const severidade =
+    document.getElementById("filtroSeveridade")
+    .value;
+
+  let query =
+    supabaseClient
+      .from("logs_antifraude")
+      .select("*")
+      .order("created_at", {
+        ascending:false
+      })
+      .limit(300);
+
+  if(severidade){
+
+    query =
+      query.eq(
+        "severidade",
+        severidade
+      );
+  }
+
+  const {
+    data,
+    error
+  } = await query;
+
+  if(error){
+
+    console.log(error);
+
+    return;
+  }
+
+  logs =
+    (data || []).filter(log => {
+
+      const texto =
+        JSON.stringify(log)
+        .toLowerCase();
+
+      return texto.includes(busca);
+    });
+
+  renderizarTabela();
+  atualizarCards();
+}
+
+function atualizarCards(){
+
+  document.getElementById("totalLogs")
+    .innerText =
+      logs.length;
+
+  document.getElementById("totalCriticos")
+    .innerText =
+      logs.filter(
+        log => log.severidade === "critica"
+      ).length;
+
+  document.getElementById("totalAltos")
+    .innerText =
+      logs.filter(
+        log => log.severidade === "alta"
+      ).length;
+
+  const funcionariosUnicos =
+    [...new Set(
+      logs
+      .filter(log => log.funcionario_id)
+      .map(log => log.funcionario_id)
+    )];
+
+  document.getElementById("funcionariosSuspeitos")
+    .innerText =
+      funcionariosUnicos.length;
+}
+
+function renderizarTabela(){
+
+  const tbody =
+    document.getElementById("tbodyLogs");
+
+  if(logs.length === 0){
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center py-5">
+          Nenhum log encontrado.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    logs.map(log => `
+
+      <tr>
+
+        <td>
+	          ${escapeHtml(new Date(log.created_at)
+	            .toLocaleString("pt-BR"))}
+        </td>
+
+        <td>
+	          ${escapeHtml(log.email || "-")}
+        </td>
+
+        <td>
+          <div class="tipo-evento">
+	            ${escapeHtml(log.tipo_evento)}
+          </div>
+        </td>
+
+        <td>
+	          <span class="badge-severidade ${escapeHtml(log.severidade)}">
+	            ${escapeHtml(log.severidade)}
+          </span>
+        </td>
+
+        <td>
+	          ${escapeHtml(log.distancia_metros || "-")}m
+        </td>
+
+        <td>
+	          ${escapeHtml(log.ip || "-")}
+        </td>
+
+        <td>
+
+          <button
+            class="btn-detalhes"
+            onclick='abrirDetalhes(${JSON.stringify(log)})'
+          >
+            <i class="fa-solid fa-eye"></i>
+          </button>
+
+        </td>
+
+      </tr>
+
+    `).join("");
+}
+
+function abrirDetalhes(log){
+
+  const modal =
+    new bootstrap.Modal(
+      document.getElementById("modalDetalhes")
+    );
+
+  document.getElementById("detalhesConteudo")
+    .innerHTML = `
+
+      <div class="row g-4">
+
+        <div class="col-md-6">
+
+          <strong>Evento:</strong><br>
+	          ${escapeHtml(log.tipo_evento)}
+
+        </div>
+
+        <div class="col-md-6">
+
+          <strong>Severidade:</strong><br>
+	          ${escapeHtml(log.severidade)}
+
+        </div>
+
+        <div class="col-md-6">
+
+          <strong>Email:</strong><br>
+	          ${escapeHtml(log.email || "-")}
+
+        </div>
+
+        <div class="col-md-6">
+
+          <strong>IP:</strong><br>
+	          ${escapeHtml(log.ip || "-")}
+
+        </div>
+
+        <div class="col-md-6">
+
+          <strong>Latitude:</strong><br>
+	          ${escapeHtml(log.latitude || "-")}
+
+        </div>
+
+        <div class="col-md-6">
+
+          <strong>Longitude:</strong><br>
+	          ${escapeHtml(log.longitude || "-")}
+
+        </div>
+
+        <div class="col-md-12">
+
+          <strong>User-Agent:</strong><br>
+	          ${escapeHtml(log.user_agent || "-")}
+
+        </div>
+
+        <div class="col-md-12">
+
+          <strong>Descrição:</strong>
+
+	          <pre>${escapeHtml(log.descricao || "-")}</pre>
+
+        </div>
+
+        <div class="col-md-12">
+
+          <strong>Payload:</strong>
+
+	          <pre>${escapeHtml(JSON.stringify(log.payload, null, 2))}</pre>
+
+        </div>
+
+      </div>
+
+    `;
+
+  modal.show();
+}
+
+document
+  .getElementById("busca")
+  .addEventListener("input", carregarLogs);
+
+document
+  .getElementById("filtroSeveridade")
+  .addEventListener("change", carregarLogs);
+
+supabaseClient
+  .channel("logs-antifraude")
+
+  .on(
+    "postgres_changes",
+    {
+      event:"INSERT",
+      schema:"public",
+      table:"logs_antifraude"
+    },
+    () => {
+
+      carregarLogs();
+    }
+  )
+
+  .subscribe();
+
+carregarLogs();
+
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1944 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>PontoFácil - Funcionários</title>
+
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+ <script src="./js/supabase-client.js"></script>
+ <script src="./js/security-compliance.js"></script>
+ <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+ <script src="https://unpkg.com/lucide@latest"></script>
+
+ <style>
+ *{margin:0;padding:0;box-sizing:border-box}
+
+ :root{
+ --azul:#2563eb;
+ --azul-escuro:#0f2f66;
+ --azul-noite:#071426;
+ --texto:#0f172a;
+ --muted:#64748b;
+ --bg:#f4f7fb;
+ --card:#ffffff;
+ --borda:#e2e8f0;
+ --verde:#16a34a;
+ --vermelho:#ef4444;
+ --laranja:#f59e0b;
+ }
+
+ body{
+ min-height:100vh;
+ background:
+ radial-gradient(circle at top right, rgba(37,99,235,.10), transparent 32%),
+ linear-gradient(135deg,#f8fbff,#eef3fa);
+ font-family:Inter, Arial, sans-serif;
+ color:var(--texto);
+ }
+
+ .layout{
+ min-height:100vh;
+ display:grid;
+ grid-template-columns:280px 1fr;
+ }
+
+ .sidebar{
+ background:
+ radial-gradient(circle at top left, rgba(37,99,235,.32), transparent 38%),
+ linear-gradient(180deg,#06152b,#0b2342 52%,#06152b);
+ color:white;
+ padding:28px 24px;
+ display:flex;
+ flex-direction:column;
+ gap:24px;
+ position:sticky;
+ top:0;
+ height:100vh;
+ box-shadow:20px 0 60px rgba(15,23,42,.16);
+ }
+
+ .brand{
+ display:flex;
+ align-items:center;
+ gap:12px;
+ margin-bottom:18px;
+ }
+
+ .logo-sidebar{
+ width:54px;
+ height:54px;
+ object-fit:contain;
+ flex-shrink:0;
+ }
+
+ .brand-text strong{
+ display:block;
+ font-size:21px;
+ line-height:1;
+ }
+
+ .brand-text small{
+ color:#cbd5e1;
+ font-size:13px;
+ }
+
+ .menu{
+ display:flex;
+ flex-direction:column;
+ gap:10px;
+ }
+
+ .menu button{
+ width:100%;
+ border:none;
+ background:transparent;
+ color:#cbd5e1;
+ display:flex;
+ align-items:center;
+ gap:14px;
+ padding:15px 16px;
+ border-radius:14px;
+ cursor:pointer;
+ font-weight:800;
+ font-size:15px;
+ text-align:left;
+ transition:.2s;
+ }
+
+ .menu button:hover,
+ .menu button.active{
+ background:linear-gradient(90deg,#2563eb,#1d4ed8);
+ color:white;
+ box-shadow:0 12px 28px rgba(37,99,235,.24);
+ }
+
+ .menu button{
+position:relative;
+overflow:hidden;
+}
+
+.menu button::before{
+content:"";
+position:absolute;
+left:0;
+top:0;
+width:4px;
+height:100%;
+background:transparent;
+transition:.2s;
+border-radius:999px;
+}
+
+.menu button:hover::before,
+.menu button.active::before{
+background:white;
+}
+
+.menu button i{
+width:20px;
+height:20px;
+flex-shrink:0;
+}
+  
+ .sidebar-footer{
+ margin-top:auto;
+ display:flex;
+ flex-direction:column;
+ gap:14px;
+ }
+
+ .empresa-card,
+ .admin-card,
+ .logout-card{
+ border:1px solid rgba(148,163,184,.20);
+ background:rgba(15,23,42,.38);
+ border-radius:16px;
+ padding:16px;
+ backdrop-filter:blur(14px);
+ }
+
+ .empresa-card small,
+ .admin-card small{
+ color:#94a3b8;
+ display:block;
+ margin-bottom:4px;
+ }
+
+ .empresa-card strong,
+ .admin-card strong{
+ display:block;
+ font-size:14px;
+ }
+
+ .admin-card{
+ display:flex;
+ align-items:center;
+ gap:12px;
+ }
+
+ .avatar{
+ width:42px;
+ height:42px;
+ border-radius:50%;
+ background:linear-gradient(135deg,#dbeafe,#93c5fd);
+ color:#1e3a8a;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ font-weight:900;
+ flex-shrink:0;
+ }
+
+ .online{
+ color:#22c55e!important;
+ font-size:12px!important;
+ margin-top:4px;
+ }
+
+ .logout-card{
+ width:100%;
+ color:#cbd5e1;
+ border:none;
+ display:flex;
+ align-items:center;
+ gap:12px;
+ cursor:pointer;
+ font-weight:800;
+ }
+
+ .main{
+ padding:34px 42px 28px;
+ min-width:0;
+ }
+
+ .topo{
+ display:flex;
+ justify-content:space-between;
+ align-items:flex-start;
+ gap:20px;
+ margin-bottom:30px;
+ flex-wrap:wrap;
+ }
+
+ .titulo h1{
+ color:#0f274c;
+ font-size:36px;
+ line-height:1;
+ letter-spacing:-1px;
+ margin-bottom:10px;
+ font-weight:900;
+ }
+
+ .titulo p{
+ color:var(--muted);
+ font-size:16px;
+ font-weight:700;
+ }
+
+ .top-actions{
+ display:flex;
+ align-items:center;
+ gap:14px;
+ flex-wrap:wrap;
+ }
+
+ .btn-top{
+ height:58px;
+ border:none;
+ border-radius:14px;
+ padding:0 20px;
+ font-weight:900;
+ cursor:pointer;
+ color:white;
+ display:flex;
+ align-items:center;
+ gap:10px;
+ box-shadow:0 12px 30px rgba(37,99,235,.18);
+ font-size:14px;
+ font-family:Inter, Arial, sans-serif;
+ }
+
+ .btn-blue{background:linear-gradient(90deg,#2563eb,#1d4ed8)}
+ .btn-white{background:white;color:#2563eb}
+ .btn-red{background:#ef4444}
+ .btn-dark{background:#0f274c}
+
+ .card{
+ background:white;
+ border-radius:24px;
+ padding:28px;
+ box-shadow:0 18px 46px rgba(15,23,42,.06);
+ border:1px solid rgba(226,232,240,.90);
+ margin-bottom:28px;
+ }
+
+ .card-header{
+ display:flex;
+ align-items:center;
+ gap:18px;
+ margin-bottom:26px;
+ }
+
+ .icone-card{
+ width:64px;
+ height:64px;
+ border-radius:20px;
+ background:linear-gradient(135deg,#2563eb,#1d4ed8);
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ color:white;
+ font-size:25px;
+ flex-shrink:0;
+ box-shadow:0 14px 30px rgba(37,99,235,.25);
+ }
+
+ .card-header h2{
+ font-size:32px;
+ margin-bottom:6px;
+ color:#0f172a;
+ letter-spacing:-.5px;
+ }
+
+ .card-header p{
+ color:#64748b;
+ font-size:16px;
+ font-weight:700;
+ }
+
+ .grid{
+ display:grid;
+ grid-template-columns:260px repeat(4,1fr);
+ gap:18px;
+ margin-bottom:24px;
+ align-items:start;
+ }
+
+ .upload-box{
+ border:2px dashed #cbd5e1;
+ border-radius:22px;
+ min-height:180px;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ text-align:center;
+ cursor:pointer;
+ padding:18px;
+ background:#f8fbff;
+ transition:.2s;
+ }
+
+ .upload-box:hover{
+ border-color:#2563eb;
+ background:#eff6ff;
+ }
+
+ .upload-box i{
+ font-size:42px;
+ color:#2563eb;
+ margin-bottom:14px;
+ }
+
+ .upload-box strong{
+ font-size:18px;
+ color:#2563eb;
+ }
+
+ .upload-box span{
+ margin-top:6px;
+ color:#64748b;
+ font-size:14px;
+ font-weight:700;
+ }
+
+ .campo{
+ display:flex;
+ flex-direction:column;
+ gap:8px;
+ }
+
+ .campo label{
+ font-size:15px;
+ color:#334155;
+ font-weight:900;
+ }
+
+ .input-icon{
+ position:relative;
+ }
+
+ .input-icon i{
+ position:absolute;
+ left:16px;
+ top:50%;
+ transform:translateY(-50%);
+ color:#64748b;
+ font-size:16px;
+ }
+
+ .input-icon input{
+ padding-left:46px!important;
+ }
+
+ input{
+ width:100%;
+ height:54px;
+ border-radius:16px;
+ border:1px solid #dbe4f0;
+ padding:0 18px;
+ font-size:16px;
+ color:#0f172a;
+ background:white;
+ font-family:Inter, Arial, sans-serif;
+ transition:.2s;
+ }
+
+ input:focus,
+ select:focus{
+ outline:none;
+ border-color:#2563eb;
+ box-shadow:0 0 0 4px rgba(37,99,235,.12);
+ }
+
+ select{
+ height:52px;
+ border-radius:16px;
+ border:1px solid #dbe4f0;
+ padding:0 16px;
+ font-size:15px;
+ background:white;
+ color:#0f172a;
+ min-width:150px;
+ font-family:Inter, Arial, sans-serif;
+ }
+
+ .btn-jornada{
+ width:100%;
+ height:54px;
+ border:none;
+ border-radius:16px;
+ background:#eff6ff;
+ color:#2563eb;
+ font-weight:900;
+ cursor:pointer;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:10px;
+ font-size:15px;
+ font-family:Inter, Arial, sans-serif;
+ }
+
+ .jornada-semanal{
+ grid-column:1 / -1;
+ display:flex;
+ flex-direction:column;
+ gap:18px;
+ margin-top:6px;
+ }
+
+ .card-dia{
+ border:1px solid #dbeafe;
+ border-radius:18px;
+ padding:16px;
+ background:#f8fbff;
+ }
+
+ .card-dia h4{
+ margin-bottom:14px;
+ color:#0f172a;
+ font-size:16px;
+ }
+
+ .grid-horarios{
+ display:grid;
+ grid-template-columns:repeat(4,1fr);
+ gap:12px;
+ }
+
+ .campo-horario{
+ display:flex;
+ flex-direction:column;
+ gap:6px;
+ }
+
+ .campo-horario label{
+ font-size:13px;
+ color:#475569;
+ font-weight:900;
+ }
+
+ .campo-horario input{
+ height:48px;
+ font-size:14px;
+ }
+
+ .checkbox-dia{
+ margin-top:12px;
+ }
+
+ .checkbox-dia label{
+ width:100%;
+ min-height:48px;
+ display:flex;
+ align-items:center;
+ gap:10px;
+ background:#eff6ff;
+ border:1px solid #dbeafe;
+ border-radius:14px;
+ padding:0 14px;
+ color:#2563eb;
+ font-weight:900;
+ cursor:pointer;
+ }
+
+ .checkbox-dia input{
+ width:18px;
+ height:18px;
+ accent-color:#2563eb;
+ flex-shrink:0;
+ }
+
+ .btn-salvar{
+ width:100%;
+ height:60px;
+ border:none;
+ border-radius:18px;
+ background:linear-gradient(90deg,#2563eb,#1d4ed8);
+ color:white;
+ font-size:20px;
+ font-weight:900;
+ cursor:pointer;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ gap:10px;
+ box-shadow:0 14px 30px rgba(37,99,235,.25);
+ }
+
+ .funcionarios-topo{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:18px;
+ margin-bottom:24px;
+ flex-wrap:wrap;
+ }
+
+ .funcionarios-topo h2{
+ font-size:30px;
+ margin-bottom:6px;
+ color:#0f172a;
+ letter-spacing:-.5px;
+ }
+
+ .funcionarios-topo p{
+ color:#64748b;
+ font-size:15px;
+ font-weight:700;
+ }
+
+ .contador{
+ background:#eff6ff;
+ color:#2563eb;
+ font-size:13px;
+ padding:7px 12px;
+ border-radius:999px;
+ font-weight:900;
+ margin-left:8px;
+ }
+
+ .filtros{
+ display:flex;
+ gap:12px;
+ flex-wrap:wrap;
+ }
+
+ .pesquisa{
+ position:relative;
+ }
+
+ .pesquisa i{
+ position:absolute;
+ left:16px;
+ top:50%;
+ transform:translateY(-50%);
+ color:#64748b;
+ }
+
+ .pesquisa input{
+ width:280px;
+ height:52px;
+ padding-left:44px;
+ font-size:15px;
+ }
+
+ .funcionario{
+ border:1px solid #e2e8f0;
+ border-radius:24px;
+ padding:22px;
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ gap:22px;
+ margin-bottom:18px;
+ transition:.2s;
+ background:white;
+ }
+
+ .funcionario:hover{
+ transform:translateY(-2px);
+ box-shadow:0 16px 34px rgba(15,23,42,.06);
+ }
+
+ .dados{
+ display:flex;
+ align-items:center;
+ gap:18px;
+ flex:1;
+ min-width:260px;
+ }
+
+ .foto{
+ width:82px;
+ height:82px;
+ border-radius:20px;
+ object-fit:cover;
+ background:#e2e8f0;
+ flex-shrink:0;
+ }
+
+ .foto-placeholder{
+ width:82px;
+ height:82px;
+ border-radius:20px;
+ background:#f1f5f9;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ color:#cbd5e1;
+ font-size:30px;
+ flex-shrink:0;
+ }
+
+ .dados strong{
+ font-size:22px;
+ display:block;
+ margin-bottom:6px;
+ color:#0f172a;
+ }
+
+ .dados small{
+ display:block;
+ color:#64748b;
+ font-size:15px;
+ line-height:1.7;
+ font-weight:700;
+ }
+
+ .dados small i{
+ width:22px;
+ color:#475569;
+ }
+
+ .status{
+ display:inline-flex;
+ align-items:center;
+ gap:6px;
+ padding:8px 14px;
+ border-radius:999px;
+ font-size:13px;
+ font-weight:900;
+ margin-top:10px;
+ }
+
+ .ativo{background:#dcfce7;color:#166534}
+ .inativo{background:#fee2e2;color:#991b1b}
+
+ .acoes{
+ display:flex;
+ gap:10px;
+ align-items:center;
+ flex-wrap:wrap;
+ }
+
+ .btn-acao{
+ height:50px;
+ padding:0 18px;
+ border-radius:14px;
+ border:none;
+ font-size:14px;
+ font-weight:900;
+ cursor:pointer;
+ display:flex;
+ align-items:center;
+ gap:8px;
+ font-family:Inter, Arial, sans-serif;
+ }
+
+ .editar{
+ background:#fff7ed;
+ color:#f59e0b;
+ border:1px solid #fdba74;
+ }
+
+ .inativar{
+ background:#64748b;
+ color:white;
+ }
+
+ .footer-lista{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin-top:18px;
+ flex-wrap:wrap;
+ gap:18px;
+ }
+
+ .footer-lista p{
+ color:#64748b;
+ font-size:14px;
+ font-weight:700;
+ }
+
+ .vazio{
+ color:#64748b;
+ font-style:italic;
+ padding:14px 0;
+ }
+
+ .mobile-menu{
+ display:none;
+ margin-bottom:18px;
+ gap:10px;
+ flex-wrap:wrap;
+ }
+
+ .mobile-menu button{
+ border:none;
+ border-radius:12px;
+ background:#0f274c;
+ color:white;
+ padding:12px 14px;
+ font-weight:900;
+ cursor:pointer;
+ }
+
+ .modal-editar{
+ position:fixed;
+ inset:0;
+ background:rgba(2,6,23,.65);
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ padding:20px;
+ z-index:9999;
+ backdrop-filter:blur(6px);
+ }
+
+ .modal-conteudo{
+ width:100%;
+ max-width:1100px;
+ max-height:90vh;
+ overflow:auto;
+ background:white;
+ border-radius:24px;
+ padding:28px;
+ }
+
+ .modal-topo{
+ display:flex;
+ justify-content:space-between;
+ align-items:center;
+ margin-bottom:24px;
+ }
+
+ .modal-topo h2{
+ font-size:28px;
+ color:#0f172a;
+ }
+
+ .modal-topo button{
+ width:44px;
+ height:44px;
+ border:none;
+ border-radius:12px;
+ background:#fee2e2;
+ color:#991b1b;
+ cursor:pointer;
+ font-size:18px;
+ }
+
+ .modal-grid{
+ display:grid;
+ grid-template-columns:1fr 1fr;
+ gap:16px;
+ margin-bottom:22px;
+ }
+
+ .foto-atual-box{
+ display:flex;
+ align-items:center;
+ gap:14px;
+ margin-bottom:18px;
+ background:#f8fafc;
+ border:1px solid #e2e8f0;
+ padding:14px;
+ border-radius:18px;
+ }
+
+ .foto-atual-box img{
+ width:72px;
+ height:72px;
+ object-fit:cover;
+ border-radius:16px;
+ background:#e2e8f0;
+ }
+
+ .foto-atual-box small{
+ color:#64748b;
+ font-weight:700;
+ }
+
+ @media(max-width:1280px){
+ .grid{grid-template-columns:1fr 1fr}
+ .grid-horarios{grid-template-columns:1fr 1fr}
+ }
+
+ @media(max-width:1020px){
+ .layout{grid-template-columns:1fr}
+ .sidebar{display:none}
+ .main{padding:24px}
+ .mobile-menu{display:flex}
+ }
+
+ @media(max-width:900px){
+ .grid{grid-template-columns:1fr}
+ .grid-horarios{grid-template-columns:1fr}
+ .modal-grid{grid-template-columns:1fr}
+ .funcionario{flex-direction:column;align-items:flex-start}
+ .acoes{width:100%}
+ .btn-acao{flex:1;justify-content:center}
+ .card-header h2{font-size:24px}
+ .funcionarios-topo h2{font-size:24px}
+ .top-actions{width:100%}
+ .btn-top{flex:1;justify-content:center}
+ }
+
+ @media(max-width:640px){
+ .main{padding:16px}
+ .titulo h1{font-size:32px}
+ .pesquisa input{width:100%}
+ .filtros{width:100%}
+ .pesquisa{width:100%}
+ select{width:100%}
+ }
+ </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+ <aside class="sidebar">
+ <div class="brand">
+ <img src="./pontofacil-icone.png" alt="PontoFácil" class="logo-sidebar">
+ <div class="brand-text">
+ <strong>PontoFácil</strong>
+ <small>Gestão de Ponto</small>
+ </div>
+ </div>
+
+ <nav class="menu">
+
+<button onclick="window.location.href='./dashboard.html'">
+<i data-lucide="layout-dashboard"></i>
+Dashboard
+</button>
+
+<button class="active">
+<i data-lucide="users"></i>
+Funcionários
+</button>
+
+<button onclick="window.location.href='./relatorio.html'">
+<i data-lucide="clipboard-list"></i>
+Registros
+</button>
+
+<button onclick="window.location.href='./banco-horas.html'">
+<i data-lucide="clock-3"></i>
+Banco de horas
+</button>
+
+<button onclick="window.location.href='./painel-antifraude.html'">
+<i data-lucide="shield-alert"></i>
+Antifraude
+</button>
+
+<button onclick="window.location.href='./logs-antifraude.html'">
+<i data-lucide="history"></i>
+Logs antifraude
+</button>
+
+<button onclick="window.location.href='./painel-admin.html'">
+<i data-lucide="shield"></i>
+Painel admin
+</button>
+
+</nav>
+
+ <div class="sidebar-footer">
+ <div class="empresa-card">
+ <small>Empresa</small>
+ <strong id="empresaNomeSidebar">PontoFácil</strong>
+ </div>
+
+ <div class="admin-card">
+ <div class="avatar">G</div>
+ <div>
+ <strong>Gestor</strong>
+ <small>Empresa</small>
+ <small class="online">● Online</small>
+ </div>
+ </div>
+
+ <button class="logout-card" onclick="sair()">
+ <i data-lucide="log-out"></i> Sair
+ </button>
+ </div>
+ </aside>
+
+ <main class="main">
+ <div class="mobile-menu">
+ <button onclick="gerarQRCode()">QR Code</button>
+ <button onclick="window.location.href='./dashboard.html'">Dashboard</button>
+ <button onclick="window.location.href='./relatorio.html'">Registros</button>
+ <button onclick="sair()">Sair</button>
+ </div>
+
+ <div class="topo">
+ <div class="titulo">
+ <h1 id="empresaNome">PontoFácil</h1>
+ <p>Painel de funcionários da empresa</p>
+ </div>
+
+ <div class="top-actions">
+ <button class="btn-top btn-white" onclick="gerarQRCode()">
+ <i class="fa-solid fa-qrcode"></i> QR Code
+ </button>
+
+ <button class="btn-top btn-blue" onclick="window.location.href='./dashboard.html'">
+ <i class="fa-solid fa-chart-column"></i> Dashboard
+ </button>
+
+ <button class="btn-top btn-white" onclick="window.location.href='./relatorio.html'">
+ <i class="fa-regular fa-calendar"></i> Registros
+ </button>
+
+ <button class="btn-top btn-white" onclick="window.location.href='./banco-horas.html'">
+ <i class="fa-regular fa-clock"></i> Banco de horas
+ </button>
+
+ <button class="btn-top btn-red" onclick="sair()">
+ <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
+ </button>
+ </div>
+ </div>
+
+ <div class="card">
+ <div class="card-header">
+ <div class="icone-card">
+ <i class="fa-solid fa-user-plus"></i>
+ </div>
+
+ <div>
+ <h2>Cadastrar funcionário</h2>
+ <p>Preencha os dados para cadastrar um novo funcionário.</p>
+ </div>
+ </div>
+
+ <div class="grid">
+
+ <label class="upload-box">
+ <i class="fa-solid fa-cloud-arrow-up"></i>
+ <strong>Clique para enviar</strong>
+ <span>PNG, JPG até 5MB</span>
+ <input id="foto" type="file" accept="image/*" hidden>
+ </label>
+
+ <div class="campo">
+ <label>Nome completo</label>
+ <div class="input-icon">
+ <i class="fa-regular fa-user"></i>
+ <input id="nome" placeholder="Ex: João da Silva">
+ </div>
+ </div>
+
+ <div class="campo">
+ <label>CPF</label>
+ <div class="input-icon">
+ <i class="fa-regular fa-id-card"></i>
+ <input id="cpf" placeholder="000.000.000-00">
+ </div>
+ </div>
+ 
+ <div class="campo">
+ <label>Data de nascimento</label>
+ <div class="input-icon">
+ <i class="fa-regular fa-calendar"></i>
+ <input id="data_nascimento" type="date">
+ </div>
+ </div>
+
+ <div class="campo">
+ <label>E-mail</label>
+ <div class="input-icon">
+ <i class="fa-regular fa-envelope"></i>
+ <input id="email" type="email" placeholder="funcionario@email.com">
+ </div>
+</div>
+
+<div class="campo">
+ <label>Função</label>
+ <div class="input-icon">
+ <i class="fa-solid fa-briefcase"></i>
+ <input id="funcao" placeholder="Ex: Recepcionista">
+ </div>
+ </div>
+ 
+ <div class="campo jornada-atalho">
+ <label>Jornada semanal</label>
+ <button type="button" class="btn-jornada" onclick="toggleJornadaSemanal()">
+ <i class="fa-regular fa-calendar-days"></i>
+ Configurar jornada semanal
+ </button>
+ </div>
+
+ <div id="jornadaSemanal" class="jornada-semanal" style="display:none;"></div>
+ 
+ </div>
+
+ <button class="btn-salvar" onclick="salvarFuncionario()">
+ <i class="fa-regular fa-floppy-disk"></i>
+ Salvar funcionário
+ </button>
+ </div>
+
+ <div class="card">
+ <div class="funcionarios-topo">
+ <div>
+ <h2>
+ Funcionários cadastrados
+ <span class="contador" id="contadorFuncionarios">0</span>
+ </h2>
+ <p>Lista de todos os funcionários da empresa.</p>
+ </div>
+
+ <div class="filtros">
+ <div class="pesquisa">
+ <i class="fa-solid fa-magnifying-glass"></i>
+ <input id="buscaFuncionario" placeholder="Buscar funcionário..." oninput="renderizarFuncionarios()">
+ </div>
+
+ <select id="filtroStatus" onchange="renderizarFuncionarios()">
+ <option value="todos">Todos</option>
+ <option value="ativos">Ativos</option>
+ <option value="inativos">Inativos</option>
+ </select>
+ </div>
+ </div>
+
+ <div id="listaFuncionarios"></div>
+
+ <div class="footer-lista">
+ <p id="textoQuantidade">Mostrando 0 funcionários</p>
+ </div>
+ </div>
+ </main>
+</div>
+
+ <div id="modalEditar" class="modal-editar" style="display:none;">
+ <div class="modal-conteudo">
+
+ <div class="modal-topo">
+ <h2>Editar funcionário</h2>
+
+ <button onclick="fecharModalEditar()">
+ <i class="fa-solid fa-xmark"></i>
+ </button>
+ </div>
+
+ <div class="foto-atual-box">
+ <img id="edit_foto_atual" src="">
+ <div>
+ <strong>Foto atual</strong><br>
+ <small>Escolha uma nova foto abaixo apenas se quiser alterar.</small>
+ </div>
+ </div>
+
+ <div class="modal-grid">
+ <div class="campo">
+ <label>Nome</label>
+ <input id="edit_nome">
+ </div>
+
+ <div class="campo">
+ <label>CPF</label>
+ <input id="edit_cpf">
+ </div>
+
+ <div class="campo">
+ <label>E-mail</label>
+ <input id="edit_email" type="email">
+ </div>
+ 
+ <div class="campo">
+ <label>Função</label>
+ <input id="edit_funcao">
+ </div>
+
+ <div class="campo">
+ <label>Data de nascimento</label>
+ <input id="edit_data_nascimento" type="date">
+ </div>
+
+ <div class="campo">
+ <label>Nova foto</label>
+ <input id="edit_foto" type="file" accept="image/*">
+ </div>
+ </div>
+
+ <div class="campo" style="margin-bottom:22px;">
+ <label>Jornada semanal</label>
+ <div id="edit_jornada" class="jornada-semanal"></div>
+ </div>
+
+ <button class="btn-salvar" onclick="salvarEdicaoFuncionario()">
+ <i class="fa-solid fa-floppy-disk"></i>
+ Salvar alterações
+ </button>
+
+ </div>
+</div>
+
+<script>
+
+ const supabaseClient = window.supabaseClient;
+ const escapeHtml = PontoFacilSecurity.escapeHtml;
+
+if(!supabaseClient){
+ alert("Erro ao carregar Supabase.");
+ window.location.href = "./gestao.html";
+}
+
+ let empresaId = null;
+ let empresaNome = null;
+ let funcionarios = [];
+ let funcionarioEditandoId = null;
+
+ async function registrarLogAdmin({
+  acao,
+  tabela_afetada = null,
+  registro_id = null,
+  funcionario_id = null,
+  dados_anteriores = null,
+  dados_novos = null,
+  detalhes = null
+}){
+  try{
+    const {
+      data: { user }
+    } = await supabaseClient.auth.getUser();
+
+    if(!user || !empresaId){
+      return;
+    }
+
+    const { error } = await supabaseClient
+      .from("logs_admin")
+      .insert({
+        empresa_id: empresaId,
+        admin_user_id: user.id,
+        funcionario_id,
+        acao,
+        tabela_afetada,
+        registro_id,
+        dados_anteriores,
+        dados_novos,
+        detalhes
+      });
+
+    if(error){
+      console.log("Erro ao registrar log admin:", error);
+    }
+  }catch(error){
+    console.log("Erro geral ao registrar log:", error);
+  }
+}
+ 
+ const diasSemana = [
+ { numero:0, nome:"Domingo" },
+ { numero:1, nome:"Segunda-feira" },
+ { numero:2, nome:"Terça-feira" },
+ { numero:3, nome:"Quarta-feira" },
+ { numero:4, nome:"Quinta-feira" },
+ { numero:5, nome:"Sexta-feira" },
+ { numero:6, nome:"Sábado" }
+ ];
+
+ async function carregarEmpresaLogada(){
+
+  const { data: userData, error: userError } =
+    await supabaseClient.auth.getUser();
+
+  if(userError || !userData.user){
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+  }
+
+  const user =
+    userData.user;
+
+  console.log("GESTOR LOGADO:", user.email);
+
+  const { data: vinculos, error: vinculoError } = await supabaseClient
+    .from("usuarios_empresas")
+    .select(`
+      empresa_id,
+      perfil,
+      empresas (
+        id,
+        nome,
+        email_gestao,
+        ativa
+      )
+    `)
+    .eq("user_id", userData.user.id)
+    .eq("ativo", true)
+    .eq("perfil", "gestor")
+    .limit(1);
+
+  if(vinculoError || !vinculos || vinculos.length === 0){
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+  }
+
+  const empresa =
+    Array.isArray(vinculos[0].empresas)
+      ? vinculos[0].empresas[0]
+      : vinculos[0].empresas;
+
+  if(!empresa){
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+  }
+
+  if(empresa.ativa !== true){
+
+    await supabaseClient.auth.signOut();
+
+    localStorage.clear();
+    sessionStorage.clear();
+
+    alert(
+      "Empresa inativa. Entre em contato com o administrador do sistema."
+    );
+
+    window.location.href =
+      "./gestao.html";
+
+    return false;
+  }
+
+  empresaId =
+    empresa.id;
+
+  empresaNome =
+    empresa.nome;
+
+  document.getElementById("empresaNome").innerText =
+    empresaNome || "PontoFácil";
+
+  document.getElementById("empresaNomeSidebar").innerText =
+    empresaNome || "PontoFácil";
+
+  return true;
+}
+ 
+ async function sair(){
+ await supabaseClient.auth.signOut();
+ localStorage.clear();
+ sessionStorage.clear();
+ window.location.href = "./gestao.html";
+}
+
+ function fecharModalEditar(){
+ document.getElementById("modalEditar").style.display = "none";
+ funcionarioEditandoId = null;
+ }
+
+ function normalizarNomeArquivo(texto){
+ return String(texto || "")
+ .toLowerCase()
+ .normalize("NFD")
+ .replace(/[\u0300-\u036f]/g, "")
+ .replace(/[^a-z0-9]+/g, "-")
+ .replace(/^-+|-+$/g, "");
+ }
+
+ function montarJornadaSemanal(){
+ const container = document.getElementById("jornadaSemanal");
+
+ container.innerHTML = diasSemana.map(dia => `
+ <div class="card-dia" data-dia="${dia.numero}">
+ <h4>${dia.nome}</h4>
+
+ <div class="grid-horarios">
+ <div class="campo-horario">
+ <label>Entrada</label>
+ <input id="entrada_${dia.numero}" type="time">
+ </div>
+
+ <div class="campo-horario">
+ <label>Saída intervalo</label>
+ <input id="intervalo_${dia.numero}" type="time">
+ </div>
+
+ <div class="campo-horario">
+ <label>Retorno intervalo</label>
+ <input id="retorno_${dia.numero}" type="time">
+ </div>
+
+ <div class="campo-horario">
+ <label>Saída</label>
+ <input id="saida_${dia.numero}" type="time">
+ </div>
+ </div>
+
+ <div class="checkbox-dia">
+ <label>
+ <input
+ type="checkbox"
+ id="sem_intervalo_${dia.numero}"
+ onchange="toggleIntervaloDia(${dia.numero})"
+ >
+ Funcionário sem intervalo neste dia
+ </label>
+ </div>
+ </div>
+ `).join("");
+ }
+
+ function toggleJornadaSemanal(){
+ const container = document.getElementById("jornadaSemanal");
+
+ if(!container.innerHTML.trim()){
+ montarJornadaSemanal();
+ }
+
+ container.style.display =
+ container.style.display === "none" ? "flex" : "none";
+ }
+
+ function toggleIntervaloDia(dia){
+ const semIntervalo = document.getElementById(`sem_intervalo_${dia}`).checked;
+ const intervalo = document.getElementById(`intervalo_${dia}`);
+ const retorno = document.getElementById(`retorno_${dia}`);
+
+ intervalo.disabled = semIntervalo;
+ retorno.disabled = semIntervalo;
+
+ if(semIntervalo){
+ intervalo.value = "";
+ retorno.value = "";
+ }
+ }
+
+ function coletarJornadas(funcionarioId){
+ return diasSemana.map(dia => {
+ const entrada = document.getElementById(`entrada_${dia.numero}`)?.value || null;
+ const intervalo = document.getElementById(`intervalo_${dia.numero}`)?.value || null;
+ const retorno = document.getElementById(`retorno_${dia.numero}`)?.value || null;
+ const saida = document.getElementById(`saida_${dia.numero}`)?.value || null;
+ const semIntervalo = document.getElementById(`sem_intervalo_${dia.numero}`)?.checked || false;
+
+ return {
+ empresa_id: empresaId,
+ funcionario_id: funcionarioId,
+ dia_semana: dia.numero,
+ horario_entrada: entrada,
+ horario_intervalo: semIntervalo ? null : intervalo,
+ horario_retorno: semIntervalo ? null : retorno,
+ horario_saida: saida,
+ sem_intervalo: semIntervalo,
+ ativo: true
+ };
+ });
+ }
+
+ function limparFormulario(){
+ document.getElementById("foto").value = "";
+ document.getElementById("nome").value = "";
+ document.getElementById("cpf").value = "";
+ document.getElementById("email").value = "";
+ document.getElementById("funcao").value = "";
+ document.getElementById("data_nascimento").value = "";
+
+ const jornada = document.getElementById("jornadaSemanal");
+ jornada.innerHTML = "";
+ jornada.style.display = "none";
+ }
+
+ async function enviarFotoFuncionario(nomeFuncionario){
+ const inputFoto = document.getElementById("foto");
+
+ if(!inputFoto.files || inputFoto.files.length === 0){
+ return "";
+ }
+
+ const arquivo = inputFoto.files[0];
+ const extensao = arquivo.name.split(".").pop().toLowerCase();
+ const nomeArquivo = `${empresaId}/${normalizarNomeArquivo(nomeFuncionario)}-${Date.now()}.${extensao}`;
+
+ const { error: uploadError } = await supabaseClient
+ .storage
+ .from("funcionarios")
+ .upload(nomeArquivo, arquivo, {
+ cacheControl: "3600",
+ upsert: false
+ });
+
+ if(uploadError){
+ console.log("Erro ao enviar foto:", uploadError);
+ alert("Erro ao enviar foto do funcionário.");
+ return null;
+ }
+
+ const { data: urlData } = supabaseClient
+ .storage
+ .from("funcionarios")
+ .getPublicUrl(nomeArquivo);
+
+ return urlData.publicUrl;
+ }
+
+ async function enviarNovaFotoEdicao(nomeFuncionario){
+ const inputFoto = document.getElementById("edit_foto");
+
+ if(!inputFoto.files || inputFoto.files.length === 0){
+ return "";
+ }
+
+ const arquivo = inputFoto.files[0];
+ const extensao = arquivo.name.split(".").pop().toLowerCase();
+ const nomeArquivo = `${empresaId}/${normalizarNomeArquivo(nomeFuncionario)}-${Date.now()}-edit.${extensao}`;
+
+ const { error: uploadError } = await supabaseClient
+ .storage
+ .from("funcionarios")
+ .upload(nomeArquivo, arquivo, {
+ cacheControl: "3600",
+ upsert: false
+ });
+
+ if(uploadError){
+ console.log("Erro ao enviar nova foto:", uploadError);
+ alert("Erro ao enviar nova foto do funcionário.");
+ return null;
+ }
+
+ const { data: urlData } = supabaseClient
+ .storage
+ .from("funcionarios")
+ .getPublicUrl(nomeArquivo);
+
+ return urlData.publicUrl;
+ }
+
+ async function salvarFuncionario(){
+ const nome = document.getElementById("nome").value.trim();
+ const cpf = document.getElementById("cpf").value.trim();
+ const email = document.getElementById("email").value.trim();
+ const funcao = document.getElementById("funcao").value.trim();
+ const data_nascimento = document.getElementById("data_nascimento").value;
+
+ if(!nome){
+ alert("Informe o nome do funcionário.");
+ return;
+ }
+
+ if(!email){
+ alert("Informe o e-mail do funcionário.");
+ return;
+ }
+
+ const fotoUrl = await enviarFotoFuncionario(nome);
+
+ if(fotoUrl === null){
+ return;
+ }
+
+ const { data: funcionarioCriado, error } = await supabaseClient
+ .from("funcionarios")
+ .insert([
+ {
+ empresa_id: empresaId,
+ nome_completo: nome,
+ cpf,
+ email,
+ funcao,
+ data_nascimento: data_nascimento || null,
+ foto_url: fotoUrl || "",
+ ativo: true
+ }
+ ])
+ .select()
+ .single();
+
+ if(error){
+ console.log(error);
+ alert("Erro ao salvar funcionário.");
+ return;
+ }
+
+ if(document.getElementById("jornadaSemanal").innerHTML.trim()){
+ const jornadas = coletarJornadas(funcionarioCriado.id);
+
+ const { error: erroJornada } = await supabaseClient
+ .from("funcionario_jornadas")
+ .insert(jornadas);
+
+ if(erroJornada){
+ console.log(erroJornada);
+ alert("Funcionário cadastrado, mas houve erro ao salvar a jornada semanal.");
+ }
+ }
+
+ const senhaInicial = Math.random().toString(36).slice(-10);
+
+ const { data: { session } } = await supabaseClient.auth.getSession();
+
+ const respostaAuth = await fetch(
+ "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/criar-usuario-funcionario",
+ {
+ method: "POST",
+ headers: {
+ "Content-Type": "application/json",
+ "Authorization": `Bearer ${session.access_token}`
+ },
+ body: JSON.stringify({
+ funcionario_id: funcionarioCriado.id,
+ empresa_id: empresaId,
+ nome,
+ email,
+ senha: senhaInicial
+ })
+ }
+ );
+
+ const authResultado = await respostaAuth.json();
+ console.log(authResultado);
+
+ if(!respostaAuth.ok){
+ alert("Funcionário criado, mas houve erro ao criar login/senha.");
+ await carregarFuncionarios();
+ return;
+ }
+
+ await registrarLogAdmin({
+ acao: "criou_funcionario",
+ tabela_afetada: "funcionarios",
+ registro_id: funcionarioCriado.id,
+ funcionario_id: funcionarioCriado.id,
+ dados_novos: funcionarioCriado,
+ detalhes: { nome, email, funcao }
+ });
+
+ alert("Funcionário cadastrado com sucesso. O acesso foi enviado por e-mail.");
+
+ limparFormulario();
+ await carregarFuncionarios();
+}
+
+ async function carregarFuncionarios(){
+ const { data, error } = await supabaseClient
+ .from("funcionarios")
+ .select("*")
+ .eq("empresa_id", empresaId)
+ .order("nome_completo");
+
+ if(error){
+ console.log(error);
+ document.getElementById("listaFuncionarios").innerHTML =
+ `<div class="vazio">Erro ao carregar funcionários.</div>`;
+ return;
+ }
+
+ funcionarios = data || [];
+ renderizarFuncionarios();
+ }
+
+ function renderizarFuncionarios(){
+ const lista = document.getElementById("listaFuncionarios");
+ const busca = document.getElementById("buscaFuncionario").value.toLowerCase().trim();
+ const status = document.getElementById("filtroStatus").value;
+
+ let filtrados = funcionarios;
+
+ if(status === "ativos"){
+ filtrados = filtrados.filter(f => f.ativo === true);
+ }
+
+ if(status === "inativos"){
+ filtrados = filtrados.filter(f => f.ativo === false);
+ }
+
+ if(busca){
+ filtrados = filtrados.filter(f =>
+ String(f.nome_completo || "").toLowerCase().includes(busca) ||
+ String(f.cpf || "").toLowerCase().includes(busca) ||
+ String(f.funcao || "").toLowerCase().includes(busca) ||
+ String(f.email || "").toLowerCase().includes(busca)
+ );
+ }
+
+ document.getElementById("contadorFuncionarios").textContent = filtrados.length;
+ document.getElementById("textoQuantidade").textContent =
+ `Mostrando ${filtrados.length} de ${funcionarios.length} funcionários`;
+
+ if(filtrados.length === 0){
+ lista.innerHTML = `<div class="vazio">Nenhum funcionário encontrado.</div>`;
+ return;
+ }
+
+ lista.innerHTML = filtrados.map(funcionario => `
+ <div class="funcionario">
+ <div class="dados">
+ ${
+	 funcionario.foto_url
+	 ? `<img class="foto" src="${escapeHtml(funcionario.foto_url)}" onerror="this.outerHTML='<div class=&quot;foto-placeholder&quot;><i class=&quot;fa-solid fa-user&quot;></i></div>'">`
+	 : `<div class="foto-placeholder"><i class="fa-solid fa-user"></i></div>`
+	 }
+
+	 <div>
+	 <strong>${escapeHtml(funcionario.nome_completo)}</strong>
+	 <small><i class="fa-regular fa-id-card"></i> CPF: ${escapeHtml(funcionario.cpf || "-")}</small>
+	 <small><i class="fa-regular fa-envelope"></i> E-mail: ${escapeHtml(funcionario.email || "-")}</small>
+	 <small><i class="fa-solid fa-briefcase"></i> Função: ${escapeHtml(funcionario.funcao || "-")}</small>
+ <small><i class="fa-regular fa-clock"></i> Jornada semanal configurável</small>
+
+ <span class="status ${funcionario.ativo ? "ativo" : "inativo"}">
+ ● ${funcionario.ativo ? "ATIVO" : "INATIVO"}
+ </span>
+ </div>
+ </div>
+
+ <div class="acoes">
+ <button class="btn-acao editar" onclick="editarFuncionario('${funcionario.id}')">
+ <i class="fa-solid fa-pen"></i> Editar
+ </button>
+
+ <button class="btn-acao inativar" onclick="alterarStatusFuncionario('${funcionario.id}', ${funcionario.ativo})">
+ <i class="fa-solid ${funcionario.ativo ? "fa-pause" : "fa-play"}"></i>
+ ${funcionario.ativo ? "Inativar" : "Ativar"}
+ </button>
+ </div>
+ </div>
+ `).join("");
+ lucide.createIcons();
+ }
+
+ function montarJornadaEdicao(jornadas){
+ const container = document.getElementById("edit_jornada");
+
+ container.innerHTML = diasSemana.map(dia => {
+ const jornada = jornadas.find(j => Number(j.dia_semana) === Number(dia.numero));
+ const semIntervalo = jornada?.sem_intervalo === true;
+
+ return `
+ <div class="card-dia">
+ <h4>${dia.nome}</h4>
+
+ <div class="grid-horarios">
+ <div class="campo-horario">
+ <label>Entrada</label>
+ <input id="edit_entrada_${dia.numero}" type="time" value="${jornada?.horario_entrada || ""}">
+ </div>
+
+ <div class="campo-horario">
+ <label>Saída intervalo</label>
+ <input id="edit_intervalo_${dia.numero}" type="time" value="${jornada?.horario_intervalo || ""}" ${semIntervalo ? "disabled" : ""}>
+ </div>
+
+ <div class="campo-horario">
+ <label>Retorno intervalo</label>
+ <input id="edit_retorno_${dia.numero}" type="time" value="${jornada?.horario_retorno || ""}" ${semIntervalo ? "disabled" : ""}>
+ </div>
+
+ <div class="campo-horario">
+ <label>Saída</label>
+ <input id="edit_saida_${dia.numero}" type="time" value="${jornada?.horario_saida || ""}">
+ </div>
+ </div>
+
+ <div class="checkbox-dia">
+ <label>
+ <input type="checkbox" id="edit_sem_intervalo_${dia.numero}" onchange="toggleIntervaloEdicaoDia(${dia.numero})" ${semIntervalo ? "checked" : ""}>
+ Funcionário sem intervalo neste dia
+ </label>
+ </div>
+ </div>
+ `;
+ }).join("");
+ }
+
+ function toggleIntervaloEdicaoDia(dia){
+ const semIntervalo = document.getElementById(`edit_sem_intervalo_${dia}`).checked;
+ const intervalo = document.getElementById(`edit_intervalo_${dia}`);
+ const retorno = document.getElementById(`edit_retorno_${dia}`);
+
+ intervalo.disabled = semIntervalo;
+ retorno.disabled = semIntervalo;
+
+ if(semIntervalo){
+ intervalo.value = "";
+ retorno.value = "";
+ }
+ }
+
+ async function editarFuncionario(id){
+ funcionarioEditandoId = id;
+
+ const funcionario = funcionarios.find(f => String(f.id) === String(id));
+
+ if(!funcionario){
+ alert("Funcionário não encontrado.");
+ return;
+ }
+
+ document.getElementById("edit_nome").value = funcionario.nome_completo || "";
+ document.getElementById("edit_cpf").value = funcionario.cpf || "";
+ document.getElementById("edit_email").value = funcionario.email || "";
+ document.getElementById("edit_funcao").value = funcionario.funcao || "";
+ document.getElementById("edit_data_nascimento").value = funcionario.data_nascimento || "";
+ document.getElementById("edit_foto").value = "";
+ document.getElementById("edit_foto_atual").src = funcionario.foto_url || "";
+
+ const { data: jornadas, error } = await supabaseClient
+ .from("funcionario_jornadas")
+ .select("*")
+ .eq("funcionario_id", id)
+ .order("dia_semana");
+
+ if(error){
+ console.log("ERRO AO CARREGAR JORNADA:", error);
+ alert("Erro ao carregar jornada: " + error.message);
+ return;
+ }
+
+ montarJornadaEdicao(jornadas || []);
+ document.getElementById("modalEditar").style.display = "flex";
+ }
+
+ async function salvarEdicaoFuncionario(){
+ if(!funcionarioEditandoId){
+ alert("Funcionário não identificado.");
+ return;
+ }
+
+ const funcionarioAnterior = funcionarios.find(f => String(f.id) === String(funcionarioEditandoId)) || null;
+
+ const nome = document.getElementById("edit_nome").value.trim();
+ const cpf = document.getElementById("edit_cpf").value.trim();
+ const email = document.getElementById("edit_email").value.trim();
+ const funcao = document.getElementById("edit_funcao").value.trim();
+ const data_nascimento = document.getElementById("edit_data_nascimento").value;
+
+ if(!nome){
+ alert("O nome não pode ficar vazio.");
+ return;
+ }
+
+ const novaFotoUrl = await enviarNovaFotoEdicao(nome);
+
+ if(novaFotoUrl === null){
+ return;
+ }
+
+ const dadosAtualizacao = {
+ nome_completo: nome,
+ cpf,
+ email,
+ funcao,
+ data_nascimento: data_nascimento || null
+ };
+
+ if(novaFotoUrl){
+ dadosAtualizacao.foto_url = novaFotoUrl;
+ }
+
+ const { error } = await supabaseClient
+ .from("funcionarios")
+ .update(dadosAtualizacao)
+ .eq("id", funcionarioEditandoId);
+
+ if(error){
+ console.log(error);
+ alert("Erro ao salvar alterações do funcionário.");
+ return;
+ }
+
+ await supabaseClient
+ .from("funcionario_jornadas")
+ .delete()
+ .eq("funcionario_id", funcionarioEditandoId);
+
+ const jornadas = diasSemana.map(dia => {
+ const semIntervalo = document.getElementById(`edit_sem_intervalo_${dia.numero}`).checked;
+
+ return {
+ empresa_id: empresaId,
+ funcionario_id: funcionarioEditandoId,
+ dia_semana: dia.numero,
+ horario_entrada: document.getElementById(`edit_entrada_${dia.numero}`).value || null,
+ horario_intervalo: semIntervalo ? null : (document.getElementById(`edit_intervalo_${dia.numero}`).value || null),
+ horario_retorno: semIntervalo ? null : (document.getElementById(`edit_retorno_${dia.numero}`).value || null),
+ horario_saida: document.getElementById(`edit_saida_${dia.numero}`).value || null,
+ sem_intervalo: semIntervalo,
+ ativo: true
+ };
+ });
+
+ const { error: erroJornada } = await supabaseClient
+ .from("funcionario_jornadas")
+ .insert(jornadas);
+
+ if(erroJornada){
+ console.log(erroJornada);
+ alert("Dados salvos, mas houve erro ao atualizar a jornada.");
+ return;
+ }
+
+ await registrarLogAdmin({
+ acao: "editou_funcionario",
+ tabela_afetada: "funcionarios",
+ registro_id: funcionarioEditandoId,
+ funcionario_id: funcionarioEditandoId,
+ dados_anteriores: funcionarioAnterior,
+ dados_novos: dadosAtualizacao,
+ detalhes: { jornadas }
+ });
+
+ alert("Funcionário atualizado.");
+ fecharModalEditar();
+ carregarFuncionarios();
+ }
+
+ async function alterarStatusFuncionario(id, statusAtual){
+ const confirmar = confirm(
+ statusAtual
+ ? "Deseja inativar este funcionário?"
+ : "Deseja ativar este funcionário?"
+ );
+
+ if(!confirmar) return;
+
+ const funcionarioAnterior = funcionarios.find(f => String(f.id) === String(id)) || null;
+
+ const { error } = await supabaseClient
+ .from("funcionarios")
+ .update({ ativo: !statusAtual })
+ .eq("id", id);
+
+ if(error){
+ console.log(error);
+ alert("Erro ao alterar status.");
+ return;
+ }
+
+ await registrarLogAdmin({
+ acao: statusAtual ? "inativou_funcionario" : "ativou_funcionario",
+ tabela_afetada: "funcionarios",
+ registro_id: id,
+ funcionario_id: id,
+ dados_anteriores: funcionarioAnterior,
+ dados_novos: { ativo: !statusAtual }
+ });
+
+ carregarFuncionarios();
+ }
+
+ async function gerarQRCode(){
+ const link = `https://osmarjunior14.github.io/pontofacil/funcionario-login.html?empresa=${empresaId}`;
+
+ const dataUrl = await QRCode.toDataURL(link, {
+ width: 320,
+ margin: 2
+ });
+
+ const janela = window.open("");
+
+ if(!janela){
+ alert("Permita pop-ups para gerar o QR Code.");
+ return;
+ }
+
+ janela.document.write(`
+ <html>
+ <head>
+ <title>QR Code do Ponto</title>
+ <style>
+ body{
+ font-family:Arial;
+ display:flex;
+ flex-direction:column;
+ justify-content:center;
+ align-items:center;
+ padding:30px;
+ text-align:center;
+ }
+ h1{color:#2563eb;margin-bottom:20px;}
+ img{width:320px;height:320px;}
+ p{margin-top:16px;color:#475569;max-width:400px;}
+ button{margin-top:20px;border:none;background:#2563eb;color:white;padding:12px 18px;border-radius:12px;font-weight:bold;cursor:pointer;}
+ </style>
+ </head>
+ <body>
+ <h1>${empresaNome || "PontoFácil"}</h1>
+ <img src="${dataUrl}" alt="QR Code do ponto">
+ <p>Escaneie este QR Code para acessar o painel do funcionário.</p>
+ <button onclick="window.print()">Imprimir QR Code</button>
+ </body>
+ </html>
+ `);
+
+ janela.document.close();
+ }
+
+ async function iniciar(){
+ lucide.createIcons();
+ const ok = await carregarEmpresaLogada();
+ if(!ok) return;
+ await carregarFuncionarios();
+ console.log("EMPRESA ID:", empresaId);
+}
+
+iniciar();
+</script>
+
+</body>
+</html>

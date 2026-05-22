@@ -1,0 +1,1543 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  >
+
+  <title>PontoFácil • Funcionário</title>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="./js/supabase-client.js"></script>
+  <script src="./js/security-compliance.js"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    :root{
+      --azul:#2563eb;
+      --azul-escuro:#0f274c;
+      --bg:#f4f7fb;
+      --texto:#0f172a;
+      --muted:#64748b;
+      --verde:#16a34a;
+      --vermelho:#dc2626;
+      --laranja:#f97316;
+      --card:#ffffff;
+      --borda:#dbe4f0;
+    }
+
+    body{
+      font-family:Arial,sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(37,99,235,.10), transparent 35%),
+        linear-gradient(135deg,#f8fbff,#eef3fa);
+
+      color:var(--texto);
+
+      min-height:100vh;
+
+      padding-bottom:120px;
+    }
+
+    .topo{
+
+      background:
+        linear-gradient(135deg,#0f274c,#2563eb);
+
+      padding:
+        calc(env(safe-area-inset-top) + 22px)
+        22px
+        26px;
+
+      color:white;
+
+      border-radius:
+        0 0 30px 30px;
+
+      box-shadow:
+        0 16px 42px rgba(15,39,76,.28);
+    }
+
+    .perfil{
+      display:flex;
+      align-items:center;
+      gap:16px;
+    }
+
+    .foto{
+      width:72px;
+      height:72px;
+
+      border-radius:50%;
+
+      object-fit:cover;
+
+      border:3px solid rgba(255,255,255,.25);
+
+      background:white;
+    }
+
+    .avatar-fallback{
+      width:72px;
+      height:72px;
+
+      border-radius:50%;
+
+      background:rgba(255,255,255,.18);
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      font-size:28px;
+      font-weight:900;
+    }
+
+    .nome{
+      font-size:25px;
+      font-weight:900;
+      line-height:1.1;
+      margin-bottom:6px;
+    }
+
+    .cargo{
+      font-size:14px;
+      color:#dbeafe;
+      font-weight:700;
+      margin-bottom:4px;
+    }
+
+    .empresa{
+      font-size:13px;
+      color:#bfdbfe;
+    }
+
+    .container{
+      padding:20px;
+    }
+
+    .clock-card{
+      margin-top:-24px;
+
+      background:white;
+
+      border-radius:24px;
+
+      padding:22px;
+
+      box-shadow:
+        0 18px 40px rgba(15,23,42,.08);
+
+      border:1px solid rgba(226,232,240,.9);
+    }
+
+    .clock-topo{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+
+      margin-bottom:16px;
+    }
+
+    .clock-topo strong{
+      font-size:16px;
+      color:#0f274c;
+    }
+
+    .hora-atual{
+      font-size:38px;
+      font-weight:900;
+      color:#2563eb;
+      line-height:1;
+      margin-bottom:8px;
+    }
+
+    .data-atual{
+      color:#64748b;
+      font-size:14px;
+      font-weight:700;
+    }
+
+    .btn-ponto{
+      width:100%;
+      height:66px;
+
+      border:none;
+
+      border-radius:20px;
+
+      margin-top:22px;
+
+      background:
+        linear-gradient(90deg,#2563eb,#1d4ed8);
+
+      color:white;
+
+      font-size:18px;
+      font-weight:900;
+
+      cursor:pointer;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+
+      box-shadow:
+        0 18px 35px rgba(37,99,235,.24);
+    }
+
+    .btn-ponto:active{
+      transform:scale(.99);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+
+      margin-top:22px;
+    }
+
+    .card{
+      background:white;
+
+      border-radius:22px;
+
+      padding:18px;
+
+      border:1px solid rgba(226,232,240,.9);
+
+      box-shadow:
+        0 12px 30px rgba(15,23,42,.05);
+    }
+
+    .icone{
+      width:44px;
+      height:44px;
+
+      border-radius:14px;
+
+      background:#dbeafe;
+
+      color:#2563eb;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      margin-bottom:14px;
+    }
+
+    .card small{
+      display:block;
+
+      color:#64748b;
+
+      font-size:13px;
+
+      margin-bottom:6px;
+
+      font-weight:700;
+    }
+
+    .card strong{
+      font-size:22px;
+      color:#0f172a;
+      line-height:1.1;
+    }
+
+    .positivo{
+      color:#16a34a !important;
+    }
+
+    .negativo{
+      color:#dc2626 !important;
+    }
+
+    .titulo-secao{
+      margin:
+        28px 0 16px;
+
+      font-size:20px;
+      font-weight:900;
+      color:#0f274c;
+    }
+
+    .historico{
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+    }
+
+    .registro{
+      background:white;
+
+      border-radius:18px;
+
+      padding:16px;
+
+      border:1px solid rgba(226,232,240,.9);
+
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+
+      gap:14px;
+    }
+
+    .registro-esquerda{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+
+    .registro-icone{
+      width:44px;
+      height:44px;
+
+      border-radius:14px;
+
+      display:flex;
+      align-items:center;
+      justify-content:center;
+
+      background:#dbeafe;
+      color:#2563eb;
+    }
+
+    .registro strong{
+      display:block;
+      font-size:15px;
+      margin-bottom:4px;
+    }
+
+    .registro small{
+      color:#64748b;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .hora{
+      font-size:18px;
+      font-weight:900;
+      color:#0f274c;
+    }
+
+    .logout{
+      width:100%;
+      height:58px;
+
+      border:none;
+
+      border-radius:18px;
+
+      background:#0f172a;
+
+      color:white;
+
+      font-size:15px;
+      font-weight:900;
+
+      margin-top:26px;
+
+      cursor:pointer;
+    }
+
+    .loading{
+      text-align:center;
+      padding:40px 20px;
+      color:#64748b;
+      font-weight:700;
+    }
+
+  </style>
+</head>
+
+<body>
+
+<div id="loading" class="loading">
+  Carregando dashboard...
+</div>
+
+<div id="conteudo" style="display:none;">
+
+  <div class="topo">
+
+    <div class="perfil">
+
+      <img
+        id="fotoFuncionario"
+        class="foto"
+        style="display:none;"
+      >
+
+      <div
+        id="avatarFallback"
+        class="avatar-fallback"
+      >
+        F
+      </div>
+
+      <div>
+
+        <div
+          class="nome"
+          id="nomeFuncionario"
+        >
+          Funcionário
+        </div>
+
+        <div
+          class="cargo"
+          id="funcaoFuncionario"
+        >
+          Cargo
+        </div>
+
+        <div
+          class="empresa"
+          id="empresaFuncionario"
+        >
+          Empresa
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <div class="container">
+
+    <div class="clock-card">
+
+      <div class="clock-topo">
+
+        <strong>
+          Registro de ponto
+        </strong>
+
+        <i data-lucide="fingerprint"></i>
+
+      </div>
+
+      <div
+        class="hora-atual"
+        id="horaAtual"
+      >
+        00:00:00
+      </div>
+
+      <div
+        class="data-atual"
+        id="dataAtual"
+      >
+        --
+      </div>
+
+      <button
+        class="btn-ponto"
+        onclick="abrirRegistro()"
+      >
+        <i data-lucide="scan-face"></i>
+        Registrar ponto
+      </button>
+
+    </div>
+
+    <div class="grid">
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="clock-3"></i>
+        </div>
+
+        <small>
+          Horas hoje
+        </small>
+
+        <strong id="horasHoje">
+          0h00
+        </strong>
+
+      </div>
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="badge-dollar-sign"></i>
+        </div>
+
+        <small>
+          Banco de horas
+        </small>
+
+        <strong
+          id="saldoBanco"
+          class="positivo"
+        >
+          +0h00
+        </strong>
+
+      </div>
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="calendar-range"></i>
+        </div>
+
+        <small>
+          Jornada prevista
+        </small>
+
+        <strong id="jornadaPrevista">
+          --
+        </strong>
+
+      </div>
+
+      <div class="card">
+
+        <div class="icone">
+          <i data-lucide="activity"></i>
+        </div>
+
+        <small>
+          Último registro
+        </small>
+
+        <strong id="ultimoRegistro">
+          --
+        </strong>
+
+      </div>
+
+    </div>
+
+    <div class="titulo-secao">
+      Histórico recente
+    </div>
+
+    <div
+      class="historico"
+      id="historico"
+    ></div>
+
+    <button
+      class="logout"
+      onclick="logout()"
+    >
+      Sair da conta
+    </button>
+
+  </div>
+
+</div>
+
+<script>
+
+/*
+
+=========================================
+
+VALIDA LOGIN
+
+=========================================
+
+*/
+
+async function validarLoginFuncionario(){
+
+  /*
+
+  =========================================
+
+  PEGA SESSÃO
+
+  =========================================
+
+  */
+
+  const {
+
+    data: { session }
+
+  } = await supabaseClient.auth.getSession();
+
+  /*
+
+  =========================================
+
+  SEM LOGIN
+
+  =========================================
+
+  */
+
+  if(!session){
+
+    window.location.href =
+
+      "./funcionario-login.html";
+
+    return null;
+
+  }
+
+  const user =
+
+    session.user;
+
+  /*
+
+=========================================
+
+BUSCA VÍNCULO
+
+=========================================
+
+*/
+
+const {
+
+  data: vinculo,
+
+  error: vinculoError
+
+} = await supabaseClient
+
+  .from("usuarios_empresas")
+
+  .select(`
+
+    empresa_id,
+
+    ativo,
+
+    perfil,
+
+    empresas (
+
+      id,
+
+      nome,
+
+      ativa
+
+    )
+
+  `)
+
+  .eq("user_id", user.id)
+
+  .eq("perfil", "funcionario")
+
+  .single();
+
+/*
+
+=========================================
+
+SEM VÍNCULO
+
+=========================================
+
+*/
+
+if(vinculoError || !vinculo){
+
+  await supabaseClient.auth.signOut();
+
+  window.location.href =
+
+    "./funcionario-login.html";
+
+  return null;
+
+}
+
+/*
+
+=========================================
+
+FUNCIONÁRIO INATIVO
+
+=========================================
+
+*/
+
+if(vinculo.ativo !== true){
+
+  await supabaseClient.auth.signOut();
+
+  alert(
+
+    "Seu acesso está inativo."
+
+  );
+
+  window.location.href =
+
+    "./funcionario-login.html";
+
+  return null;
+
+}
+
+  /*
+
+  =========================================
+
+  EMPRESA INVÁLIDA
+
+  =========================================
+
+  */
+
+  const empresaStorage =
+
+    localStorage.getItem(
+
+      "pontofacil_empresa_id"
+
+    );
+
+  if(
+
+    empresaStorage &&
+
+    String(vinculo.empresa_id) !== String(empresaStorage)
+
+  ){
+
+    await supabaseClient.auth.signOut();
+
+    alert(
+
+      "Sessão inválida."
+
+    );
+
+    window.location.href =
+
+      "./funcionario-login.html";
+
+    return null;
+
+  }
+  
+  /*
+
+=========================================
+
+EMPRESA INATIVA
+
+=========================================
+
+*/
+
+const empresa = Array.isArray(vinculo.empresas)
+
+  ? vinculo.empresas[0]
+
+  : vinculo.empresas;
+
+if(!empresa || empresa.ativa !== true){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+
+    "Empresa inativa. Entre em contato com o responsável."
+
+  );
+
+  window.location.href =
+
+    "./funcionario-login.html";
+
+  return null;
+
+}
+
+  /*
+=========================================
+VALIDA FUNCIONÁRIO ATIVO NA TABELA FUNCIONARIOS
+=========================================
+*/
+
+const {
+  data: funcionariosEncontrados,
+  error: funcionarioAtivoError
+} = await supabaseClient
+  .from("funcionarios")
+  .select("id, nome_completo, email, ativo, empresa_id")
+  .eq("empresa_id", vinculo.empresa_id)
+  .ilike("email", user.email.trim());
+
+if(funcionarioAtivoError){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+    "Erro ao validar funcionário: " + funcionarioAtivoError.message
+  );
+
+  window.location.href =
+    "./funcionario-login.html";
+
+  return null;
+}
+
+if(!funcionariosEncontrados || funcionariosEncontrados.length === 0){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+    "Funcionário não encontrado nesta empresa."
+  );
+
+  window.location.href =
+    "./funcionario-login.html";
+
+  return null;
+}
+
+const funcionarioAtivo =
+  funcionariosEncontrados.find(f =>
+    f.ativo === true
+  );
+
+if(!funcionarioAtivo){
+
+  await supabaseClient.auth.signOut();
+
+  localStorage.clear();
+
+  sessionStorage.clear();
+
+  alert(
+    "Seu acesso está inativo."
+  );
+
+  window.location.href =
+    "./funcionario-login.html";
+
+  return null;
+}
+  
+  /*
+
+  =========================================
+
+  LOGIN OK
+
+  =========================================
+
+  */
+
+  return {
+
+    session,
+
+    user,
+
+    vinculo
+
+  };
+
+}
+  
+  const supabaseClient =
+  window.supabaseClient;
+
+if(!supabaseClient){
+
+  alert("Supabase não carregou.");
+
+  window.location.href =
+    "./funcionario-login.html";
+}
+
+let funcionario = null;
+let empresaFuncionario = null;
+let timeoutAtualizacao = null;
+let canalRealtime = null;
+
+function atualizarDashboardAutomaticamente(){
+
+  clearTimeout(timeoutAtualizacao);
+
+  timeoutAtualizacao = setTimeout(async ()=>{
+
+    await carregarHistorico();
+
+    await carregarResumo();
+
+    atualizarDashboardAutomaticamente();
+
+  },30000);
+}
+  
+function atualizarRelogio(){
+
+  const agora = new Date();
+
+  document.getElementById("horaAtual").textContent =
+    agora.toLocaleTimeString("pt-BR");
+
+  document.getElementById("dataAtual").textContent =
+    agora.toLocaleDateString("pt-BR",{
+      weekday:"long",
+      day:"2-digit",
+      month:"long",
+      year:"numeric"
+
+    });
+
+}
+  
+  function abrirRegistro(){
+
+  if(!funcionario || !funcionario.empresa_id){
+
+    alert("Empresa do funcionário não identificada.");
+    return;
+  }
+
+  window.location.href =
+  `./ponto.html?empresa=${encodeURIComponent(funcionario.empresa_id)}`;
+}
+  
+async function carregarFuncionario(){
+
+  const {
+    data:{ session }
+  } = await supabaseClient.auth.getSession();
+
+  if(!session){
+
+    window.location.href =
+      "./funcionario-login.html";
+
+    return;
+  }
+
+  const userId =
+    session.user.id;
+
+  const { data, error } =
+    await supabaseClient
+      .from("funcionarios")
+      .select("*")
+      .eq("auth_user_id", userId)
+      .single();
+
+  if(error || !data){
+
+    alert("Funcionário não encontrado.");
+
+    await logout();
+
+    return;
+  }
+
+    funcionario = data;
+
+  await carregarEmpresaFuncionario();
+
+  preencherTela();
+
+  await carregarHistorico();
+  await carregarResumo();
+  iniciarRealtime();
+  atualizarDashboardAutomaticamente();
+
+  document.getElementById("loading").style.display =
+    "none";
+
+  document.getElementById("conteudo").style.display =
+    "block";
+
+  lucide.createIcons();
+}
+
+async function carregarEmpresaFuncionario(){
+
+  if(!funcionario?.empresa_id){
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("empresas")
+      .select("id, nome")
+      .eq("id", funcionario.empresa_id)
+      .single();
+
+  if(error || !data){
+
+    console.log(
+      "Erro ao carregar empresa do funcionário:",
+      error
+    );
+
+    empresaFuncionario = null;
+
+    return;
+  }
+
+  empresaFuncionario = data;
+}
+  
+function preencherTela(){
+
+  document.getElementById("nomeFuncionario")
+    .textContent =
+      funcionario.nome_completo || "-";
+
+  document.getElementById("funcaoFuncionario")
+    .textContent =
+      funcionario.funcao || "-";
+
+  document.getElementById("empresaFuncionario")
+    .textContent =
+      empresaFuncionario?.nome || "Empresa não identificada";
+
+  const avatar =
+    document.getElementById("avatarFallback");
+
+  const foto =
+    document.getElementById("fotoFuncionario");
+
+  avatar.textContent =
+    (funcionario.nome_completo || "F")
+      .charAt(0)
+      .toUpperCase();
+
+  if(funcionario.foto_url){
+
+    foto.src =
+      funcionario.foto_url;
+
+    foto.style.display =
+      "block";
+
+    avatar.style.display =
+      "none";
+
+  }else{
+
+    foto.style.display =
+      "none";
+
+    avatar.style.display =
+      "flex";
+  }
+}
+  
+async function carregarHistorico(){
+
+  const { data, error } =
+    await supabaseClient
+      .from("registros_ponto")
+      .select("*")
+      .eq("empresa_id", funcionario.empresa_id)
+      .eq("funcionario_id", funcionario.id)
+      .order("data_hora",{
+        ascending:false
+      })
+      .limit(10);
+
+  if(error){
+
+    console.log(error);
+
+    return;
+  }
+
+  const historico =
+    document.getElementById("historico");
+
+  if(!data || data.length === 0){
+
+    historico.innerHTML = `
+      <div class="registro">
+        Nenhum registro encontrado.
+      </div>
+    `;
+
+    return;
+  }
+
+  historico.innerHTML =
+    data.map(registro => {
+
+      return `
+        <div class="registro">
+
+          <div class="registro-esquerda">
+
+            <div class="registro-icone">
+              <i data-lucide="clock-3"></i>
+            </div>
+
+            <div>
+
+              <strong>
+	                ${PontoFacilSecurity.escapeHtml(registro.tipo.replaceAll("_"," "))}
+              </strong>
+
+              <small>
+	                ${PontoFacilSecurity.escapeHtml(new Date(registro.data_hora)
+	                  .toLocaleDateString("pt-BR"))}
+              </small>
+
+            </div>
+
+          </div>
+
+          <div class="hora">
+	            ${PontoFacilSecurity.escapeHtml(new Date(registro.data_hora)
+	              .toLocaleTimeString("pt-BR",{
+	                hour:"2-digit",
+	                minute:"2-digit"
+	              }))}
+          </div>
+
+        </div>
+      `;
+
+    }).join("");
+
+  lucide.createIcons();
+}
+
+  async function carregarResumo(){
+
+  const hoje = new Date();
+
+  const inicioDia = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate(),
+    0,0,0
+  ).toISOString();
+
+  const fimDia = new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate(),
+    23,59,59
+  ).toISOString();
+
+  // REGISTROS DE HOJE
+  const {
+  data: registrosHoje,
+  error: resumoError
+} =
+  await supabaseClient
+    .from("registros_ponto")
+    .select("*")
+    .eq("empresa_id", funcionario.empresa_id)
+    .eq("funcionario_id", funcionario.id)
+    .gte("data_hora", inicioDia)
+    .lte("data_hora", fimDia)
+    .order("data_hora",{
+      ascending:true
+    });
+
+if(resumoError){
+
+  console.log(resumoError);
+
+  return;
+}
+
+  const registros =
+    registrosHoje || [];
+
+  let minutosHoje = 0;
+
+function encontrarRegistro(tipo){
+
+  return registros.find(
+    registro => registro.tipo === tipo
+  );
+}
+
+function calcularDiferencaMinutos(inicio, fim){
+
+  if(!inicio || !fim){
+    return 0;
+  }
+
+  const inicioData =
+    new Date(inicio.data_hora);
+
+  const fimData =
+    new Date(fim.data_hora);
+
+  return Math.max(
+    0,
+    Math.floor(
+      (fimData - inicioData) / 60000
+    )
+  );
+}
+
+const entrada =
+  encontrarRegistro("entrada");
+
+const saidaIntervalo =
+  encontrarRegistro("saida_intervalo");
+
+const retornoIntervalo =
+  encontrarRegistro("retorno_intervalo");
+
+const saida =
+  encontrarRegistro("saida");
+
+if(funcionario.sem_intervalo){
+
+  minutosHoje =
+    calcularDiferencaMinutos(
+      entrada,
+      saida
+    );
+
+}else{
+
+  minutosHoje =
+    calcularDiferencaMinutos(
+      entrada,
+      saidaIntervalo
+    )
+    +
+    calcularDiferencaMinutos(
+      retornoIntervalo,
+      saida
+    );
+}
+
+  // FORMATAR HORAS
+  const horas =
+    Math.floor(minutosHoje / 60);
+
+  const minutos =
+    minutosHoje % 60;
+
+  document.getElementById(
+  "horasHoje"
+  ).textContent =
+  `${horas}h${String(minutos).padStart(2,"0")}`;
+
+  // ÚLTIMO REGISTRO
+  if(registros.length > 0){
+
+    const ultimo =
+      registros[registros.length - 1];
+
+  document.getElementById(
+  "ultimoRegistro"
+  ).textContent =
+  new Date(ultimo.data_hora)
+    .toLocaleTimeString("pt-BR",{
+      hour:"2-digit",
+      minute:"2-digit"
+
+    });
+
+  }else{
+
+    document.getElementById(
+      "ultimoRegistro"
+    ).textContent = "--";
+  }
+
+  // JORNADA PREVISTA
+  const diaSemana =
+    hoje.getDay();
+
+  const {
+  data:jornada,
+  error:jornadaError
+} = await supabaseClient
+  .from("funcionario_jornadas")
+  .select("*")
+  .eq("empresa_id", funcionario.empresa_id)
+  .eq("funcionario_id", funcionario.id)
+  .eq("dia_semana", diaSemana)
+  .eq("ativo", true)
+  .maybeSingle();
+
+if(jornadaError){
+
+  console.log(
+    "Erro ao carregar jornada prevista:",
+    jornadaError
+  );
+}
+
+    if(jornada){
+
+    document.getElementById(
+      "jornadaPrevista"
+    ).textContent =
+      `${jornada.horario_entrada} às ${jornada.horario_saida}`;
+
+  }else{
+
+    document.getElementById(
+      "jornadaPrevista"
+    ).textContent =
+      "Folga";
+  }
+
+  // SALDO BANCO
+  let saldoMinutos = 0;
+
+  if(jornada){
+
+  function horaParaMinutos(hora){
+
+    if(!hora) return 0;
+
+    const partes =
+      hora.split(":");
+
+    return (
+      Number(partes[0]) * 60 +
+      Number(partes[1])
+    );
+  }
+
+  let previsto = 0;
+
+  if(jornada.sem_intervalo){
+
+    previsto =
+      horaParaMinutos(jornada.horario_saida) -
+      horaParaMinutos(jornada.horario_entrada);
+
+  }else{
+
+    previsto =
+      (
+        horaParaMinutos(jornada.horario_intervalo) -
+        horaParaMinutos(jornada.horario_entrada)
+      )
+      +
+      (
+        horaParaMinutos(jornada.horario_saida) -
+        horaParaMinutos(jornada.horario_retorno)
+      );
+  }
+
+  saldoMinutos =
+    minutosHoje - previsto;
+}
+
+  const saldoHoras =
+    Math.floor(
+      Math.abs(saldoMinutos) / 60
+    );
+
+  const saldoRestante =
+    Math.abs(saldoMinutos) % 60;
+
+  const saldoTexto =
+  `${saldoMinutos >= 0 ? "+" : "-"}${saldoHoras}h${String(saldoRestante).padStart(2,"0")}`;
+
+  const saldoEl =
+    document.getElementById(
+      "saldoBanco"
+    );
+
+  saldoEl.textContent =
+  saldoTexto;
+
+  saldoEl.classList.remove(
+    "positivo",
+    "negativo"
+  );
+
+  if(saldoMinutos >= 0){
+
+    saldoEl.classList.add(
+      "positivo"
+    );
+
+  }else{
+
+    saldoEl.classList.add(
+      "negativo"
+    );
+  }
+}
+
+function iniciarRealtime(){
+
+  if(canalRealtime){
+
+    supabaseClient.removeChannel(
+      canalRealtime
+    );
+  }
+
+  canalRealtime =
+    supabaseClient
+      .channel(
+        `tempo-real-${Date.now()}`
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "registros_ponto",
+          filter: `funcionario_id=eq.${funcionario.id}`
+        },
+        async payload => {
+
+          const funcionarioPayload =
+            payload.new?.funcionario_id ||
+            payload.old?.funcionario_id;
+
+          if(
+            funcionarioPayload === funcionario?.id
+          ){
+
+            await carregarHistorico();
+
+            await carregarResumo();
+          }
+        }
+      )
+      .subscribe((status) => {
+
+        console.log(
+          "Realtime:",
+          status
+        );
+      });
+}
+  
+async function logout(){
+
+  clearTimeout(
+
+    timeoutAtualizacao
+
+  );
+
+  if(canalRealtime){
+
+    await supabaseClient.removeChannel(
+
+      canalRealtime
+
+    );
+
+  }
+
+  await supabaseClient.auth.signOut();
+
+localStorage.clear();
+
+sessionStorage.clear();
+
+window.location.href =
+  "./funcionario-login.html";
+}
+
+/*
+=========================================
+SESSÃO EXPIRADA
+=========================================
+*/
+
+supabaseClient.auth.onAuthStateChange(
+  (event) => {
+
+    if(event === "SIGNED_OUT"){
+
+      window.location.href =
+        "./funcionario-login.html";
+    }
+  }
+);
+
+/*
+=========================================
+INICIAR DASHBOARD
+=========================================
+*/
+
+async function iniciarDashboard(){
+
+  /*
+  =========================================
+  VALIDA LOGIN
+  =========================================
+  */
+
+  const auth =
+    await validarLoginFuncionario();
+
+  if(!auth){
+    return;
+  }
+
+  /*
+  =========================================
+  INICIA SISTEMA
+  =========================================
+  */
+
+  atualizarRelogio();
+
+  setInterval(
+    atualizarRelogio,
+    1000
+  );
+
+  await carregarFuncionario();
+}
+
+/*
+=========================================
+START
+=========================================
+*/
+
+iniciarDashboard();
+
+</script>
+
+</body>
+</html>
