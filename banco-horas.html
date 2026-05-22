@@ -9,7 +9,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="./js/supabase-client.js"></script>
-<script src="./js/security-compliance.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <style>
@@ -1576,8 +1575,8 @@ Todos os funcionários
 </option>
 
 ${funcionarios.map(f => `
-	<option value="${PontoFacilSecurity.escapeHtml(f.id)}">
-	${PontoFacilSecurity.escapeHtml(f.nome_completo)}
+<option value="${f.id}">
+${f.nome_completo}
 </option>
 `).join("")}
 `;
@@ -1809,14 +1808,14 @@ return `
 <td>
 
 <div class="funcionario">
-	${PontoFacilSecurity.escapeHtml(nome)}
+${nome}
 </div>
 
 <div style="
 color:#64748b;
 font-size:12px;
 ">
-	${PontoFacilSecurity.escapeHtml(funcao)}
+${funcao}
 </div>
 
 ${avisoSemExpediente}
@@ -1824,7 +1823,7 @@ ${avisoSemExpediente}
 </td>
 
 <td>
-	${PontoFacilSecurity.escapeHtml(linha.data)}
+${linha.data}
 </td>
 
 <td>

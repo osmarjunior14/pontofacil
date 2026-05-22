@@ -7,7 +7,6 @@
 
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  <script src="./js/supabase-client.js"></script>
- <script src="./js/security-compliance.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
  <script src="https://unpkg.com/lucide@latest"></script>
@@ -1129,7 +1128,6 @@ Painel admin
 <script>
 
  const supabaseClient = window.supabaseClient;
- const escapeHtml = PontoFacilSecurity.escapeHtml;
 
 if(!supabaseClient){
  alert("Erro ao carregar Supabase.");
@@ -1629,16 +1627,16 @@ if(!supabaseClient){
  <div class="funcionario">
  <div class="dados">
  ${
-	 funcionario.foto_url
-	 ? `<img class="foto" src="${escapeHtml(funcionario.foto_url)}" onerror="this.outerHTML='<div class=&quot;foto-placeholder&quot;><i class=&quot;fa-solid fa-user&quot;></i></div>'">`
-	 : `<div class="foto-placeholder"><i class="fa-solid fa-user"></i></div>`
-	 }
+ funcionario.foto_url
+ ? `<img class="foto" src="${funcionario.foto_url}" onerror="this.outerHTML='<div class=&quot;foto-placeholder&quot;><i class=&quot;fa-solid fa-user&quot;></i></div>'">`
+ : `<div class="foto-placeholder"><i class="fa-solid fa-user"></i></div>`
+ }
 
-	 <div>
-	 <strong>${escapeHtml(funcionario.nome_completo)}</strong>
-	 <small><i class="fa-regular fa-id-card"></i> CPF: ${escapeHtml(funcionario.cpf || "-")}</small>
-	 <small><i class="fa-regular fa-envelope"></i> E-mail: ${escapeHtml(funcionario.email || "-")}</small>
-	 <small><i class="fa-solid fa-briefcase"></i> Função: ${escapeHtml(funcionario.funcao || "-")}</small>
+ <div>
+ <strong>${funcionario.nome_completo}</strong>
+ <small><i class="fa-regular fa-id-card"></i> CPF: ${funcionario.cpf || "-"}</small>
+ <small><i class="fa-regular fa-envelope"></i> E-mail: ${funcionario.email || "-"}</small>
+ <small><i class="fa-solid fa-briefcase"></i> Função: ${funcionario.funcao || "-"}</small>
  <small><i class="fa-regular fa-clock"></i> Jornada semanal configurável</small>
 
  <span class="status ${funcionario.ativo ? "ativo" : "inativo"}">

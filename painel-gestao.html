@@ -7,7 +7,6 @@
 
  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
  <script src="./js/supabase-client.js"></script>
- <script src="./js/security-compliance.js"></script>
  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
  <script src="https://unpkg.com/lucide@latest"></script>
@@ -826,11 +825,10 @@
  </div>
 
  <nav class="menu">
-	 <button onclick="window.location.href='./dashboard.html'"><i data-lucide="layout-dashboard"></i> Dashboard</button>
-	 <button class="active"><i data-lucide="users"></i> Funcionários</button>
-	 <button onclick="window.location.href='./relatorio.html'"><i data-lucide="clipboard-list"></i> Registros</button>
-	 <button onclick="window.location.href='./exportacao.html'"><i data-lucide="file-down"></i> Exportação fiscal</button>
-	 </nav>
+ <button onclick="window.location.href='./dashboard.html'"><i data-lucide="layout-dashboard"></i> Dashboard</button>
+ <button class="active"><i data-lucide="users"></i> Funcionários</button>
+ <button onclick="window.location.href='./relatorio.html'"><i data-lucide="clipboard-list"></i> Registros</button>
+ </nav>
 
  <div class="sidebar-footer">
  <div class="empresa-card">
@@ -857,9 +855,8 @@
  <div class="mobile-menu">
  <button onclick="gerarQRCode()">QR Code</button>
  <button onclick="window.location.href='./dashboard.html'">Dashboard</button>
-	 <button onclick="window.location.href='./relatorio.html'">Registros</button>
-	 <button onclick="window.location.href='./exportacao.html'">Exportação</button>
-	 <button onclick="sair()">Sair</button>
+ <button onclick="window.location.href='./relatorio.html'">Registros</button>
+ <button onclick="sair()">Sair</button>
  </div>
 
  <div class="topo">
@@ -881,13 +878,9 @@
  <i class="fa-regular fa-calendar"></i> Registros
  </button>
 
-	 <button class="btn-top btn-white" onclick="window.location.href='./banco-horas.html'">
-	 <i class="fa-regular fa-clock"></i> Banco de horas
-	 </button>
-
-	 <button class="btn-top btn-white" onclick="window.location.href='./exportacao.html'">
-	 <i class="fa-solid fa-file-export"></i> Exportação fiscal
-	 </button>
+ <button class="btn-top btn-white" onclick="window.location.href='./banco-horas.html'">
+ <i class="fa-regular fa-clock"></i> Banco de horas
+ </button>
 
  <button class="btn-top btn-red" onclick="sair()">
  <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair
@@ -1074,7 +1067,6 @@
 <script>
 
  const supabaseClient = window.supabaseClient;
- const escapeHtml = PontoFacilSecurity.escapeHtml;
 
 if(!supabaseClient){
  alert("Erro ao carregar Supabase.");
@@ -1611,16 +1603,16 @@ await carregarFuncionarios();
  <div class="funcionario">
  <div class="dados">
  ${
-	 funcionario.foto_url
-	 ? `<img class="foto" src="${escapeHtml(funcionario.foto_url)}" onerror="this.outerHTML='<div class=&quot;foto-placeholder&quot;><i class=&quot;fa-solid fa-user&quot;></i></div>'">`
-	 : `<div class="foto-placeholder"><i class="fa-solid fa-user"></i></div>`
-	 }
+ funcionario.foto_url
+ ? `<img class="foto" src="${funcionario.foto_url}" onerror="this.outerHTML='<div class=&quot;foto-placeholder&quot;><i class=&quot;fa-solid fa-user&quot;></i></div>'">`
+ : `<div class="foto-placeholder"><i class="fa-solid fa-user"></i></div>`
+ }
 
-	 <div>
-	 <strong>${escapeHtml(funcionario.nome_completo)}</strong>
-	 <small><i class="fa-regular fa-id-card"></i> CPF: ${escapeHtml(funcionario.cpf || "-")}</small>
-	 <small><i class="fa-regular fa-envelope"></i> E-mail: ${escapeHtml(funcionario.email || "-")}</small>
-	 <small><i class="fa-solid fa-briefcase"></i> Função: ${escapeHtml(funcionario.funcao || "-")}</small>
+ <div>
+ <strong>${funcionario.nome_completo}</strong>
+ <small><i class="fa-regular fa-id-card"></i> CPF: ${funcionario.cpf || "-"}</small>
+ <small><i class="fa-regular fa-envelope"></i> E-mail: ${funcionario.email || "-"}</small>
+ <small><i class="fa-solid fa-briefcase"></i> Função: ${funcionario.funcao || "-"}</small>
  <small><i class="fa-regular fa-clock"></i> Jornada semanal configurável</small>
 
  <span class="status ${funcionario.ativo ? "ativo" : "inativo"}">

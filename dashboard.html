@@ -15,7 +15,6 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
 <script src="./js/supabase-client.js"></script>
-<script src="./js/security-compliance.js"></script>
 
 <script src="https://unpkg.com/lucide@latest"></script>
 
@@ -813,16 +812,6 @@ button{
         Logs antifraude
       </button>
 
-      <button onclick="window.location.href='./exportacao.html'">
-        <i data-lucide="file-down"></i>
-        Exportação fiscal
-      </button>
-
-      <button onclick="window.location.href='./rep-p-confiabilidade.html'">
-        <i data-lucide="shield-check"></i>
-        Confiabilidade REP-P
-      </button>
-
       <button onclick="window.location.href='./painel-admin.html'">
         <i data-lucide="shield"></i>
         Painel admin
@@ -912,13 +901,6 @@ button{
         onclick="window.location.href='./banco-horas.html'"
       >
         Banco de horas
-      </button>
-
-      <button
-        class="antifraude-btn"
-        onclick="window.location.href='./exportacao.html'"
-      >
-        Exportação fiscal
       </button>
 
     </div>
@@ -1211,9 +1193,6 @@ button{
 
 const supabaseClient =
   window.supabaseClient;
-
-const escapeHtml =
-  PontoFacilSecurity.escapeHtml;
 
 if(!supabaseClient){
 
@@ -1530,11 +1509,11 @@ function renderizarUltimos(){
 
               class="foto"
 
-              src="${escapeHtml(registro.foto_url || './user.png')}"
+              src="${registro.foto_url || './user.png'}"
 
               onclick="${
                 registro.foto_url
-	                  ? `abrirModal('${escapeHtml(registro.foto_url)}')`
+                  ? `abrirModal('${registro.foto_url}')`
                   : ''
               }"
 
@@ -1543,11 +1522,11 @@ function renderizarUltimos(){
             <div>
 
               <strong>
-	                ${escapeHtml(funcionario?.nome_completo || "Funcionário")}
+                ${funcionario?.nome_completo || "Funcionário"}
               </strong>
 
               <small>
-	                ${escapeHtml(formatarHora(registro.data_hora))}
+                ${formatarHora(registro.data_hora)}
               </small>
 
             </div>

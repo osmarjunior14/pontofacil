@@ -7,8 +7,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./js/supabase-client.js"></script>
-  <script src="./js/security-compliance.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
 
   <style>
@@ -439,12 +437,11 @@
 </div>
 
 <script>
-  const supabaseClient = window.supabaseClient;
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
 
-  if(!supabaseClient){
-    alert("Erro ao carregar Supabase.");
-    throw new Error("Supabase não carregado.");
-  }
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   const params = new URLSearchParams(window.location.search);
   const empresaId = params.get("empresa");
@@ -529,11 +526,8 @@
   }
 
   function mostrarMensagem(tipo, texto){
-    PontoFacilSecurity.setSafeMessage(
-      document.getElementById("mensagem"),
-      tipo,
-      texto
-    );
+    document.getElementById("mensagem").innerHTML =
+      `<div class="${tipo}">${texto}</div>`;
   }
 
   async function obterProximoTipoPermitido(funcionarioId){
@@ -1444,7 +1438,7 @@
     const funcionarioSelecionado =
       funcionarioLogado;
 
-    document.getElementById("mensagem").textContent = "";
+    document.getElementById("mensagem").innerHTML = "";
 
     if(!funcionarioId){
       mostrarMensagem("erro", "Funcionário não identificado. Faça login novamente.");
@@ -1560,24 +1554,6 @@
       return;
     }
 
-    const payloadRegistro = {
-      empresa_id: empresaId,
-      tipo,
-      observacao,
-      foto_url: fotoUrl,
-      latitude: localizacaoValidada.latitude,
-      longitude: localizacaoValidada.longitude,
-      precisao_gps: localizacaoValidada.precisao_gps,
-      distancia_metros: localizacaoValidada.distancia_metros,
-      captura_ao_vivo: true,
-      metodo_captura: "camera",
-      score_fraude: fraude.score,
-      nivel_fraude: fraude.nivel
-    };
-
-    const evidenciaCliente =
-      await PontoFacilSecurity.criarEvidenciaCliente(payloadRegistro);
-
     const resposta = await fetch(
       "https://ixeeperktitbzmnvcaqz.supabase.co/functions/v1/registrar-ponto",
       {
@@ -1588,11 +1564,41 @@
             `Bearer ${session.access_token}`
         },
         body:JSON.stringify({
-          ...payloadRegistro,
-          device_info:evidenciaCliente
-        })
-      }
-    );
+
+  tipo,
+  observacao,
+
+  foto_url:fotoUrl,
+
+  latitude:
+    localizacaoValidada.latitude,
+
+  longitude:
+    localizacaoValidada.longitude,
+
+  precisao_gps:
+    localizacaoValidada.precisao_gps,
+
+  distancia_metros:
+    localizacaoValidada.distancia_metros,
+
+  captura_ao_vivo:true,
+
+  metodo_captura:"camera",
+
+  score_fraude:
+    fraude.score,
+
+  nivel_fraude:
+    fraude.nivel,
+
+  device_info:{
+    userAgent:navigator.userAgent,
+    plataforma:navigator.platform,
+    idioma:navigator.language
+  }
+
+})
 
     const resultado =
       await resposta.json();
@@ -1622,12 +1628,7 @@
     document.getElementById("cameraPlaceholder").style.display = "block";
     document.getElementById("cameraStatus").innerText = "Nenhuma foto capturada.";
 
-    const confirmacaoRegistro =
-      resultado?.nsr
-        ? `Ponto registrado com sucesso. NSR ${resultado.nsr}.`
-        : "Ponto registrado com sucesso.";
-
-    mostrarMensagem("sucesso", confirmacaoRegistro);
+    mostrarMensagem("sucesso", "✅ Ponto registrado com sucesso.");
 
     try{
       const { data: emailData, error: emailError } =

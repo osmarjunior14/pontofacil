@@ -18,8 +18,6 @@
 />
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./js/supabase-client.js"></script>
-<script src="./js/security-compliance.js"></script>
 
 <style>
 
@@ -492,13 +490,17 @@ Fechar
 
 <script>
 
-const supabaseClient = window.supabaseClient;
-const escapeHtml = PontoFacilSecurity.escapeHtml;
+const supabaseUrl =
+  "https://ixeeperktitbzmnvcaqz.supabase.co";
 
-if(!supabaseClient){
-  alert("Erro ao carregar Supabase.");
-  throw new Error("Supabase não carregado.");
-}
+const supabaseKey =
+  "SUA_ANON_KEY";
+
+const supabaseClient =
+  window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
 
 let logs = [];
 
@@ -611,32 +613,32 @@ function renderizarTabela(){
       <tr>
 
         <td>
-	          ${escapeHtml(new Date(log.created_at)
-	            .toLocaleString("pt-BR"))}
+          ${new Date(log.created_at)
+            .toLocaleString("pt-BR")}
         </td>
 
         <td>
-	          ${escapeHtml(log.email || "-")}
+          ${log.email || "-"}
         </td>
 
         <td>
           <div class="tipo-evento">
-	            ${escapeHtml(log.tipo_evento)}
+            ${log.tipo_evento}
           </div>
         </td>
 
         <td>
-	          <span class="badge-severidade ${escapeHtml(log.severidade)}">
-	            ${escapeHtml(log.severidade)}
+          <span class="badge-severidade ${log.severidade}">
+            ${log.severidade}
           </span>
         </td>
 
         <td>
-	          ${escapeHtml(log.distancia_metros || "-")}m
+          ${log.distancia_metros || "-"}m
         </td>
 
         <td>
-	          ${escapeHtml(log.ip || "-")}
+          ${log.ip || "-"}
         </td>
 
         <td>
@@ -670,49 +672,49 @@ function abrirDetalhes(log){
         <div class="col-md-6">
 
           <strong>Evento:</strong><br>
-	          ${escapeHtml(log.tipo_evento)}
+          ${log.tipo_evento}
 
         </div>
 
         <div class="col-md-6">
 
           <strong>Severidade:</strong><br>
-	          ${escapeHtml(log.severidade)}
+          ${log.severidade}
 
         </div>
 
         <div class="col-md-6">
 
           <strong>Email:</strong><br>
-	          ${escapeHtml(log.email || "-")}
+          ${log.email || "-"}
 
         </div>
 
         <div class="col-md-6">
 
           <strong>IP:</strong><br>
-	          ${escapeHtml(log.ip || "-")}
+          ${log.ip || "-"}
 
         </div>
 
         <div class="col-md-6">
 
           <strong>Latitude:</strong><br>
-	          ${escapeHtml(log.latitude || "-")}
+          ${log.latitude || "-"}
 
         </div>
 
         <div class="col-md-6">
 
           <strong>Longitude:</strong><br>
-	          ${escapeHtml(log.longitude || "-")}
+          ${log.longitude || "-"}
 
         </div>
 
         <div class="col-md-12">
 
           <strong>User-Agent:</strong><br>
-	          ${escapeHtml(log.user_agent || "-")}
+          ${log.user_agent || "-"}
 
         </div>
 
@@ -720,7 +722,7 @@ function abrirDetalhes(log){
 
           <strong>Descrição:</strong>
 
-	          <pre>${escapeHtml(log.descricao || "-")}</pre>
+          <pre>${log.descricao || "-"}</pre>
 
         </div>
 
@@ -728,7 +730,7 @@ function abrirDetalhes(log){
 
           <strong>Payload:</strong>
 
-	          <pre>${escapeHtml(JSON.stringify(log.payload, null, 2))}</pre>
+          <pre>${JSON.stringify(log.payload, null, 2)}</pre>
 
         </div>
 

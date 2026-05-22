@@ -9,7 +9,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-client.js"></script>
-<script src="./js/security-compliance.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
 <link rel="stylesheet"
@@ -1202,7 +1201,6 @@ window.location.href =
 }
 
 let empresaId = null;
-const escapeHtml = PontoFacilSecurity.escapeHtml;
 
 let logs = [];
 
@@ -1460,28 +1458,28 @@ function renderizarTabela(){
 
     tr.innerHTML = `
       <td>
-	        ${escapeHtml(new Date(log.created_at).toLocaleString("pt-BR"))}
+        ${new Date(log.created_at).toLocaleString("pt-BR")}
       </td>
 
       <td>
-	        ${escapeHtml(log.tipo_evento)}
+        ${log.tipo_evento}
       </td>
 
       <td>
-	        ${escapeHtml(log.email || "-")}
+        ${log.email || "-"}
       </td>
 
       <td>
-	        ${escapeHtml(log.ip || "-")}
+        ${log.ip || "-"}
       </td>
 
       <td>
-	        ${escapeHtml(log.distancia_metros || "-")}m
+        ${log.distancia_metros || "-"}m
       </td>
 
       <td>
         <span class="badge ${severidade.classe}">
-	          ${escapeHtml(severidade.texto)}
+          ${severidade.texto}
         </span>
       </td>
 
@@ -1553,42 +1551,42 @@ function abrirDetalhes(log){
   
     <div class="detail-card">
       <span>Evento</span>
-	      <strong>${escapeHtml(log.tipo_evento)}</strong>
+      <strong>${log.tipo_evento}</strong>
     </div>
 
     <div class="detail-card">
       <span>Email</span>
-	      <strong>${escapeHtml(log.email || "-")}</strong>
+      <strong>${log.email || "-"}</strong>
     </div>
 
     <div class="detail-card">
       <span>IP</span>
-	      <strong>${escapeHtml(log.ip || "-")}</strong>
+      <strong>${log.ip || "-"}</strong>
     </div>
 
     <div class="detail-card">
       <span>User-Agent</span>
-	      <strong>${escapeHtml(log.user_agent || "-")}</strong>
+      <strong>${log.user_agent || "-"}</strong>
     </div>
 
     <div class="detail-card">
       <span>Latitude</span>
-	      <strong>${escapeHtml(log.latitude || "-")}</strong>
+      <strong>${log.latitude || "-"}</strong>
     </div>
 
     <div class="detail-card">
       <span>Longitude</span>
-	      <strong>${escapeHtml(log.longitude || "-")}</strong>
+      <strong>${log.longitude || "-"}</strong>
     </div>
 
     <div class="detail-card">
       <span>Descrição</span>
-	      <strong>${escapeHtml(log.descricao || "-")}</strong>
+      <strong>${log.descricao || "-"}</strong>
     </div>
 
     <div class="detail-card">
       <span>Payload</span>
-	      <pre>${escapeHtml(JSON.stringify(log.payload,null,2))}</pre>
+      <pre>${JSON.stringify(log.payload,null,2)}</pre>
     </div>
 
   `;

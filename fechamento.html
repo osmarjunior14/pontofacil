@@ -7,7 +7,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-client.js"></script>
-  <script src="./js/security-compliance.js"></script>
 
   <style>
     *{box-sizing:border-box;margin:0;padding:0}
@@ -531,7 +530,7 @@ if(!supabaseClient){
 
     if(data.logo_url){
       document.getElementById("logoBox").innerHTML = `
-        <img src="${PontoFacilSecurity.escapeHtml(data.logo_url)}" alt="Logomarca da empresa">
+        <img src="${data.logo_url}" alt="Logomarca da empresa">
       `;
     }
   }
@@ -555,7 +554,7 @@ if(!supabaseClient){
     select.innerHTML = `
       <option value="">Selecione um funcionário</option>
       ${funcionarios.map(f => `
-        <option value="${PontoFacilSecurity.escapeHtml(f.id)}">${PontoFacilSecurity.escapeHtml(f.nome_completo)}</option>
+        <option value="${f.id}">${f.nome_completo}</option>
       `).join("")}
     `;
   }
@@ -678,11 +677,11 @@ if(!supabaseClient){
 
       return `
         <tr>
-	          <td>${PontoFacilSecurity.escapeHtml(linha.data)}</td>
-	          <td>${PontoFacilSecurity.escapeHtml(linha.entrada ? formatarHora(linha.entrada.data_hora) : "-")}</td>
-	          <td>${PontoFacilSecurity.escapeHtml(linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-")}</td>
-	          <td>${PontoFacilSecurity.escapeHtml(linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-")}</td>
-	          <td>${PontoFacilSecurity.escapeHtml(linha.saida ? formatarHora(linha.saida.data_hora) : "-")}</td>
+          <td>${linha.data}</td>
+          <td>${linha.entrada ? formatarHora(linha.entrada.data_hora) : "-"}</td>
+          <td>${linha.saida_intervalo ? formatarHora(linha.saida_intervalo.data_hora) : "-"}</td>
+          <td>${linha.retorno_intervalo ? formatarHora(linha.retorno_intervalo.data_hora) : "-"}</td>
+          <td>${linha.saida ? formatarHora(linha.saida.data_hora) : "-"}</td>
           <td>${minutosParaTexto(previstoDia)}</td>
           <td>${minutosParaTexto(trabalhado)}</td>
           <td class="${saldo > 0 ? "positivo" : saldo < 0 ? "negativo" : "neutro"}">

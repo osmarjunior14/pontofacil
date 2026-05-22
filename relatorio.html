@@ -6,8 +6,6 @@
   <title>PontoFácil - Relatório Mensal</title>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="./js/supabase-client.js"></script>
-  <script src="./js/security-compliance.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -832,14 +830,9 @@
 </div>
 
 <script>
-  const supabaseClient = window.supabaseClient;
-
-  if(!supabaseClient){
-    alert("Erro ao carregar Supabase.");
-    throw new Error("Supabase não carregado.");
-  }
-
-  const escapeHtml = PontoFacilSecurity.escapeHtml;
+  const supabaseUrl = "https://ixeeperktitbzmnvcaqz.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+  const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   let empresaId = null;
   let empresaNome = null;
@@ -1010,7 +1003,7 @@
 
     if(data.logo_url){
       document.getElementById("logoBox").innerHTML = `
-        <img src="${escapeHtml(data.logo_url)}" alt="Logomarca da empresa">
+        <img src="${data.logo_url}" alt="Logomarca da empresa">
       `;
     }
   }
@@ -1188,10 +1181,10 @@
   document.getElementById("filtroFuncionario").innerHTML = `
     <option value="todos">Todos os funcionários</option>
     ${ativos.map(f => `
-	      <option value="${escapeHtml(f.id)}">${escapeHtml(f.nome_completo)}</option>
+      <option value="${f.id}">${f.nome_completo}</option>
     `).join("")}
     ${funcionarios.filter(f => f.ativo === false).map(f => `
-	      <option value="${escapeHtml(f.id)}">${escapeHtml(f.nome_completo)} — INATIVO</option>
+      <option value="${f.id}">${f.nome_completo} — INATIVO</option>
     `).join("")}
   `;
 }
@@ -1226,13 +1219,11 @@
   function fotoHtml(url){
     if(!url) return `<span class="sem-foto">Sem foto</span>`;
 
-    const urlSeguro = escapeHtml(url);
-
     return `
       <img
         class="foto"
-        src="${urlSeguro}"
-        onclick="abrirModal('${urlSeguro}')"
+        src="${url}"
+        onclick="abrirModal('${url}')"
         onerror="this.style.display='none'"
       >
     `;
@@ -1249,13 +1240,10 @@
     const distancia = registro.distancia_metros !== null && registro.distancia_metros !== undefined ? `${registro.distancia_metros}m` : "-";
     const latitude = registro.latitude || "-";
     const longitude = registro.longitude || "-";
-    const nsr = registro.nsr || registro.numero_sequencial_registro || "-";
-    const hash = registro.hash_registro || registro.hash_sha256 || registro.codigo_verificacao || "-";
-    const dataServidor = registro.created_at || registro.data_hora_servidor || registro.data_hora;
 
     return `
       <div class="${atrasado ? "atraso" : "ok"}">
-        ${escapeHtml(hora)} ${atrasado ? "• Atraso" : ""}
+        ${hora} ${atrasado ? "• Atraso" : ""}
       </div>
 
       <div style="margin-top:6px;">
@@ -1263,14 +1251,11 @@
       </div>
 
       <div class="info-auditoria">
-        <span class="badge-captura ${capturaClasse}">${escapeHtml(capturaTexto)}</span>
-        <div><strong>Método:</strong> ${escapeHtml(metodo)}</div>
-        <div><strong>Distância:</strong> ${escapeHtml(distancia)}</div>
-        <div><strong>Latitude:</strong> ${escapeHtml(latitude)}</div>
-        <div><strong>Longitude:</strong> ${escapeHtml(longitude)}</div>
-        <div><strong>NSR:</strong> ${escapeHtml(nsr)}</div>
-        <div><strong>Hash:</strong> ${escapeHtml(String(hash).slice(0, 18))}${hash !== "-" ? "..." : ""}</div>
-        <div><strong>Servidor:</strong> ${escapeHtml(formatarHora(dataServidor))}</div>
+        <span class="badge-captura ${capturaClasse}">${capturaTexto}</span>
+        <div><strong>Método:</strong> ${metodo}</div>
+        <div><strong>Distância:</strong> ${distancia}</div>
+        <div><strong>Latitude:</strong> ${latitude}</div>
+        <div><strong>Longitude:</strong> ${longitude}</div>
       </div>
     `;
   }
@@ -1381,13 +1366,13 @@ if(haviaExpedientePrevisto && !diaCompleto){
       : "";
 
       return `
-	      <tr>
-	          <td>
-	            <div class="funcionario">${escapeHtml(linha.funcionarioNome)}</div>
-	            <div style="color:#64748b; font-size:12px;">${escapeHtml(f?.funcao || "")}</div>
-	            ${avisoSemExpediente}
-	          </td>
-	          <td>${escapeHtml(linha.data)}</td>
+      <tr>
+          <td>
+            <div class="funcionario">${linha.funcionarioNome}</div>
+            <div style="color:#64748b; font-size:12px;">${f?.funcao || ""}</div>
+            ${avisoSemExpediente}
+          </td>
+          <td>${linha.data}</td>
           <td>${montarCelula(linha.entrada, jornadaDiaTabela?.horario_entrada)}</td>
           <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.saida_intervalo, jornadaDiaTabela?.horario_intervalo)}</td>
           <td>${f?.sem_intervalo ? '<span class="sem-foto">Sem intervalo</span>' : montarCelula(linha.retorno_intervalo, jornadaDiaTabela?.horario_retorno)}</td>

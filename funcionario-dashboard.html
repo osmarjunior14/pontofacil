@@ -11,7 +11,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="./js/supabase-client.js"></script>
-  <script src="./js/security-compliance.js"></script>
   <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
@@ -1109,12 +1108,12 @@ async function carregarHistorico(){
             <div>
 
               <strong>
-	                ${PontoFacilSecurity.escapeHtml(registro.tipo.replaceAll("_"," "))}
+                ${registro.tipo.replaceAll("_"," ")}
               </strong>
 
               <small>
-	                ${PontoFacilSecurity.escapeHtml(new Date(registro.data_hora)
-	                  .toLocaleDateString("pt-BR"))}
+                ${new Date(registro.data_hora)
+                  .toLocaleDateString("pt-BR")}
               </small>
 
             </div>
@@ -1122,11 +1121,11 @@ async function carregarHistorico(){
           </div>
 
           <div class="hora">
-	            ${PontoFacilSecurity.escapeHtml(new Date(registro.data_hora)
-	              .toLocaleTimeString("pt-BR",{
-	                hour:"2-digit",
-	                minute:"2-digit"
-	              }))}
+            ${new Date(registro.data_hora)
+              .toLocaleTimeString("pt-BR",{
+                hour:"2-digit",
+                minute:"2-digit"
+              })}
           </div>
 
         </div>

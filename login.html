@@ -8,7 +8,6 @@
 <title>PontoFácil • Login</title>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="./js/supabase-client.js"></script>
 
 <link
 rel="stylesheet"
@@ -563,12 +562,17 @@ h1{
 
 <script>
 
-const supabaseClient = window.supabaseClient;
+const supabaseUrl =
+  "https://ixeeperktitbzmnvcaqz.supabase.co";
 
-if(!supabaseClient){
-  alert("Erro ao carregar Supabase.");
-  throw new Error("Supabase não carregado.");
-}
+const supabaseKey =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml4ZWVwZXJrdGl0YnptbnZjYXF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg3Njg1MTEsImV4cCI6MjA5NDM0NDUxMX0.E4nC-w8XRpk_X7vghkGfbXuJUHQneLUJy2DLw9NsuVQ";
+
+const supabaseClient =
+  window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
 
 const form =
   document.getElementById("loginForm");
@@ -715,7 +719,7 @@ async function redirecionarUsuario(userId){
   if(data.perfil === "funcionario"){
 
     window.location.href =
-      "./funcionario-dashboard.html";
+      "./bater-ponto.html";
 
     return;
   }
