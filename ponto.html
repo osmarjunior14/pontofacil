@@ -1230,7 +1230,17 @@
       return null;
     }
 
-    if(!empresaDados.latitude || !empresaDados.longitude){
+    if(
+
+  empresaDados.latitude === null ||
+
+  empresaDados.latitude === undefined ||
+
+  empresaDados.longitude === null ||
+
+  empresaDados.longitude === undefined
+
+)
       mostrarMensagem("erro", "Esta empresa ainda não possui localização GPS cadastrada.");
       return null;
     }
@@ -1440,7 +1450,7 @@
 
     document.getElementById("mensagem").innerHTML = "";
 
-    if(!funcionarioId){
+    if(funcionarioId === null || funcionarioId === undefined)
       mostrarMensagem("erro", "Funcionário não identificado. Faça login novamente.");
       return;
     }
@@ -1700,7 +1710,7 @@
       funcionarioLogado.id
     );
   }
-
+  console.log("SISTEMA INICIADO");
   iniciar();
 </script>
 
