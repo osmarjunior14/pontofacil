@@ -1179,13 +1179,13 @@
 
   let nivel = "baixo";
 
-  if(score >= 50){
+  if(score >= 70){
 
     nivel = "critico";
 
   }else if(score >= 25){
 
-    nivel = "suspeito";
+    nivel = "medio";
 
   }
 
@@ -1599,6 +1599,9 @@
   }
 
 })
+    })
+
+});
 
     const resultado =
       await resposta.json();
