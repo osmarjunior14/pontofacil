@@ -1153,28 +1153,41 @@
   }
 
   function calcularScoreFraude({
+
   precisaoGps,
+
   distanciaMetros,
+
   capturaAoVivo,
+
   metodoCaptura
+
 }){
 
   let score = 0;
 
   if(capturaAoVivo !== true){
+
     score += 40;
+
   }
 
   if(metodoCaptura !== "camera"){
+
     score += 30;
+
   }
 
   if(precisaoGps > 80){
+
     score += 15;
+
   }
 
   if(distanciaMetros > 30){
+
     score += 10;
+
   }
 
   let nivel = "baixo";
@@ -1190,8 +1203,11 @@
   }
 
   return {
+
     score,
+
     nivel
+
   };
 
 }
@@ -1268,13 +1284,13 @@
 
       return {
 
-  latitude:localizacao.latitude,
+  latitude: localizacao.latitude,
 
-  longitude:localizacao.longitude,
+  longitude: localizacao.longitude,
 
-  precisao_gps:localizacao.precisao,
+  precisao_gps: localizacao.precisao,
 
-  distancia_metros:Math.round(distancia)
+  distancia_metros: Math.round(distancia)
 
 };
 
