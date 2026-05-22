@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
 
-<meta charset="UTF-8">
+<meta charset="UTF-8" />
 
 <meta
   name="viewport"
@@ -51,6 +52,16 @@
 
 }
 
+*::-webkit-scrollbar{
+  width:8px;
+  height:8px;
+}
+
+*::-webkit-scrollbar-thumb{
+  background:#cbd5e1;
+  border-radius:999px;
+}
+
 body{
 
   font-family:Arial,sans-serif;
@@ -72,6 +83,10 @@ body{
 
   min-height:100vh;
 
+}
+
+button{
+  font-family:inherit;
 }
 
 .layout{
@@ -106,6 +121,7 @@ body{
   padding:28px 24px;
 
   display:flex;
+
   flex-direction:column;
 
   gap:24px;
@@ -343,6 +359,8 @@ body{
 
   padding:34px 42px 28px;
 
+  overflow-x:hidden;
+
 }
 
 .antifraude-btn{
@@ -379,6 +397,14 @@ body{
 
   margin-bottom:26px;
 
+  transition:.2s;
+
+}
+
+.antifraude-btn:hover{
+
+  transform:translateY(-2px);
+
 }
 
 .cards{
@@ -409,6 +435,14 @@ body{
 
   box-shadow:
     0 18px 46px rgba(15,23,42,.06);
+
+  transition:.2s;
+
+}
+
+.metric-card:hover{
+
+  transform:translateY(-3px);
 
 }
 
@@ -488,10 +522,6 @@ body{
   color:#f97316;
 }
 
-.metric-card.purple strong{
-  color:#7c3aed;
-}
-
 .metric-note{
 
   margin-top:12px;
@@ -561,15 +591,11 @@ body{
 }
 
 .chart-box{
-
   height:320px;
-
 }
 
 .ultimos-lista{
-
   min-height:320px;
-
 }
 
 .registro{
@@ -617,6 +643,14 @@ body{
 
 .badge{
 
+  display:inline-flex;
+
+  align-items:center;
+
+  justify-content:center;
+
+  min-width:110px;
+
   padding:6px 10px;
 
   border-radius:999px;
@@ -626,6 +660,10 @@ body{
   font-weight:900;
 
   color:white;
+
+  text-transform:capitalize;
+
+  letter-spacing:.3px;
 
 }
 
@@ -661,6 +699,8 @@ body{
 
   z-index:9999;
 
+  cursor:zoom-out;
+
 }
 
 .modal img{
@@ -689,6 +729,14 @@ body{
 
   .grid-bottom{
     grid-template-columns:1fr;
+  }
+
+  #mobileMenu{
+    display:flex!important;
+  }
+
+  .antifraude-btn{
+    width:100%;
   }
 
 }
@@ -735,51 +783,38 @@ body{
     <nav class="menu">
 
       <button class="active">
-
         <i data-lucide="layout-dashboard"></i>
-
         Dashboard
-
       </button>
 
       <button onclick="window.location.href='./funcionarios.html'">
-
         <i data-lucide="users"></i>
-
         Funcionários
-
       </button>
 
       <button onclick="window.location.href='./relatorio.html'">
-
         <i data-lucide="clipboard-list"></i>
+        Registros
+      </button>
 
-        Relatórios
-
+      <button onclick="window.location.href='./banco-horas.html'">
+        <i data-lucide="clock-3"></i>
+        Banco de horas
       </button>
 
       <button onclick="window.location.href='./painel-antifraude.html'">
-
         <i data-lucide="shield-alert"></i>
-
         Antifraude
-
       </button>
 
       <button onclick="window.location.href='./logs-antifraude.html'">
-
         <i data-lucide="history"></i>
-
         Logs antifraude
-
       </button>
 
       <button onclick="window.location.href='./painel-admin.html'">
-
         <i data-lucide="shield"></i>
-
         Painel admin
-
       </button>
 
     </nav>
@@ -837,6 +872,39 @@ body{
 
   <main class="main">
 
+    <div
+      id="mobileMenu"
+      style="
+      display:none;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom:20px;
+      "
+    >
+
+      <button
+        class="antifraude-btn"
+        onclick="window.location.href='./funcionarios.html'"
+      >
+        Funcionários
+      </button>
+
+      <button
+        class="antifraude-btn"
+        onclick="window.location.href='./relatorio.html'"
+      >
+        Registros
+      </button>
+
+      <button
+        class="antifraude-btn"
+        onclick="window.location.href='./banco-horas.html'"
+      >
+        Banco de horas
+      </button>
+
+    </div>
+
     <button
       class="antifraude-btn"
       onclick="window.location.href='./painel-antifraude.html'"
@@ -847,6 +915,94 @@ body{
       Abrir painel antifraude
 
     </button>
+
+    <div style="
+
+      margin-bottom:22px;
+
+      display:flex;
+
+      justify-content:space-between;
+
+      align-items:center;
+
+      flex-wrap:wrap;
+
+      gap:14px;
+
+    ">
+
+      <div>
+
+        <h1 style="
+
+          font-size:34px;
+
+          color:#0f274c;
+
+          font-weight:900;
+
+          margin-bottom:6px;
+
+        ">
+
+          Dashboard
+
+        </h1>
+
+        <p style="
+
+          color:#64748b;
+
+          font-weight:700;
+
+        ">
+
+          Gestão inteligente de ponto eletrônico
+
+        </p>
+
+      </div>
+
+      <div style="
+
+        background:white;
+
+        border:1px solid #e2e8f0;
+
+        border-radius:16px;
+
+        padding:14px 18px;
+
+        box-shadow:0 10px 30px rgba(15,23,42,.05);
+
+      ">
+
+        <small style="
+
+          display:block;
+
+          color:#64748b;
+
+          margin-bottom:4px;
+
+          font-weight:700;
+
+        ">
+
+          Empresa
+
+        </small>
+
+        <strong id="empresaNomeTopo">
+
+          Carregando...
+
+        </strong>
+
+      </div>
+
+    </div>
 
     <section class="cards">
 
@@ -1055,6 +1211,8 @@ let registrosHoje = [];
 
 let graficoHoje = null;
 
+let timeoutRealtime;
+
 async function carregarEmpresa(){
 
   const {
@@ -1131,6 +1289,22 @@ async function carregarEmpresa(){
   document.getElementById(
     "empresaNomeSidebar"
   ).innerText = empresa.nome;
+
+  document.getElementById(
+    "empresaNomeTopo"
+  ).innerText = empresa.nome;
+
+  document.getElementById(
+    "nomeGestor"
+  ).innerText =
+    user.email || "Gestor";
+
+  document.getElementById(
+    "avatarAdmin"
+  ).innerText =
+    (empresa.nome || "G")
+      .charAt(0)
+      .toUpperCase();
 
   return true;
 
@@ -1257,9 +1431,43 @@ async function carregarDashboard(){
   ).innerText =
     suspeitos;
 
+  calcularAtrasos();
+
   renderizarUltimos();
 
   renderizarGrafico();
+
+}
+
+function calcularAtrasos(){
+
+  let atrasos = 0;
+
+  registrosHoje.forEach(registro => {
+
+    if(registro.tipo !== "entrada") return;
+
+    const horarioRegistro =
+      new Date(registro.data_hora);
+
+    const hora =
+      horarioRegistro.getHours();
+
+    const minuto =
+      horarioRegistro.getMinutes();
+
+    const totalRegistro =
+      hora * 60 + minuto;
+
+    if(totalRegistro > (8 * 60 + 10)){
+      atrasos++;
+    }
+
+  });
+
+  document.getElementById(
+    "totalAtrasos"
+  ).innerText = atrasos;
 
 }
 
@@ -1279,13 +1487,17 @@ function renderizarUltimos(){
 
   }
 
+  const funcionariosMap = {};
+
+  funcionarios.forEach(f => {
+    funcionariosMap[f.id] = f;
+  });
+
   lista.innerHTML =
     registrosHoje.slice(0,8).map(registro => {
 
       const funcionario =
-        funcionarios.find(
-          f => f.id === registro.funcionario_id
-        );
+        funcionariosMap[registro.funcionario_id];
 
       return `
 
@@ -1294,9 +1506,17 @@ function renderizarUltimos(){
           <div class="registro-esquerda">
 
             <img
+
               class="foto"
-              src="${registro.foto_url || ""}"
-              onclick="abrirModal('${registro.foto_url || ""}')"
+
+              src="${registro.foto_url || './user.png'}"
+
+              onclick="${
+                registro.foto_url
+                  ? `abrirModal('${registro.foto_url}')`
+                  : ''
+              }"
+
             >
 
             <div>
@@ -1338,7 +1558,8 @@ function renderizarGrafico(){
 
       registrosHoje.filter(r =>
 
-        new Date(r.data_hora).getHours() === hora
+        new Date(r.data_hora)
+          .getHours() === hora
 
       ).length
 
@@ -1375,7 +1596,14 @@ function renderizarGrafico(){
 
           borderColor:"#2563eb",
 
-          backgroundColor:"rgba(37,99,235,.12)",
+          borderWidth:3,
+
+          pointRadius:4,
+
+          pointHoverRadius:6,
+
+          backgroundColor:
+            "rgba(37,99,235,.12)",
 
           fill:true,
 
@@ -1389,11 +1617,65 @@ function renderizarGrafico(){
 
         responsive:true,
 
-        maintainAspectRatio:false
+        maintainAspectRatio:false,
+
+        plugins:{
+          legend:{
+            display:false
+          }
+        },
+
+        scales:{
+          y:{
+            beginAtZero:true,
+            ticks:{
+              precision:0
+            }
+          }
+        }
 
       }
 
     });
+
+}
+
+function iniciarRealtime(){
+
+  supabaseClient
+
+    .channel("dashboard-realtime")
+
+    .on(
+
+      "postgres_changes",
+
+      {
+
+        event:"*",
+
+        schema:"public",
+
+        table:"registros_ponto"
+
+      },
+
+      () => {
+
+        clearTimeout(timeoutRealtime);
+
+        timeoutRealtime =
+          setTimeout(() => {
+
+            carregarDashboard();
+
+          },500);
+
+      }
+
+    )
+
+    .subscribe();
 
 }
 
@@ -1421,10 +1703,15 @@ async function iniciar(){
 
   await carregarDashboard();
 
-  setInterval(
-    carregarDashboard,
-    30000
-  );
+  iniciarRealtime();
+
+  setInterval(async () => {
+
+    if(document.hidden) return;
+
+    await carregarDashboard();
+
+  },30000);
 
 }
 
@@ -1433,4 +1720,5 @@ iniciar();
 </script>
 
 </body>
+
 </html>
